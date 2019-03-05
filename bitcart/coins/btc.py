@@ -1,8 +1,5 @@
 # pylint: disable=import-error, invalid-sequence-index
-import time
 import sys
-import asyncio
-import electrum
 sys.path.append("..")
 try:
     from ..coin import Coin
