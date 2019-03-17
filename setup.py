@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 setup(
   name = 'bitcart',  
   packages = find_packages(),
-  version = '0.1',    
+  version = '0.1.1',    
   license='MIT',       
   description = open("README.md").read(),
   author = 'MrNaif2018',               
@@ -12,6 +12,7 @@ setup(
   keywords = ['electrum',' daemon', 'bitcart'], 
   install_requires=[        
           'requests',
+          'simplejson'
       ],
   classifiers=[
     'Development Status :: 3 - Alpha',   

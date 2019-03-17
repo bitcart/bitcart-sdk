@@ -1,0 +1,5 @@
+#vscode, dists
+.vscode/
+dist/
+bitcart.egg-info/
+build/

@@ -11,7 +11,7 @@ try:
 except ImportError:
     raise ImportError("You must install requests library first!")
 try:
-    from ujson import loads as json_loads
+    from simplejson import loads as json_loads
 except (ImportError,ValueError):
     from json import loads as json_loads
 import warnings
