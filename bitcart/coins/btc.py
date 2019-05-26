@@ -45,7 +45,8 @@ class BTC(Coin):
                 "unmatured": data.get("unmatured")}
 
     def addrequest(self, amount, description="", expire=15) -> dict:
-        return self.server.addrequest(amount=amount, memo=description, expiration=60*expire, force=True)
+        expiration = 60*expire if expire else None
+        return self.server.addrequest(amount=amount, memo=description, expiration=expiration, force=True)
 
     def getrequest(self, address: str) -> dict:
         return self.server.getrequest(address)
