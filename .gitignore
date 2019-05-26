@@ -3,3 +3,7 @@
 dist/
 bitcart.egg-info/
 build/
+__pycache__/
+backup/
+backups/
+.idea/
