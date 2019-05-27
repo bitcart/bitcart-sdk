@@ -80,3 +80,8 @@ class BTC(Coin):
             if data:
                 self.notify_func(data)
             time.sleep(timeout)
+
+    def pay_to(self, address: str, amount: float) -> str:
+        """Send transaction to network and return tx hash"""
+        tx_data = self.server.payto(address, amount)
+        return self.server.broadcast(tx_data)
