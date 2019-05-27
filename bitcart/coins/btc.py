@@ -54,14 +54,22 @@ class BTC(Coin):
     def history(self) -> list:
         return self.server.history()
 
-    def notify(self, f):
-        self.notify_func = f
-        return f
+    def notify(self, f=None, skip=True):
+        def wrapper(f):
+            self.notify_func = f
+            self.skip = skip
+            return f
+        if f:
+            wrapper(f)
+            return f
+        else:
+            return wrapper
 
     def poll_updates(self, timeout=2):
         if not self.notify_func:
             raise AttributeError(
                 "No notification function set. Set it with @notify decorator")
+        self.server.register_notify(skip=self.skip)
         while True:
             try:
                 data = self.server.notify_tx()
