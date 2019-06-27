@@ -18,7 +18,13 @@ import warnings
 
 
 class RPCProxy:
-    def __init__(self, url, username=None, password=None, xpub=None, verify=True):
+    def __init__(
+            self,
+            url,
+            username=None,
+            password=None,
+            xpub=None,
+            verify=True):
         self.url = url
         self.username = username
         self.password = password
@@ -39,8 +45,13 @@ class RPCProxy:
         dict_to_send = {"id": 0, "method": method, "params": arg}
         if self.xpub:
             dict_to_send["xpub"] = self.xpub
-        response = requests.post(self.url, headers={
-                                 'content-type': 'application/json'}, json=dict_to_send, auth=auth, verify=self.verify)
+        response = requests.post(
+            self.url,
+            headers={
+                'content-type': 'application/json'},
+            json=dict_to_send,
+            auth=auth,
+            verify=self.verify)
         response.raise_for_status()
         json = response.json()
         if json["error"]:
@@ -48,7 +59,7 @@ class RPCProxy:
         if json["id"] != 0:
             warnings.warn("ID mismatch!")
         result = json.get("result", {})
-        if type(result) == str:
+        if isinstance(result, str):
             try:
                 result = json_loads(result)
             except Exception:

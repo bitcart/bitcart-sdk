@@ -1,4 +1,4 @@
-#vscode, dists
+# vscode, dists
 .vscode/
 dist/
 *.egg-info/
@@ -7,3 +7,4 @@ __pycache__/
 backup/
 backups/
 .idea/
+.mypy_cache/

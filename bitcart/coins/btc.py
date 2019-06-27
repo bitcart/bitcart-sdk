@@ -2,11 +2,7 @@
 import sys
 import time
 import logging
-sys.path.append("..")
-try:
-    from ..coin import Coin
-except (ValueError, ImportError):
-    from coin import Coin
+from ..coin import Coin
 
 
 class BTC(Coin):
@@ -45,8 +41,12 @@ class BTC(Coin):
                 "unmatured": data.get("unmatured")}
 
     def addrequest(self, amount, description="", expire=15) -> dict:
-        expiration = 60*expire if expire else None
-        return self.server.addrequest(amount=amount, memo=description, expiration=expiration, force=True)
+        expiration = 60 * expire if expire else None
+        return self.server.addrequest(
+            amount=amount,
+            memo=description,
+            expiration=expiration,
+            force=True)
 
     def getrequest(self, address: str) -> dict:
         return self.server.getrequest(address)

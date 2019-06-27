@@ -1,7 +1,7 @@
-import sys
 import importlib
+from typing import Iterable
+SYSTEM_PACKAGES = ["electrum"]
 
-SYSTEM_PACKAGES=["electrum"]
 
 class Coin:
     """Coins should reimplement some methods,
@@ -13,16 +13,17 @@ class Coin:
     For more info see the docs.
     """
 
-    coin_name="Base"
-    friendly_name="Base"
-    providers=[]
+    coin_name = "Base"
+    friendly_name = "Base"
+    providers: Iterable[str] = []
 
     def __init__(self):
         # Initialize the providers.
         self.providers_new = {}
         for i in self.providers:
             if i not in SYSTEM_PACKAGES:
-                self.providers_new[i] = importlib.import_module(".providers."+i,"bitcart")
+                self.providers_new[i] = importlib.import_module(
+                    ".providers." + i, "bitcart")
             else:
                 self.providers_new[i] = importlib.import_module(i)
         self.providers = self.providers_new
