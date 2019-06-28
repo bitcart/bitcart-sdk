@@ -1,5 +1,6 @@
 import importlib
-from typing import Dict, Iterable, ModuleType
+from typing import Dict, Iterable
+from typing.types import ModuleType
 SYSTEM_PACKAGES = ["electrum"]
 
 
