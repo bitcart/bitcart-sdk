@@ -17,9 +17,9 @@ class Coin:
     friendly_name = "Base"
     providers: Iterable[str] = []
 
-    def __init__(self):
+    def __init__(self) -> None:
         # Initialize the providers.
-        self.providers_new = {}
+        self.providers_new: Dict[str, module] = {}
         for i in self.providers:
             if i not in SYSTEM_PACKAGES:
                 self.providers_new[i] = importlib.import_module(
