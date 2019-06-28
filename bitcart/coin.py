@@ -1,5 +1,5 @@
 import importlib
-from typing import Iterable
+from typing import Dict, Iterable, ModuleType
 SYSTEM_PACKAGES = ["electrum"]
 
 
@@ -19,7 +19,7 @@ class Coin:
 
     def __init__(self) -> None:
         # Initialize the providers.
-        self.providers_new: Dict[str, module] = {}
+        self.providers_new: Dict[str, ModuleType] = {}
         for i in self.providers:
             if i not in SYSTEM_PACKAGES:
                 self.providers_new[i] = importlib.import_module(
