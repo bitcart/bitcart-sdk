@@ -37,7 +37,7 @@ jobs:
             python3 -m venv venv
             . venv/bin/activate
             python setup.py install      
-            pip install pytest pylint mypy
+            pip install pytest pytest-cov pylint mypy
 
       - save_cache:
           paths:
