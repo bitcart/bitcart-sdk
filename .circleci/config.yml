@@ -51,7 +51,6 @@ jobs:
             . venv/bin/activate
             pylint -E bitcart
             mypy bitcart
-            pytest --cov=.
 
       - store_artifacts:
           path: test-reports
