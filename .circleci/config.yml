@@ -4,7 +4,7 @@
 #
 version: 2
 jobs:
-  build:
+  test:
     docker:
       # specify the version you desire here
       # use `-browsers` prefix for selenium tests, e.g. `3.6.1-browsers`
@@ -15,11 +15,6 @@ jobs:
       # documented at https://circleci.com/docs/2.0/circleci-images
 
     working_directory: ~/repo
-
-    environment: 
-      DEBUG: false
-      TEST: true
-      DJANGO_SETTINGS_MODULE: mainsite.settings
 
     steps:
       - checkout
@@ -46,7 +41,6 @@ jobs:
 
       - run:
           name: run tests
-          context: global
           command: |
             . venv/bin/activate
             pylint -E bitcart
@@ -55,4 +49,41 @@ jobs:
       - store_artifacts:
           path: test-reports
           destination: test-reports
+  deploy:
+    docker:
+       - image: circleci/python:3.6.8
+    steps:
+      - checkout
+      - run:
+          name: setup credentials
+          command: |
+            echo -e "[pypi]" >> ~/.pypirc
+            echo -e "username = $PYPI_USER"" >> ~/.pypirc
+            echo -e "password = $PYPI_PASS" >> ~/.pypirc
+      - run:
+          name: create env, build dist and upload
+          command: |
+            python3 -m venv venv
+            . venv/bin/activate
+            python setup.py sdist 
+            python setup.py bdist_wheel
+            twine upload dist/*
+
+            
+      
+
           
+workflows:
+  version: 2
+  test_and_deploy:
+    jobs:
+      - test
+      - deploy:
+          context: global
+          requires:
+            - test
+          filters:
+            tags:
+              only: /[0-9]+(\.[0-9]+)*/
+            branches:
+              ignore: /.*/
