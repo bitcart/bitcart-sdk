@@ -1,11 +1,7 @@
-# *-* coding:utf-8 *-*
-'''Author: Alexey Drozdov(MrNaif)
-Company name: Naif Studios
+'''Author: MrNaif2018
 Email: chuff184@gmail.com'''
-__author__ = "Alexey Drozdov(MrNaif)"
-__company__ = "Naif Studios"
+__author__ = "MrNaif2018"
 __email__ = "chuff184@gmail.com"
-__copyright__ = True
 try:
     import requests
 except ImportError:
@@ -15,33 +11,39 @@ try:
 except (ImportError, ValueError):
     from json import loads as json_loads
 import warnings
+from typing import Any, Optional, Union, Callable
 
 
 class RPCProxy:
     def __init__(
-            self,
-            url,
-            username=None,
-            password=None,
-            xpub=None,
-            verify=True):
+            self: 'RPCProxy',
+            url: str,
+            username: Optional[str] = None,
+            password: Optional[str] = None,
+            xpub: Optional[str] = None,
+            verify: Optional[bool] = True):
         self.url = url
         self.username = username
         self.password = password
         self.xpub = xpub
         self.verify = verify
 
-    def _send_request(self, method, *args, **kwargs):
+    def _send_request(
+            self: 'RPCProxy',
+            method: str,
+            *args: Any,
+            **kwargs: Any) -> Any:
         if not self.username or not self.password:
             auth = None
         else:
             auth = (self.username, self.password)
+        arg: Union[dict, tuple]
         if args:
             arg = args
         elif kwargs:
             arg = kwargs
         else:
-            arg = []
+            arg = ()
         dict_to_send = {"id": 0, "method": method, "params": arg}
         if self.xpub:
             dict_to_send["xpub"] = self.xpub
@@ -66,7 +68,11 @@ class RPCProxy:
                 pass
         return result
 
-    def __getattr__(self, method, *args, **kwargs):
-        def wrapper(*args, **kwargs):
+    def __getattr__(
+            self: 'RPCProxy',
+            method: str,
+            *args: Any,
+            **kwargs: Any) -> Callable:
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
             return self._send_request(method, *args, **kwargs)
         return wrapper
