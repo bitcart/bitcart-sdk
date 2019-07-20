@@ -12,12 +12,15 @@ class BTC(Coin):
     friendly_name = "Bitcoin"
     providers: Union[Iterable[str], Dict[str, ModuleType]] = [
         "jsonrpcrequests"]
+    RPC_URL = "http://localhost:5000"
+    RPC_USER = "electrum"
+    RPC_PASS = "electrumz"
 
     def __init__(
             self: "BTC",
-            rpc_url: str,
-            rpc_user: Optional[str] = None,
-            rpc_pass: Optional[str] = None,
+            rpc_url: Optional[str] = RPC_URL,
+            rpc_user: Optional[str] = RPC_USER,
+            rpc_pass: Optional[str] = RPC_PASS,
             xpub: Optional[str] = None):
         super().__init__()
         self.rpc_url = rpc_url
