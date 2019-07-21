@@ -18,18 +18,21 @@ class BTC(Coin):
 
     def __init__(
             self: "BTC",
-            rpc_url: Optional[str] = RPC_URL,
-            rpc_user: Optional[str] = RPC_USER,
-            rpc_pass: Optional[str] = RPC_PASS,
+            rpc_url: Optional[str] = None,
+            rpc_user: Optional[str] = None,
+            rpc_pass: Optional[str] = None,
             xpub: Optional[str] = None):
         super().__init__()
-        self.rpc_url = rpc_url
-        self.rpc_user = rpc_user
-        self.rpc_pass = rpc_pass
+        self.rpc_url = rpc_url or self.RPC_URL
+        self.rpc_user = rpc_user or self.RPC_USER
+        self.rpc_pass = rpc_pass or self.RPC_PASS
         self.xpub = xpub
         self.notify_func: Optional[Callable] = None
         self.server = self.providers["jsonrpcrequests"].RPCProxy(  # type: ignore
             self.rpc_url, self.rpc_user, self.rpc_pass, self.xpub)
+
+    def help(self) -> list:
+        return self.server.help()
 
     def get_tx(self, tx: str) -> dict:
         out: dict = self.server.get_transaction(tx)
@@ -47,9 +50,9 @@ class BTC(Coin):
 
     def balance(self) -> dict:
         data = self.server.getbalance()
-        return {"confirmed": data.get("confirmed"),
-                "unconfirmed": data.get("unconfirmed"),
-                "unmatured": data.get("unmatured")}
+        return {"confirmed": data.get("confirmed", 0),
+                "unconfirmed": data.get("unconfirmed", 0),
+                "unmatured": data.get("unmatured", 0)}
 
     def addrequest(self: 'BTC',
                    amount: Union[int, float],

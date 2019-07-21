@@ -30,6 +30,11 @@ class Coin:
         self.providers = self.providers_new
         del self.providers_new
 
+    def help(self) -> list:
+        """Get list of rpc methods"""
+        # TODO: add proper doc  
+        raise NotImplementedError()
+
     def get_tx(self, tx: str) -> dict:
         """Get transaction information
 
