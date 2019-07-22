@@ -4,6 +4,7 @@ import time
 import logging
 from typing import Optional, Iterable, Union, Dict, SupportsInt, SupportsFloat, Callable
 from types import ModuleType
+import warnings
 from ..coin import Coin
 
 
@@ -23,6 +24,10 @@ class BTC(Coin):
             rpc_pass: Optional[str] = None,
             xpub: Optional[str] = None):
         super().__init__()
+        if not xpub:
+            warnings.warn(
+                "Xpub not provided. Not all functions will be available.",
+                stacklevel=2)
         self.rpc_url = rpc_url or self.RPC_URL
         self.rpc_user = rpc_user or self.RPC_USER
         self.rpc_pass = rpc_pass or self.RPC_PASS
@@ -32,7 +37,7 @@ class BTC(Coin):
             self.rpc_url, self.rpc_user, self.rpc_pass, self.xpub)
 
     def help(self) -> list:
-        return self.server.help()
+        return self.server.help()  # type: ignore
 
     def get_tx(self, tx: str) -> dict:
         out: dict = self.server.get_transaction(tx)

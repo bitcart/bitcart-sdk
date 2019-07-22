@@ -31,8 +31,16 @@ class Coin:
         del self.providers_new
 
     def help(self) -> list:
-        """Get list of rpc methods"""
-        # TODO: add proper doc  
+        """Get help
+
+        Returns a list of all available RPC methods
+
+        Raises:
+            NotImplementedError: Implement in your subclass
+
+        Returns:
+            list: RPC methods list
+        """
         raise NotImplementedError()
 
     def get_tx(self, tx: str) -> dict:
@@ -83,7 +91,7 @@ class Coin:
         Example:
 
         >>> self.balance()
-        {"confirmed": "0.00005", "unconfirmed": None, "unmatured": None}
+        {"confirmed": "0.00005", "unconfirmed": 0, "unmatured": 0}
 
         Raises:
             NotImplementedError: Implement in your subclass
