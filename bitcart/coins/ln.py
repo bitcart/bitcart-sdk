@@ -82,3 +82,33 @@ class LN(BTC):
             str: tx_id of closed channel
         """
         return self.server.close_channel(channel_id, force)  # type: ignore
+
+    @property
+    def node_id(self) -> str:
+        """Get node id
+
+        Electrum's lightning implementation itself is a lightning node,
+        that way you can get a super light node, this method returns it's id
+
+        Example:
+
+        >>> a.node_id
+        '030ff29580149a366bdddf148713fa808f0f4b934dccd5f7820f3d613e03c86e55'
+
+        Returns:
+            str: id of your node
+        """
+        return self.server.nodeid()  # type: ignore
+
+    def lnpay(self, invoice: str) -> bool:
+        """Pay lightning invoice
+
+        Returns True on success, False otherwise
+
+        Args:
+            invoice (str): invoice to pay
+
+        Returns:
+            bool: success or not
+        """
+        return self.server.lnpay(invoice)  # type: ignore
