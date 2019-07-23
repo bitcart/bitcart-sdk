@@ -112,3 +112,35 @@ class LN(BTC):
             bool: success or not
         """
         return self.server.lnpay(invoice)  # type: ignore
+
+    def connect(self, connection_string: str) -> bool:
+        """Connect to lightning node
+        
+        connection string must respect format pubkey@ipaddress
+        
+        Args:
+            connection_string (str): connection string
+        
+        Returns:
+            bool: True on success, False otherwise
+        """
+        return self.server.add_peer(connection_string) # type: ignore
+
+    def list_channels(self) -> list:
+        """List all channels ever opened
+        
+        Possible channel statuses:
+        OPENING, OPEN, CLOSED, DISCONNECTED
+
+        Example:
+
+        >>> a.server.list_channels()
+        [{'local_htlcs': {'adds': {}, 'locked_in': {}, 'settles': {}, 'fails': {}}, 'remote_htlcs': ...
+
+        Returns:
+            list: list of channels
+        """
+        return self.server.list_channels() # type: ignore
+
+    def history(self) -> list:
+        return self.server.onchain_history() # type: ignore

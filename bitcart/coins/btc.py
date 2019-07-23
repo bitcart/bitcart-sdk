@@ -40,12 +40,7 @@ class BTC(Coin):
         return self.server.help()  # type: ignore
 
     def get_tx(self, tx: str) -> dict:
-        out: dict = self.server.get_transaction(tx)
-        try:
-            out["input"] = out["inputs"][0]["address"]
-        except (KeyError, IndexError):
-            out["input"] = None
-        return out
+        return self.server.get_transaction(tx) # type: ignore
 
     def get_address(self, address: str) -> list:
         out: list = self.server.getaddresshistory(address)
