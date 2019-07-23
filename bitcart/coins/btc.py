@@ -4,6 +4,7 @@ import time
 import logging
 from typing import Optional, Iterable, Union, Dict, SupportsInt, SupportsFloat, Callable
 from types import ModuleType
+import warnings
 from ..coin import Coin
 
 
@@ -12,29 +13,34 @@ class BTC(Coin):
     friendly_name = "Bitcoin"
     providers: Union[Iterable[str], Dict[str, ModuleType]] = [
         "jsonrpcrequests"]
+    RPC_URL = "http://localhost:5000"
+    RPC_USER = "electrum"
+    RPC_PASS = "electrumz"
 
     def __init__(
             self: "BTC",
-            rpc_url: str,
+            rpc_url: Optional[str] = None,
             rpc_user: Optional[str] = None,
             rpc_pass: Optional[str] = None,
             xpub: Optional[str] = None):
         super().__init__()
-        self.rpc_url = rpc_url
-        self.rpc_user = rpc_user
-        self.rpc_pass = rpc_pass
+        if not xpub:
+            warnings.warn(
+                "Xpub not provided. Not all functions will be available.",
+                stacklevel=2)
+        self.rpc_url = rpc_url or self.RPC_URL
+        self.rpc_user = rpc_user or self.RPC_USER
+        self.rpc_pass = rpc_pass or self.RPC_PASS
         self.xpub = xpub
         self.notify_func: Optional[Callable] = None
         self.server = self.providers["jsonrpcrequests"].RPCProxy(  # type: ignore
             self.rpc_url, self.rpc_user, self.rpc_pass, self.xpub)
 
+    def help(self) -> list:
+        return self.server.help()  # type: ignore
+
     def get_tx(self, tx: str) -> dict:
-        out: dict = self.server.get_transaction(tx)
-        try:
-            out["input"] = out["inputs"][0]["address"]
-        except (KeyError, IndexError):
-            out["input"] = None
-        return out
+        return self.server.get_transaction(tx) # type: ignore
 
     def get_address(self, address: str) -> list:
         out: list = self.server.getaddresshistory(address)
@@ -44,9 +50,9 @@ class BTC(Coin):
 
     def balance(self) -> dict:
         data = self.server.getbalance()
-        return {"confirmed": data.get("confirmed"),
-                "unconfirmed": data.get("unconfirmed"),
-                "unmatured": data.get("unmatured")}
+        return {"confirmed": data.get("confirmed", 0),
+                "unconfirmed": data.get("unconfirmed", 0),
+                "unmatured": data.get("unmatured", 0)}
 
     def addrequest(self: 'BTC',
                    amount: Union[int, float],

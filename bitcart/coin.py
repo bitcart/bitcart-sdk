@@ -30,6 +30,19 @@ class Coin:
         self.providers = self.providers_new
         del self.providers_new
 
+    def help(self) -> list:
+        """Get help
+
+        Returns a list of all available RPC methods
+
+        Raises:
+            NotImplementedError: Implement in your subclass
+
+        Returns:
+            list: RPC methods list
+        """
+        raise NotImplementedError()
+
     def get_tx(self, tx: str) -> dict:
         """Get transaction information
 
@@ -78,7 +91,7 @@ class Coin:
         Example:
 
         >>> self.balance()
-        {"confirmed": "0.00005", "unconfirmed": None, "unmatured": None}
+        {"confirmed": "0.00005", "unconfirmed": 0, "unmatured": 0}
 
         Raises:
             NotImplementedError: Implement in your subclass
