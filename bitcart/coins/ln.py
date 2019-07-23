@@ -142,5 +142,5 @@ class LN(BTC):
         """
         return self.server.list_channels() # type: ignore
 
-    def history(self) -> list:
+    def history(self) -> dict:
         return self.server.onchain_history() # type: ignore
