@@ -2,10 +2,11 @@ from setuptools import setup, find_packages
 setup(
     name='bitcart',
     packages=find_packages(),
-    version='0.2.0',
+    version='0.2.1',
     license='MIT',
     description='Bitcart coins support library',
     long_description=open("README.md").read(),
+    long_description_content_type='text/markdown',
     author='MrNaif2018',
     author_email='chuff184@gmail.com',
     url='https://github.com/MrNaif2018/bitcart-sdk/',
