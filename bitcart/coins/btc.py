@@ -2,10 +2,13 @@
 import sys
 import time
 import logging
-from typing import Optional, Iterable, Union, Dict, SupportsInt, SupportsFloat, Callable
+from typing import Optional, Iterable, Union, Dict, SupportsInt, SupportsFloat, Callable, TYPE_CHECKING
 from types import ModuleType
 import warnings
 from ..coin import Coin
+
+if TYPE_CHECKING:
+    import requests
 
 
 class BTC(Coin):
@@ -22,7 +25,8 @@ class BTC(Coin):
             rpc_url: Optional[str] = None,
             rpc_user: Optional[str] = None,
             rpc_pass: Optional[str] = None,
-            xpub: Optional[str] = None):
+            xpub: Optional[str] = None,
+            session: Optional['requests.Session'] = None):
         super().__init__()
         if not xpub:
             warnings.warn(
@@ -34,13 +38,13 @@ class BTC(Coin):
         self.xpub = xpub
         self.notify_func: Optional[Callable] = None
         self.server = self.providers["jsonrpcrequests"].RPCProxy(  # type: ignore
-            self.rpc_url, self.rpc_user, self.rpc_pass, self.xpub)
+            self.rpc_url, self.rpc_user, self.rpc_pass, self.xpub, session=session)
 
     def help(self) -> list:
         return self.server.help()  # type: ignore
 
     def get_tx(self, tx: str) -> dict:
-        return self.server.get_transaction(tx) # type: ignore
+        return self.server.get_transaction(tx)  # type: ignore
 
     def get_address(self, address: str) -> list:
         out: list = self.server.getaddresshistory(address)

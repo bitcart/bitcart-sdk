@@ -21,12 +21,14 @@ class RPCProxy:
             username: Optional[str] = None,
             password: Optional[str] = None,
             xpub: Optional[str] = None,
+            session: Optional[requests.Session] = None,
             verify: Optional[bool] = True):
         self.url = url
         self.username = username
         self.password = password
         self.xpub = xpub
         self.verify = verify
+        self.session = session or requests.Session()
 
     def _send_request(
             self: 'RPCProxy',
@@ -47,7 +49,7 @@ class RPCProxy:
         dict_to_send = {"id": 0, "method": method, "params": arg}
         if self.xpub:
             dict_to_send["xpub"] = self.xpub
-        response = requests.post(
+        response = self.session.post(
             self.url,
             headers={
                 'content-type': 'application/json'},
