@@ -203,3 +203,21 @@ class BTC(Coin):
         """
         tx_data = self.server.payto(address, amount)
         return self.server.broadcast(tx_data)  # type: ignore
+
+    def rate(self: 'BTC') -> float:
+        """Get bitcoin price in USD
+
+        It uses the same method as electrum wallet gets exchange rate-via different payment providers
+
+        Example:
+
+        >>> c.rate()
+        9878.527
+
+        Args:
+            self (BTC): self
+
+        Returns:
+            float: price of 1 bitcoin in USD
+        """
+        return self.server.exchange_rate()  # type: ignore
