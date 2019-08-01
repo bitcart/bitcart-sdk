@@ -50,3 +50,4 @@ And if you add ``print(btc.get_tx(j["tx_hash"]))`` it would print
 full information about every transaction, too!
 
 To run this script, refer to :doc:`installation <installation>` section.
+For examples of usage, check examples directory in github repository.

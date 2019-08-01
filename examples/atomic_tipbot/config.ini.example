@@ -1,0 +1,7 @@
+[pyrogram]
+api_id = my_api_id
+api_hash = my_api_hash
+
+[app]
+token=my_telegram_bot_token
+xpub=my x/y/z pub/prv here

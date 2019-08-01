@@ -1,0 +1,9 @@
+# for tg bots
+pyrogram
+tgcrypto
+# mongo db
+pymongo
+# qr codes
+qrcode[pil]
+# bitcart SDK
+bitcart
