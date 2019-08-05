@@ -204,20 +204,42 @@ class BTC(Coin):
         tx_data = self.server.payto(address, amount)
         return self.server.broadcast(tx_data)  # type: ignore
 
-    def rate(self: 'BTC') -> float:
-        """Get bitcoin price in USD
+    def rate(self: 'BTC', currency: str = "USD") -> float:
+        """Get bitcoin price in selected fiat currency
 
         It uses the same method as electrum wallet gets exchange rate-via different payment providers
 
-        Example:
+        Examples:
 
         >>> c.rate()
         9878.527
+
+        >>> c.rate("RUB")
+        757108.226
+
+        Args:
+            self (BTC): self
+            currency (str, optional): [description]. Defaults to "USD".
+
+        Returns:
+            float: price of 1 bitcoin in selected fiat currency
+        """
+        return self.server.exchange_rate(currency)  # type: ignore
+
+    def list_fiat(self: 'BTC') -> Iterable[str]:
+        """List of all available fiat currencies to get price for
+
+        This list is list of only valid currencies that could be passed to rate() function
+
+        Example:
+
+        >>> c.list_fiat()
+        ['AED', 'ARS', 'AUD', 'BCH', 'BDT', 'BHD', 'BMD', 'BNB', 'BRL', 'BTC', ...]
 
         Args:
             self (BTC): self
 
         Returns:
-            float: price of 1 bitcoin in USD
+            Iterable[str]: list of available fiat currencies
         """
-        return self.server.exchange_rate()  # type: ignore
+        return self.server.list_currencies()  # type: ignore
