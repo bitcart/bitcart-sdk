@@ -43,8 +43,8 @@ jobs:
           name: run tests
           command: |
             . venv/bin/activate
-            pylint -E bitcart
-            mypy bitcart
+            pylint -E bitcart_async
+            mypy bitcart_async
 
       - store_artifacts:
           path: test-reports

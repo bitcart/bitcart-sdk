@@ -1,10 +1,11 @@
 # pylint: disable=import-error, invalid-sequence-index
 import sys
-import time
 import logging
 from typing import Optional, Iterable, Union, Dict, SupportsInt, SupportsFloat, Callable, TYPE_CHECKING
 from types import ModuleType
 import warnings
+import asyncio
+import inspect
 from ..coin import Coin
 
 if TYPE_CHECKING:
@@ -40,28 +41,28 @@ class BTC(Coin):
         self.server = self.providers["jsonrpcrequests"].RPCProxy(  # type: ignore
             self.rpc_url, self.rpc_user, self.rpc_pass, self.xpub, session=session)
 
-    def help(self) -> list:
-        return self.server.help()  # type: ignore
+    async def help(self) -> list:
+        return await self.server.help()  # type: ignore
 
-    def get_tx(self, tx: str) -> dict:
-        return self.server.get_transaction(tx)  # type: ignore
+    async def get_tx(self, tx: str) -> dict:
+        return await self.server.get_transaction(tx)  # type: ignore
 
-    def get_address(self, address: str) -> list:
-        out: list = self.server.getaddresshistory(address)
+    async def get_address(self, address: str) -> list:
+        out: list = await self.server.getaddresshistory(address)
         for i in out:
-            i["tx"] = self.get_tx(i["tx_hash"])
+            i["tx"] = await self.get_tx(i["tx_hash"])
         return out
 
-    def balance(self) -> dict:
-        data = self.server.getbalance()
+    async def balance(self) -> dict:
+        data = await self.server.getbalance()
         return {"confirmed": data.get("confirmed", 0),
                 "unconfirmed": data.get("unconfirmed", 0),
                 "unmatured": data.get("unmatured", 0)}
 
-    def addrequest(self: 'BTC',
-                   amount: Union[int, float],
-                   description: str = "",
-                   expire: Union[int, float] = 15) -> dict:
+    async def addrequest(self: 'BTC',
+                         amount: Union[int, float],
+                         description: str = "",
+                         expire: Union[int, float] = 15) -> dict:
         """Add invoice
 
         Create an invoice and request amount in BTC, it will expire by parameter provided.
@@ -82,13 +83,13 @@ class BTC(Coin):
             dict: Invoice data
         """
         expiration = 60 * expire if expire else None
-        return self.server.addrequest(  # type: ignore
+        return await self.server.addrequest(  # type: ignore
             amount=amount,
             memo=description,
             expiration=expiration,
             force=True)
 
-    def getrequest(self: 'BTC', address: str) -> dict:
+    async def getrequest(self: 'BTC', address: str) -> dict:
         """Get invoice info
 
         Get invoice information by address got from addrequest
@@ -105,9 +106,9 @@ class BTC(Coin):
         Returns:
             dict: Invoice data
         """
-        return self.server.getrequest(address)  # type: ignore
+        return await self.server.getrequest(address)  # type: ignore
 
-    def history(self: 'BTC') -> dict:
+    async def history(self: 'BTC') -> dict:
         """Get transaction history of wallet
 
         Example:
@@ -121,7 +122,7 @@ class BTC(Coin):
         Returns:
             dict: dictionary with some data, where key transactions is list of transactions
         """
-        return self.server.history()  # type: ignore
+        return await self.server.history()  # type: ignore
 
     def notify(
             self: 'BTC',
@@ -172,19 +173,24 @@ class BTC(Coin):
         if not self.notify_func:
             raise AttributeError(
                 "No notification function set. Set it with @notify decorator")
-        self.server.register_notify(skip=self.skip)
+        self.server.loop.run_until_complete(self.poll_updates_async(timeout))
+
+    async def poll_updates_async(self: 'BTC', timeout: Union[int, float] = 2) -> None:
+        await self.server.register_notify(skip=self.skip)
         while True:
             try:
-                data = self.server.notify_tx()
+                data = await self.server.notify_tx()
             except Exception as err:
                 logging.error(err)
-                time.sleep(timeout)
+                await asyncio.sleep(timeout)
                 continue
             if data:
-                self.notify_func(data)
-            time.sleep(timeout)
+                func = self.notify_func(data)  # type: ignore
+                if inspect.isawaitable(func):
+                    await func
+            await asyncio.sleep(timeout)
 
-    def pay_to(self: 'BTC', address: str, amount: float) -> str:
+    async def pay_to(self: 'BTC', address: str, amount: float) -> str:
         """Pay to address in bitcoins
 
         This function creates bitcoin transaction, your wallet must have sufficent balance
@@ -201,10 +207,10 @@ class BTC(Coin):
         Returns:
             str: tx hash of ready transaction
         """
-        tx_data = self.server.payto(address, amount)
-        return self.server.broadcast(tx_data)  # type: ignore
+        tx_data = await self.server.payto(address, amount)
+        return await self.server.broadcast(tx_data)  # type: ignore
 
-    def rate(self: 'BTC', currency: str = "USD") -> float:
+    async def rate(self: 'BTC', currency: str = "USD") -> float:
         """Get bitcoin price in selected fiat currency
 
         It uses the same method as electrum wallet gets exchange rate-via different payment providers
@@ -224,9 +230,9 @@ class BTC(Coin):
         Returns:
             float: price of 1 bitcoin in selected fiat currency
         """
-        return self.server.exchange_rate(currency)  # type: ignore
+        return await self.server.exchange_rate(currency)  # type: ignore
 
-    def list_fiat(self: 'BTC') -> Iterable[str]:
+    async def list_fiat(self: 'BTC') -> Iterable[str]:
         """List of all available fiat currencies to get price for
 
         This list is list of only valid currencies that could be passed to rate() function
@@ -242,4 +248,4 @@ class BTC(Coin):
         Returns:
             Iterable[str]: list of available fiat currencies
         """
-        return self.server.list_currencies()  # type: ignore
+        return await self.server.list_currencies()  # type: ignore

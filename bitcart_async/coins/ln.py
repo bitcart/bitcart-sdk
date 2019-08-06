@@ -11,8 +11,8 @@ class LN(BTC):
         "jsonrpcrequests"]
     RPC_URL = "http://localhost:5001"
 
-    def open_channel(self: 'LN', node_id: str,
-                     amount: Union[int, float]) -> str:
+    async def open_channel(self: 'LN', node_id: str,
+                           amount: Union[int, float]) -> str:
         """Open lightning channel
 
         Open channel with node, returns string of format
@@ -26,12 +26,12 @@ class LN(BTC):
         Returns:
             str: string of format txid:output_index
         """
-        return self.server.open_channel(node_id, amount)  # type: ignore
+        return await self.server.open_channel(node_id, amount)  # type: ignore
 
-    def addinvoice(self: 'LN',
-                   amount: Union[int,
-                                 float],
-                   message: Optional[str] = "") -> str:
+    async def addinvoice(self: 'LN',
+                         amount: Union[int,
+                                       float],
+                         message: Optional[str] = "") -> str:
         """Create lightning invoice
 
         Create lightning invoice and return bolt invoice id
@@ -49,9 +49,9 @@ class LN(BTC):
         Returns:
             str: bolt invoice id
         """
-        return self.server.addinvoice(amount, message)  # type: ignore
+        return await self.server.addinvoice(amount, message)  # type: ignore
 
-    def balance(self) -> dict:
+    async def balance(self) -> dict:
         """Get balance of wallet
 
         Lightning balance is in lightning key of the dictionary
@@ -64,11 +64,11 @@ class LN(BTC):
         Returns:
             dict: It should return dict of balance statuses
         """
-        data = super().balance()
+        data = await super().balance()
         data['lightning'] = data.get('lightning', 0)
         return data
 
-    def close_channel(self: 'LN', channel_id: str, force: bool = False) -> str:
+    async def close_channel(self: 'LN', channel_id: str, force: bool = False) -> str:
         """Close lightning channel
 
         Close channel by channel_id got from open_channel, returns transaction id
@@ -81,10 +81,10 @@ class LN(BTC):
         Returns:
             str: tx_id of closed channel
         """
-        return self.server.close_channel(channel_id, force)  # type: ignore
+        return await self.server.close_channel(channel_id, force)  # type: ignore
 
     @property
-    def node_id(self) -> str:
+    async def node_id(self) -> str:
         """Get node id
 
         Electrum's lightning implementation itself is a lightning node,
@@ -98,9 +98,9 @@ class LN(BTC):
         Returns:
             str: id of your node
         """
-        return self.server.nodeid()  # type: ignore
+        return await self.server.nodeid()  # type: ignore
 
-    def lnpay(self, invoice: str) -> bool:
+    async def lnpay(self, invoice: str) -> bool:
         """Pay lightning invoice
 
         Returns True on success, False otherwise
@@ -111,24 +111,24 @@ class LN(BTC):
         Returns:
             bool: success or not
         """
-        return self.server.lnpay(invoice)  # type: ignore
+        return await self.server.lnpay(invoice)  # type: ignore
 
-    def connect(self, connection_string: str) -> bool:
+    async def connect(self, connection_string: str) -> bool:
         """Connect to lightning node
-        
+
         connection string must respect format pubkey@ipaddress
-        
+
         Args:
             connection_string (str): connection string
-        
+
         Returns:
             bool: True on success, False otherwise
         """
-        return self.server.add_peer(connection_string) # type: ignore
+        return await self.server.add_peer(connection_string)  # type: ignore
 
-    def list_channels(self) -> list:
+    async def list_channels(self) -> list:
         """List all channels ever opened
-        
+
         Possible channel statuses:
         OPENING, OPEN, CLOSED, DISCONNECTED
 
@@ -140,7 +140,7 @@ class LN(BTC):
         Returns:
             list: list of channels
         """
-        return self.server.list_channels() # type: ignore
+        return await self.server.list_channels()  # type: ignore
 
-    def history(self) -> dict:
-        return self.server.onchain_history() # type: ignore
+    async def history(self) -> dict:
+        return await self.server.onchain_history()  # type: ignore
