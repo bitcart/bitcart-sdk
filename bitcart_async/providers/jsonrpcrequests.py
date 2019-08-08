@@ -31,7 +31,7 @@ class RPCProxy:
         self.verify = verify
         self.loop = asyncio.get_event_loop()
         self.session = session or aiohttp.ClientSession(
-            connector=aiohttp.TCPConnector(ssl=verify))  # type: ignore
+            connector=aiohttp.TCPConnector(ssl=verify))
 
     async def _send_request(
             self: 'RPCProxy',
