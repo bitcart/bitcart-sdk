@@ -53,7 +53,7 @@ class RPCProxy:
             self.url,
             headers={
                 'content-type': 'application/json'},
-            data=dict_to_send,
+            data=json_dumps(dict_to_send),
             auth=auth)
         response.raise_for_status()
         json = await response.json()
