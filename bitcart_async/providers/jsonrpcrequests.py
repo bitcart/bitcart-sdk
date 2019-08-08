@@ -79,7 +79,7 @@ class RPCProxy:
         return wrapper
 
     def __del__(self: 'RPCProxy') -> None:
-        self.loop.call_soon(self._async_del())
+        self.loop.call_soon(self._async_del())  # type: ignore
 
     async def _async_del(self: 'RPCProxy') -> None:
         await self.session.close()
