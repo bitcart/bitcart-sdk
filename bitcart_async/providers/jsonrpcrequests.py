@@ -7,9 +7,9 @@ try:
 except ImportError:
     raise ImportError("You must install aiohttp library first!")
 try:
-    from simplejson import loads as json_loads
+    from simplejson import loads as json_loads, dumps as json_dumps
 except (ImportError, ValueError):
-    from json import loads as json_loads
+    from json import loads as json_loads, dumps as json_dumps  # type: ignore
 import warnings
 from typing import Any, Optional, Union, Callable
 import asyncio
@@ -31,7 +31,7 @@ class RPCProxy:
         self.verify = verify
         self.loop = asyncio.get_event_loop()
         self.session = session or aiohttp.ClientSession(
-            connector=aiohttp.TCPConnector(verify_ssl=verify))  # type: ignore
+            connector=aiohttp.TCPConnector(ssl=verify))  # type: ignore
 
     async def _send_request(
             self: 'RPCProxy',
@@ -53,7 +53,7 @@ class RPCProxy:
             self.url,
             headers={
                 'content-type': 'application/json'},
-            json=dict_to_send,
+            data=dict_to_send,
             auth=auth)
         response.raise_for_status()
         json = await response.json()
