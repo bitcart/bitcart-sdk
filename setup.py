@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 setup(
     name='bitcart-async',
     packages=find_packages(),
-    version='0.2.7',
+    version='0.3.0',
     license='MIT',
     description='Bitcart coins support library',
     long_description=open("README.md").read(),
