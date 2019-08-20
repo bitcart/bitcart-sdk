@@ -11,6 +11,10 @@ if TYPE_CHECKING:
     import requests
 
 
+class InvalidEventError(Exception):
+    pass
+
+
 class BTC(Coin):
     coin_name = "BTC"
     friendly_name = "Bitcoin"
@@ -19,6 +23,7 @@ class BTC(Coin):
     RPC_URL = "http://localhost:5000"
     RPC_USER = "electrum"
     RPC_PASS = "electrumz"
+    ALLOWED_EVENTS = ["new_block", "new_transaction"]
 
     def __init__(
             self: "BTC",
@@ -35,7 +40,7 @@ class BTC(Coin):
         self.rpc_user = rpc_user or self.RPC_USER
         self.rpc_pass = rpc_pass or self.RPC_PASS
         self.xpub = xpub
-        self.notify_func: Optional[Callable] = None
+        self.event_handlers: Dict[str, Callable] = {}
         self.server = self.providers["jsonrpcrequests"].RPCProxy(  # type: ignore
             self.rpc_url, self.rpc_user, self.rpc_pass, self.xpub, session=session)
 
@@ -122,33 +127,54 @@ class BTC(Coin):
         """
         return self.server.history()  # type: ignore
 
-    def notify(
-            self: 'BTC',
-            f: Optional[Callable] = None,
-            skip: bool = True) -> Callable:
-        """Notify decorator
-
-        Notify of incoming transactions on wallet
-
-        Example usage can be found on main page of docs.
+    def add_event_handler(
+            self: 'BTC', events: Union[Iterable[str], str], func: Callable) -> None:
+        """Add event handler to handle event(s) provided
 
         Args:
             self (BTC): self
-            f (Optional[Callable], optional): Function to call
-            skip (bool, optional): Either to skip old transactions or not. Defaults to True.
+            events (Union[Iterable[str], str]): event or events
+            func (Callable): function to handle those
+
+        Returns:
+            None: None
+        """
+        if isinstance(events, str):
+            events = [events]
+        for event in events:
+            self.event_handlers[event] = func
+
+    def on(self: 'BTC', events: Union[Iterable[str], str]) -> Callable:
+        """Register on event
+
+        Register callback function to be run when event is emmited
+
+        All available events are accessable as:
+
+        >>> btc.ALLOWED_EVENTS
+        ['new_block', 'new_transaction']
+
+        Function signature must be
+
+        .. code-block:: python
+
+            def handler(event, **kwargs):
+
+        kwargs sent differ from event to event, as for now
+        new_block event sends height kwarg as new block height
+        new_transaction event sends tx kwarg as tx_hash of new transaction
+
+        Args:
+            self (BTC): self
+            events (Union[Iterable[str], str]): event name or list of events for function to be run on
 
         Returns:
             Callable: It is a decorator
         """
         def wrapper(f: Callable) -> Callable:
-            self.notify_func = f
-            self.skip = skip
+            self.add_event_handler(events, f)
             return f
-        if f:
-            wrapper(f)
-            return f
-        else:
-            return wrapper
+        return wrapper
 
     def poll_updates(self: 'BTC', timeout: Union[int, float] = 2) -> None:
         """Poll updates
@@ -163,24 +189,29 @@ class BTC(Coin):
             timeout (Union[int, float], optional): seconds to wait before requesting transactions again. Defaults to 2.
 
         Raises:
-            AttributeError: If no function was marked with @notify decorator
+            InvalidEventError: If server sent invalid event name not matching ALLOWED_EVENTS
 
         Returns:
             None: This function runs forever
         """
-        if not self.notify_func:
-            raise AttributeError(
-                "No notification function set. Set it with @notify decorator")
-        self.server.register_notify(skip=self.skip)
+        self.server.subscribe(list(self.event_handlers.keys()))
         while True:
             try:
-                data = self.server.notify_tx()
+                data = self.server.get_updates()
             except Exception as err:
                 logging.error(err)
                 time.sleep(timeout)
                 continue
             if data:
-                self.notify_func(data)
+                for event_info in data:
+                    event = event_info.get("event")
+                    event_info.pop("event")
+                    if not event or event not in self.ALLOWED_EVENTS:
+                        raise InvalidEventError(
+                            f"Invalid event from server: {event}")
+                    handler = self.event_handlers.get(event)
+                    if handler:
+                        handler(event, **event_info)
             time.sleep(timeout)
 
     def pay_to(self: 'BTC', address: str, amount: float) -> str:
