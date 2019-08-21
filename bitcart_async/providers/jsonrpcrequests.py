@@ -1,5 +1,5 @@
-'''Author: MrNaif2018
-Email: chuff184@gmail.com'''
+"""Author: MrNaif2018
+Email: chuff184@gmail.com"""
 __author__ = "MrNaif2018"
 __email__ = "chuff184@gmail.com"
 try:
@@ -17,13 +17,14 @@ import asyncio
 
 class RPCProxy:
     def __init__(
-            self: 'RPCProxy',
-            url: str,
-            username: Optional[str] = None,
-            password: Optional[str] = None,
-            xpub: Optional[str] = None,
-            session: Optional[aiohttp.ClientSession] = None,
-            verify: Optional[bool] = True):
+        self: "RPCProxy",
+        url: str,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
+        xpub: Optional[str] = None,
+        session: Optional[aiohttp.ClientSession] = None,
+        verify: Optional[bool] = True,
+    ):
         self.url = url
         self.username = username
         self.password = password
@@ -31,13 +32,12 @@ class RPCProxy:
         self.verify = verify
         self.loop = asyncio.get_event_loop()
         self.session = session or aiohttp.ClientSession(
-            connector=aiohttp.TCPConnector(ssl=verify))
+            connector=aiohttp.TCPConnector(ssl=verify)
+        )
 
     async def _send_request(
-            self: 'RPCProxy',
-            method: str,
-            *args: Any,
-            **kwargs: Any) -> Any:
+        self: "RPCProxy", method: str, *args: Any, **kwargs: Any
+    ) -> Any:
         auth = aiohttp.BasicAuth(self.username, self.password)  # type: ignore
         arg: Union[dict, tuple]
         if args:
@@ -51,10 +51,10 @@ class RPCProxy:
             dict_to_send["xpub"] = self.xpub
         response = await self.session.post(
             self.url,
-            headers={
-                'content-type': 'application/json'},
+            headers={"content-type": "application/json"},
             data=json_dumps(dict_to_send),
-            auth=auth)
+            auth=auth,
+        )
         response.raise_for_status()
         json = await response.json()
         if json["error"]:
@@ -70,16 +70,12 @@ class RPCProxy:
         return result
 
     def __getattr__(
-            self: 'RPCProxy',
-            method: str,
-            *args: Any,
-            **kwargs: Any) -> Callable:
+        self: "RPCProxy", method: str, *args: Any, **kwargs: Any
+    ) -> Callable:
         async def wrapper(*args: Any, **kwargs: Any) -> Any:
             return await self._send_request(method, *args, **kwargs)
+
         return wrapper
 
-    def __del__(self: 'RPCProxy') -> None:
-        self.loop.call_soon(self._async_del())  # type: ignore
-
-    async def _async_del(self: 'RPCProxy') -> None:
+    async def _close(self: "RPCProxy") -> None:
         await self.session.close()
