@@ -1,5 +1,5 @@
-'''Author: MrNaif2018
-Email: chuff184@gmail.com'''
+"""Author: MrNaif2018
+Email: chuff184@gmail.com"""
 __author__ = "MrNaif2018"
 __email__ = "chuff184@gmail.com"
 try:
@@ -16,13 +16,14 @@ from typing import Any, Optional, Union, Callable
 
 class RPCProxy:
     def __init__(
-            self: 'RPCProxy',
-            url: str,
-            username: Optional[str] = None,
-            password: Optional[str] = None,
-            xpub: Optional[str] = None,
-            session: Optional[requests.Session] = None,
-            verify: Optional[bool] = True):
+        self: "RPCProxy",
+        url: str,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
+        xpub: Optional[str] = None,
+        session: Optional[requests.Session] = None,
+        verify: Optional[bool] = True,
+    ):
         self.url = url
         self.username = username
         self.password = password
@@ -30,11 +31,7 @@ class RPCProxy:
         self.verify = verify
         self.session = session or requests.Session()
 
-    def _send_request(
-            self: 'RPCProxy',
-            method: str,
-            *args: Any,
-            **kwargs: Any) -> Any:
+    def _send_request(self: "RPCProxy", method: str, *args: Any, **kwargs: Any) -> Any:
         if not self.username or not self.password:
             auth = None
         else:
@@ -51,11 +48,11 @@ class RPCProxy:
             dict_to_send["xpub"] = self.xpub
         response = self.session.post(
             self.url,
-            headers={
-                'content-type': 'application/json'},
+            headers={"content-type": "application/json"},
             json=dict_to_send,
             auth=auth,
-            verify=self.verify)
+            verify=self.verify,
+        )
         response.raise_for_status()
         json = response.json()
         if json["error"]:
@@ -71,10 +68,9 @@ class RPCProxy:
         return result
 
     def __getattr__(
-            self: 'RPCProxy',
-            method: str,
-            *args: Any,
-            **kwargs: Any) -> Callable:
+        self: "RPCProxy", method: str, *args: Any, **kwargs: Any
+    ) -> Callable:
         def wrapper(*args: Any, **kwargs: Any) -> Any:
             return self._send_request(method, *args, **kwargs)
+
         return wrapper

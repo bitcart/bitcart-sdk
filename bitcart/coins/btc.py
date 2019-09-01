@@ -2,7 +2,16 @@
 import sys
 import time
 import logging
-from typing import Optional, Iterable, Union, Dict, SupportsInt, SupportsFloat, Callable, TYPE_CHECKING
+from typing import (
+    Optional,
+    Iterable,
+    Union,
+    Dict,
+    SupportsInt,
+    SupportsFloat,
+    Callable,
+    TYPE_CHECKING,
+)
 from types import ModuleType
 import warnings
 from ..coin import Coin
@@ -18,31 +27,31 @@ class InvalidEventError(Exception):
 class BTC(Coin):
     coin_name = "BTC"
     friendly_name = "Bitcoin"
-    providers: Union[Iterable[str], Dict[str, ModuleType]] = [
-        "jsonrpcrequests"]
+    providers: Union[Iterable[str], Dict[str, ModuleType]] = ["jsonrpcrequests"]
     RPC_URL = "http://localhost:5000"
     RPC_USER = "electrum"
     RPC_PASS = "electrumz"
     ALLOWED_EVENTS = ["new_block", "new_transaction"]
 
     def __init__(
-            self: "BTC",
-            rpc_url: Optional[str] = None,
-            rpc_user: Optional[str] = None,
-            rpc_pass: Optional[str] = None,
-            xpub: Optional[str] = None,
-            session: Optional['requests.Session'] = None):
+        self: "BTC",
+        rpc_url: Optional[str] = None,
+        rpc_user: Optional[str] = None,
+        rpc_pass: Optional[str] = None,
+        xpub: Optional[str] = None,
+        session: Optional["requests.Session"] = None,
+    ):
         super().__init__()
         if not xpub:
-            warnings.warn(
-                "Xpub not provided. Not all functions will be available.")
+            warnings.warn("Xpub not provided. Not all functions will be available.")
         self.rpc_url = rpc_url or self.RPC_URL
         self.rpc_user = rpc_user or self.RPC_USER
         self.rpc_pass = rpc_pass or self.RPC_PASS
         self.xpub = xpub
         self.event_handlers: Dict[str, Callable] = {}
         self.server = self.providers["jsonrpcrequests"].RPCProxy(  # type: ignore
-            self.rpc_url, self.rpc_user, self.rpc_pass, self.xpub, session=session)
+            self.rpc_url, self.rpc_user, self.rpc_pass, self.xpub, session=session
+        )
 
     def help(self) -> list:
         return self.server.help()  # type: ignore
@@ -58,14 +67,18 @@ class BTC(Coin):
 
     def balance(self) -> dict:
         data = self.server.getbalance()
-        return {"confirmed": data.get("confirmed", 0),
-                "unconfirmed": data.get("unconfirmed", 0),
-                "unmatured": data.get("unmatured", 0)}
+        return {
+            "confirmed": data.get("confirmed", 0),
+            "unconfirmed": data.get("unconfirmed", 0),
+            "unmatured": data.get("unmatured", 0),
+        }
 
-    def addrequest(self: 'BTC',
-                   amount: Union[int, float],
-                   description: str = "",
-                   expire: Union[int, float] = 15) -> dict:
+    def addrequest(
+        self: "BTC",
+        amount: Union[int, float],
+        description: str = "",
+        expire: Union[int, float] = 15,
+    ) -> dict:
         """Add invoice
 
         Create an invoice and request amount in BTC, it will expire by parameter provided.
@@ -87,12 +100,10 @@ class BTC(Coin):
         """
         expiration = 60 * expire if expire else None
         return self.server.addrequest(  # type: ignore
-            amount=amount,
-            memo=description,
-            expiration=expiration,
-            force=True)
+            amount=amount, memo=description, expiration=expiration, force=True
+        )
 
-    def getrequest(self: 'BTC', address: str) -> dict:
+    def getrequest(self: "BTC", address: str) -> dict:
         """Get invoice info
 
         Get invoice information by address got from addrequest
@@ -111,7 +122,7 @@ class BTC(Coin):
         """
         return self.server.getrequest(address)  # type: ignore
 
-    def history(self: 'BTC') -> dict:
+    def history(self: "BTC") -> dict:
         """Get transaction history of wallet
 
         Example:
@@ -128,7 +139,8 @@ class BTC(Coin):
         return self.server.history()  # type: ignore
 
     def add_event_handler(
-            self: 'BTC', events: Union[Iterable[str], str], func: Callable) -> None:
+        self: "BTC", events: Union[Iterable[str], str], func: Callable
+    ) -> None:
         """Add event handler to handle event(s) provided
 
         Args:
@@ -144,7 +156,7 @@ class BTC(Coin):
         for event in events:
             self.event_handlers[event] = func
 
-    def on(self: 'BTC', events: Union[Iterable[str], str]) -> Callable:
+    def on(self: "BTC", events: Union[Iterable[str], str]) -> Callable:
         """Register on event
 
         Register callback function to be run when event is emmited
@@ -171,12 +183,14 @@ class BTC(Coin):
         Returns:
             Callable: It is a decorator
         """
+
         def wrapper(f: Callable) -> Callable:
             self.add_event_handler(events, f)
             return f
+
         return wrapper
 
-    def poll_updates(self: 'BTC', timeout: Union[int, float] = 2) -> None:
+    def poll_updates(self: "BTC", timeout: Union[int, float] = 2) -> None:
         """Poll updates
 
         Poll daemon for new transactions in wallet,
@@ -207,14 +221,13 @@ class BTC(Coin):
                     event = event_info.get("event")
                     event_info.pop("event")
                     if not event or event not in self.ALLOWED_EVENTS:
-                        raise InvalidEventError(
-                            f"Invalid event from server: {event}")
+                        raise InvalidEventError(f"Invalid event from server: {event}")
                     handler = self.event_handlers.get(event)
                     if handler:
                         handler(event, **event_info)
             time.sleep(timeout)
 
-    def pay_to(self: 'BTC', address: str, amount: float) -> str:
+    def pay_to(self: "BTC", address: str, amount: float) -> str:
         """Pay to address in bitcoins
 
         This function creates bitcoin transaction, your wallet must have sufficent balance
@@ -234,7 +247,7 @@ class BTC(Coin):
         tx_data = self.server.payto(address, amount)
         return self.server.broadcast(tx_data)  # type: ignore
 
-    def rate(self: 'BTC', currency: str = "USD") -> float:
+    def rate(self: "BTC", currency: str = "USD") -> float:
         """Get bitcoin price in selected fiat currency
 
         It uses the same method as electrum wallet gets exchange rate-via different payment providers
@@ -256,7 +269,7 @@ class BTC(Coin):
         """
         return self.server.exchange_rate(currency)  # type: ignore
 
-    def list_fiat(self: 'BTC') -> Iterable[str]:
+    def list_fiat(self: "BTC") -> Iterable[str]:
         """List of all available fiat currencies to get price for
 
         This list is list of only valid currencies that could be passed to rate() function
