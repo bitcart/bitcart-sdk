@@ -1,28 +1,39 @@
 # pylint: disable=import-error, invalid-sequence-index
+import logging
 import sys
 import time
-import logging
-from typing import (
-    Optional,
-    Iterable,
-    Union,
-    Dict,
-    SupportsInt,
-    SupportsFloat,
-    Callable,
-    Any,
-    TYPE_CHECKING,
-)
-from types import ModuleType
 import warnings
+from functools import wraps
+from types import ModuleType
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    Optional,
+    SupportsFloat,
+    SupportsInt,
+    Union,
+)
+
 from ..coin import Coin
+from ..errors import InvalidEventError, LightningDisabledError
 
 if TYPE_CHECKING:
     import requests
 
 
-class InvalidEventError(Exception):
-    pass
+def lightning(f: Callable) -> Callable:
+    @wraps(f)
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
+        if len(args) > 0:
+            obj = args[0]
+            if not obj.get_config("lightning"):
+                raise LightningDisabledError("Lightning is disabled in current daemon.")
+        return f(*args, **kwargs)
+
+    return wrapper
 
 
 class BTC(Coin):
@@ -72,6 +83,7 @@ class BTC(Coin):
             "confirmed": data.get("confirmed", 0),
             "unconfirmed": data.get("unconfirmed", 0),
             "unmatured": data.get("unmatured", 0),
+            "lightning": data.get("lightning", 0),
         }
 
     def addrequest(
@@ -294,7 +306,167 @@ class BTC(Coin):
         return self.server.list_currencies()  # type: ignore
 
     def set_config(self: "BTC", key: str, value: Any) -> bool:
+        """Set config key to specified value
+        
+        It sets the config value in electrum's config store, usually
+        $HOME/.electrum/config
+
+        You can set any keys and values using this function(as long as JSON serializable),
+        and some are used to configure underlying electrum daemon.
+
+        Example:
+
+        >>> c.set_config("x", 5)
+        True
+        
+        Args:
+            self (BTC): self
+            key (str): key to set
+            value (Any): value to set
+        
+        Returns:
+            bool: True on success, False otherwise
+        """
         return self.server.setconfig(key, value)  # type: ignore
 
     def get_config(self: "BTC", key: str, default: Any = None) -> Any:
+        """Get config key
+        
+        If the key doesn't exist, default value is returned.
+        Keys are stored in electrum's config file, check :meth:`bitcart.coins.btc.BTC.set_config` doc for details.
+
+        Example:
+
+        >>> c.get_config("x")
+        5
+        
+        Args:
+            self (BTC): self
+            key (str): key to get
+            default (Any, optional): The value to default to when key doesn't exist. Defaults to None.
+        
+        Returns:
+            Any: value of the key or default value provided
+        """
         return self.server.getconfig(key) or default
+
+    ### Lightning apis ###
+
+    @lightning
+    def open_channel(self: "BTC", node_id: str, amount: Union[int, float]) -> str:
+        """Open lightning channel
+
+        Open channel with node, returns string of format
+        txid:output_index
+
+        Args:
+            self (BTC): self
+            node_id (str): id of node to open channel with
+            amount (Union[int, float]): amount to open channel
+
+        Returns:
+            str: string of format txid:output_index
+        """
+        return self.server.open_channel(node_id, amount)  # type: ignore
+
+    @lightning
+    def addinvoice(
+        self: "BTC", amount: Union[int, float], message: Optional[str] = ""
+    ) -> str:
+        """Create lightning invoice
+
+        Create lightning invoice and return bolt invoice id
+
+        Example:
+
+        >>> a.addinvoice(0.5)
+        'lnbc500m1pwnt87fpp5d60sykcjd2swk72t3g0njwmdytfe4fu65fz5v...'
+
+        Args:
+            self (BTC): self
+            amount (Union[int,float]): invoice amount
+            message (Optional[str], optional): Invoice message. Defaults to "".
+
+        Returns:
+            str: bolt invoice id
+        """
+        return self.server.addinvoice(amount, message)  # type: ignore
+
+    @lightning
+    def close_channel(self: "BTC", channel_id: str, force: bool = False) -> str:
+        """Close lightning channel
+
+        Close channel by channel_id got from open_channel, returns transaction id
+
+        Args:
+            self (BTC): self
+            channel_id (str): channel_id from open_channel
+            force (bool): Create new address beyond gap limit, if no more addresses are available.
+
+        Returns:
+            str: tx_id of closed channel
+        """
+        return self.server.close_channel(channel_id, force)  # type: ignore
+
+    @property  # type: ignore
+    @lightning
+    def node_id(self) -> str:
+        """Get node id
+
+        Electrum's lightning implementation itself is a lightning node,
+        that way you can get a super light node, this method returns it's id
+
+        Example:
+
+        >>> a.node_id
+        '030ff29580149a366bdddf148713fa808f0f4b934dccd5f7820f3d613e03c86e55'
+
+        Returns:
+            str: id of your node
+        """
+        return self.server.nodeid()  # type: ignore
+
+    @lightning
+    def lnpay(self, invoice: str) -> bool:
+        """Pay lightning invoice
+
+        Returns True on success, False otherwise
+
+        Args:
+            invoice (str): invoice to pay
+
+        Returns:
+            bool: success or not
+        """
+        return self.server.lnpay(invoice)  # type: ignore
+
+    @lightning
+    def connect(self, connection_string: str) -> bool:
+        """Connect to lightning node
+        
+        connection string must respect format pubkey@ipaddress
+        
+        Args:
+            connection_string (str): connection string
+        
+        Returns:
+            bool: True on success, False otherwise
+        """
+        return self.server.add_peer(connection_string)  # type: ignore
+
+    @lightning
+    def list_channels(self) -> list:
+        """List all channels ever opened
+        
+        Possible channel statuses:
+        OPENING, OPEN, CLOSED, DISCONNECTED
+
+        Example:
+
+        >>> a.server.list_channels()
+        [{'local_htlcs': {'adds': {}, 'locked_in': {}, 'settles': {}, 'fails': {}}, 'remote_htlcs': ...
+
+        Returns:
+            list: list of channels
+        """
+        return self.server.list_channels()  # type: ignore
