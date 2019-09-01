@@ -10,6 +10,7 @@ from typing import (
     SupportsInt,
     SupportsFloat,
     Callable,
+    Any,
     TYPE_CHECKING,
 )
 from types import ModuleType
@@ -136,7 +137,7 @@ class BTC(Coin):
         Returns:
             dict: dictionary with some data, where key transactions is list of transactions
         """
-        return self.server.history()  # type: ignore
+        return self.server.onchain_history()  # type: ignore
 
     def add_event_handler(
         self: "BTC", events: Union[Iterable[str], str], func: Callable
@@ -227,7 +228,12 @@ class BTC(Coin):
                         handler(event, **event_info)
             time.sleep(timeout)
 
-    def pay_to(self: "BTC", address: str, amount: float) -> str:
+    def pay_to(
+        self: "BTC",
+        address: str,
+        amount: float,
+        fee: Optional[Union[float, Callable]] = None,
+    ) -> str:
         """Pay to address in bitcoins
 
         This function creates bitcoin transaction, your wallet must have sufficent balance
@@ -244,7 +250,7 @@ class BTC(Coin):
         Returns:
             str: tx hash of ready transaction
         """
-        tx_data = self.server.payto(address, amount)
+        tx_data = self.server.payto(address, amount, fee)
         return self.server.broadcast(tx_data)  # type: ignore
 
     def rate(self: "BTC", currency: str = "USD") -> float:
@@ -286,3 +292,9 @@ class BTC(Coin):
             Iterable[str]: list of available fiat currencies
         """
         return self.server.list_currencies()  # type: ignore
+
+    def set_config(self: "BTC", key: str, value: Any) -> bool:
+        return self.server.setconfig(key, value)  # type: ignore
+
+    def get_config(self: "BTC", key: str, default: Any = None) -> Any:
+        return self.server.getconfig(key) or default
