@@ -245,25 +245,48 @@ class BTC(Coin):
         address: str,
         amount: float,
         fee: Optional[Union[float, Callable]] = None,
-    ) -> str:
-        """Pay to address in bitcoins
+        broadcast: bool = True,
+    ) -> Union[dict, str]:
+        """Pay to address
 
-        This function creates bitcoin transaction, your wallet must have sufficent balance
-        and address must exist
+        This function creates a transaction, your wallet must have sufficent balance
+        and address must exist.
+
+        Examples:
+
+        >>> btc.pay_to("mkHS9ne12qx9pS9VojpwU5xtRd4T7X7ZUt", 0.001)
+        '608d9af34032868fd2849723a4de9ccd874a51544a7fba879a18c847e37e577b'
+
+        >>> btc.pay_to("mkHS9ne12qx9pS9VojpwU5xtRd4T7X7ZUt", 0.001, broadcast=False)
+        {'hex': '02000000026.....', 'complete': True, 'final': False, 'name': None, 'csv_delay': 0, 'cltv_expiry': 0}
 
         Args:
             self (BTC): self
             address (str): address where to send BTC
             amount (float): amount of bitcoins to send
+            fee (Optional[Union[float, Callable]], optional): Either a fixed fee, or a callable getting size as argument and returning fee. Defaults to None.
+            broadcast (bool, optional): Whether to broadcast transaction to network. Defaults to True.
 
         Raises:
             ValueError: If address or amount is invalid or in other cases
 
         Returns:
-            str: tx hash of ready transaction
+            Union[dict, str]: tx hash of ready transaction or raw transaction, depending on broadcast argument.
         """
-        tx_data = self.server.payto(address, amount, fee)
-        return self.server.broadcast(tx_data)  # type: ignore
+        fee_arg = fee if not callable(fee) else None
+        tx_data = self.server.payto(address, amount, fee=fee_arg)
+        if not fee_arg:
+            tx_size = self.server.get_tx_size(tx_data)
+            try:
+                resulting_fee = fee(tx_size)  # type: ignore
+            except Exception:
+                resulting_fee = None
+            if resulting_fee:
+                tx_data = self.server.payto(address, amount, fee=resulting_fee)
+        if broadcast:
+            return self.server.broadcast(tx_data)  # type: ignore
+        else:
+            return tx_data  # type: ignore
 
     def rate(self: "BTC", currency: str = "USD") -> float:
         """Get bitcoin price in selected fiat currency
