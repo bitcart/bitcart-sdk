@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="bitcart",
+    name="bitcart-async",
     packages=find_packages(),
     version="0.4.0",
     license="MIT",
@@ -10,10 +10,9 @@ setup(
     long_description_content_type="text/markdown",
     author="MrNaif2018",
     author_email="chuff184@gmail.com",
-    url="https://github.com/MrNaif2018/bitcart-sdk/",
-    download_url="https://github.com/MrNaif2018/bitcart-sdk/archive/0.1.tar.gz",
-    keywords=["electrum", " daemon", "bitcart"],
-    install_requires=["requests", "simplejson"],
+    url="https://github.com/MrNaif2018/bitcart-sdk/tree/async",
+    keywords=["electrum", " daemon", "bitcart", "asyncio"],
+    install_requires=["aiohttp", "simplejson"],
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",

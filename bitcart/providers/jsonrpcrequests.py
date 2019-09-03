@@ -3,15 +3,16 @@ Email: chuff184@gmail.com"""
 __author__ = "MrNaif2018"
 __email__ = "chuff184@gmail.com"
 try:
-    import requests
+    import aiohttp
 except ImportError:
-    raise ImportError("You must install requests library first!")
+    raise ImportError("You must install aiohttp library first!")
 try:
-    from simplejson import loads as json_loads
+    from simplejson import loads as json_loads, dumps as json_dumps
 except (ImportError, ValueError):
-    from json import loads as json_loads
+    from json import loads as json_loads, dumps as json_dumps  # type: ignore
 import warnings
 from typing import Any, Optional, Union, Callable
+import asyncio
 
 
 class RPCProxy:
@@ -21,7 +22,7 @@ class RPCProxy:
         username: Optional[str] = None,
         password: Optional[str] = None,
         xpub: Optional[str] = None,
-        session: Optional[requests.Session] = None,
+        session: Optional[aiohttp.ClientSession] = None,
         verify: Optional[bool] = True,
     ):
         self.url = url
@@ -29,13 +30,15 @@ class RPCProxy:
         self.password = password
         self.xpub = xpub
         self.verify = verify
-        self.session = session or requests.Session()
+        self.loop = asyncio.get_event_loop()
+        self.session = session or aiohttp.ClientSession(
+            connector=aiohttp.TCPConnector(ssl=verify)
+        )
 
-    def _send_request(self: "RPCProxy", method: str, *args: Any, **kwargs: Any) -> Any:
-        if not self.username or not self.password:
-            auth = None
-        else:
-            auth = (self.username, self.password)
+    async def _send_request(
+        self: "RPCProxy", method: str, *args: Any, **kwargs: Any
+    ) -> Any:
+        auth = aiohttp.BasicAuth(self.username, self.password)  # type: ignore
         arg: Union[dict, tuple]
         if args:
             arg = args
@@ -46,15 +49,14 @@ class RPCProxy:
         dict_to_send = {"id": 0, "method": method, "params": arg}
         if self.xpub:
             dict_to_send["xpub"] = self.xpub
-        response = self.session.post(
+        response = await self.session.post(
             self.url,
             headers={"content-type": "application/json"},
-            json=dict_to_send,
+            data=json_dumps(dict_to_send),
             auth=auth,
-            verify=self.verify,
         )
         response.raise_for_status()
-        json = response.json()
+        json = await response.json()
         if json["error"]:
             raise ValueError("Error from server: {}".format(json["error"]))
         if json["id"] != 0:
@@ -70,7 +72,10 @@ class RPCProxy:
     def __getattr__(
         self: "RPCProxy", method: str, *args: Any, **kwargs: Any
     ) -> Callable:
-        def wrapper(*args: Any, **kwargs: Any) -> Any:
-            return self._send_request(method, *args, **kwargs)
+        async def wrapper(*args: Any, **kwargs: Any) -> Any:
+            return await self._send_request(method, *args, **kwargs)
 
         return wrapper
+
+    async def _close(self: "RPCProxy") -> None:
+        await self.session.close()

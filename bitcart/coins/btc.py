@@ -1,4 +1,6 @@
 # pylint: disable=import-error, invalid-sequence-index
+import asyncio
+import inspect
 import logging
 import sys
 import time
@@ -26,12 +28,12 @@ if TYPE_CHECKING:
 
 def lightning(f: Callable) -> Callable:
     @wraps(f)
-    def wrapper(*args: Any, **kwargs: Any) -> Any:
+    async def wrapper(*args: Any, **kwargs: Any) -> Any:
         if len(args) > 0:
             obj = args[0]
-            if not obj.get_config("lightning"):
+            if not await obj.get_config("lightning"):
                 raise LightningDisabledError("Lightning is disabled in current daemon.")
-        return f(*args, **kwargs)
+        return await f(*args, **kwargs)
 
     return wrapper
 
@@ -65,20 +67,33 @@ class BTC(Coin):
             self.rpc_url, self.rpc_user, self.rpc_pass, self.xpub, session=session
         )
 
-    def help(self) -> list:
-        return self.server.help()  # type: ignore
+    ### async with api ###
 
-    def get_tx(self, tx: str) -> dict:
-        return self.server.get_transaction(tx)  # type: ignore
+    async def close(self) -> None:
+        await self.server._close()
 
-    def get_address(self, address: str) -> list:
-        out: list = self.server.getaddresshistory(address)
+    async def __aenter__(self) -> "BTC":
+        return self
+
+    async def __aexit__(self, exc_type: Any, exc_value: Any, tb: Any) -> None:
+        await self.close()
+
+    ### High level interface ###
+
+    async def help(self) -> list:
+        return await self.server.help()  # type: ignore
+
+    async def get_tx(self, tx: str) -> dict:
+        return await self.server.get_transaction(tx)  # type: ignore
+
+    async def get_address(self, address: str) -> list:
+        out: list = await self.server.getaddresshistory(address)
         for i in out:
-            i["tx"] = self.get_tx(i["tx_hash"])
+            i["tx"] = await self.get_tx(i["tx_hash"])
         return out
 
-    def balance(self) -> dict:
-        data = self.server.getbalance()
+    async def balance(self) -> dict:
+        data = await self.server.getbalance()
         return {
             "confirmed": data.get("confirmed", 0),
             "unconfirmed": data.get("unconfirmed", 0),
@@ -86,7 +101,7 @@ class BTC(Coin):
             "lightning": data.get("lightning", 0),
         }
 
-    def addrequest(
+    async def addrequest(
         self: "BTC",
         amount: Union[int, float],
         description: str = "",
@@ -112,11 +127,11 @@ class BTC(Coin):
             dict: Invoice data
         """
         expiration = 60 * expire if expire else None
-        return self.server.addrequest(  # type: ignore
+        return await self.server.addrequest(  # type: ignore
             amount=amount, memo=description, expiration=expiration, force=True
         )
 
-    def getrequest(self: "BTC", address: str) -> dict:
+    async def getrequest(self: "BTC", address: str) -> dict:
         """Get invoice info
 
         Get invoice information by address got from addrequest
@@ -133,9 +148,9 @@ class BTC(Coin):
         Returns:
             dict: Invoice data
         """
-        return self.server.getrequest(address)  # type: ignore
+        return await self.server.getrequest(address)  # type: ignore
 
-    def history(self: "BTC") -> dict:
+    async def history(self: "BTC") -> dict:
         """Get transaction history of wallet
 
         Example:
@@ -149,7 +164,7 @@ class BTC(Coin):
         Returns:
             dict: dictionary with some data, where key transactions is list of transactions
         """
-        return self.server.onchain_history()  # type: ignore
+        return await self.server.onchain_history()  # type: ignore
 
     def add_event_handler(
         self: "BTC", events: Union[Iterable[str], str], func: Callable
@@ -203,6 +218,28 @@ class BTC(Coin):
 
         return wrapper
 
+    async def poll_updates_async(self: "BTC", timeout: Union[int, float] = 2) -> None:
+        await self.server.subscribe(list(self.event_handlers.keys()))
+        while True:
+            try:
+                data = await self.server.get_updates()
+            except Exception as err:
+                logging.error(err)
+                await asyncio.sleep(timeout)
+                continue
+            if data:
+                for event_info in data:
+                    event = event_info.get("event")
+                    event_info.pop("event")
+                    if not event or event not in self.ALLOWED_EVENTS:
+                        raise InvalidEventError(f"Invalid event from server: {event}")
+                    handler = self.event_handlers.get(event)
+                    if handler:
+                        handler = handler(event, **event_info)
+                        if inspect.isawaitable(handler):
+                            await handler  # type: ignore
+            await asyncio.sleep(timeout)
+
     def poll_updates(self: "BTC", timeout: Union[int, float] = 2) -> None:
         """Poll updates
 
@@ -221,26 +258,9 @@ class BTC(Coin):
         Returns:
             None: This function runs forever
         """
-        self.server.subscribe(list(self.event_handlers.keys()))
-        while True:
-            try:
-                data = self.server.get_updates()
-            except Exception as err:
-                logging.error(err)
-                time.sleep(timeout)
-                continue
-            if data:
-                for event_info in data:
-                    event = event_info.get("event")
-                    event_info.pop("event")
-                    if not event or event not in self.ALLOWED_EVENTS:
-                        raise InvalidEventError(f"Invalid event from server: {event}")
-                    handler = self.event_handlers.get(event)
-                    if handler:
-                        handler(event, **event_info)
-            time.sleep(timeout)
+        self.server.loop.run_until_complete(self.poll_updates_async(timeout))
 
-    def pay_to(
+    async def pay_to(
         self: "BTC",
         address: str,
         amount: float,
@@ -274,21 +294,23 @@ class BTC(Coin):
             Union[dict, str]: tx hash of ready transaction or raw transaction, depending on broadcast argument.
         """
         fee_arg = fee if not callable(fee) else None
-        tx_data = self.server.payto(address, amount, fee=fee_arg)
+        tx_data = await self.server.payto(address, amount, fee=fee_arg)
         if not fee_arg:
-            tx_size = self.server.get_tx_size(tx_data)
+            tx_size = await self.server.get_tx_size(tx_data)
             try:
                 resulting_fee = fee(tx_size)  # type: ignore
+                if inspect.isawaitable(resulting_fee):
+                    resulting_fee = await resulting_fee
             except Exception:
                 resulting_fee = None
             if resulting_fee:
-                tx_data = self.server.payto(address, amount, fee=resulting_fee)
+                tx_data = await self.server.payto(address, amount, fee=resulting_fee)
         if broadcast:
-            return self.server.broadcast(tx_data)  # type: ignore
+            return await self.server.broadcast(tx_data)  # type: ignore
         else:
             return tx_data  # type: ignore
 
-    def rate(self: "BTC", currency: str = "USD") -> float:
+    async def rate(self: "BTC", currency: str = "USD") -> float:
         """Get bitcoin price in selected fiat currency
 
         It uses the same method as electrum wallet gets exchange rate-via different payment providers
@@ -308,9 +330,9 @@ class BTC(Coin):
         Returns:
             float: price of 1 bitcoin in selected fiat currency
         """
-        return self.server.exchange_rate(currency)  # type: ignore
+        return await self.server.exchange_rate(currency)  # type: ignore
 
-    def list_fiat(self: "BTC") -> Iterable[str]:
+    async def list_fiat(self: "BTC") -> Iterable[str]:
         """List of all available fiat currencies to get price for
 
         This list is list of only valid currencies that could be passed to rate() function
@@ -326,9 +348,9 @@ class BTC(Coin):
         Returns:
             Iterable[str]: list of available fiat currencies
         """
-        return self.server.list_currencies()  # type: ignore
+        return await self.server.list_currencies()  # type: ignore
 
-    def set_config(self: "BTC", key: str, value: Any) -> bool:
+    async def set_config(self: "BTC", key: str, value: Any) -> bool:
         """Set config key to specified value
         
         It sets the config value in electrum's config store, usually
@@ -350,9 +372,9 @@ class BTC(Coin):
         Returns:
             bool: True on success, False otherwise
         """
-        return self.server.setconfig(key, value)  # type: ignore
+        return await self.server.setconfig(key, value)  # type: ignore
 
-    def get_config(self: "BTC", key: str, default: Any = None) -> Any:
+    async def get_config(self: "BTC", key: str, default: Any = None) -> Any:
         """Get config key
         
         If the key doesn't exist, default value is returned.
@@ -371,12 +393,12 @@ class BTC(Coin):
         Returns:
             Any: value of the key or default value provided
         """
-        return self.server.getconfig(key) or default
+        return await self.server.getconfig(key) or default
 
     ### Lightning apis ###
 
     @lightning
-    def open_channel(self: "BTC", node_id: str, amount: Union[int, float]) -> str:
+    async def open_channel(self: "BTC", node_id: str, amount: Union[int, float]) -> str:
         """Open lightning channel
 
         Open channel with node, returns string of format
@@ -390,10 +412,10 @@ class BTC(Coin):
         Returns:
             str: string of format txid:output_index
         """
-        return self.server.open_channel(node_id, amount)  # type: ignore
+        return await self.server.open_channel(node_id, amount)  # type: ignore
 
     @lightning
-    def addinvoice(
+    async def addinvoice(
         self: "BTC", amount: Union[int, float], message: Optional[str] = ""
     ) -> str:
         """Create lightning invoice
@@ -413,10 +435,10 @@ class BTC(Coin):
         Returns:
             str: bolt invoice id
         """
-        return self.server.addinvoice(amount, message)  # type: ignore
+        return await self.server.addinvoice(amount, message)  # type: ignore
 
     @lightning
-    def close_channel(self: "BTC", channel_id: str, force: bool = False) -> str:
+    async def close_channel(self: "BTC", channel_id: str, force: bool = False) -> str:
         """Close lightning channel
 
         Close channel by channel_id got from open_channel, returns transaction id
@@ -429,11 +451,11 @@ class BTC(Coin):
         Returns:
             str: tx_id of closed channel
         """
-        return self.server.close_channel(channel_id, force)  # type: ignore
+        return await self.server.close_channel(channel_id, force)  # type: ignore
 
     @property  # type: ignore
     @lightning
-    def node_id(self) -> str:
+    async def node_id(self) -> str:
         """Get node id
 
         Electrum's lightning implementation itself is a lightning node,
@@ -447,10 +469,10 @@ class BTC(Coin):
         Returns:
             str: id of your node
         """
-        return self.server.nodeid()  # type: ignore
+        return await self.server.nodeid()  # type: ignore
 
     @lightning
-    def lnpay(self, invoice: str) -> bool:
+    async def lnpay(self, invoice: str) -> bool:
         """Pay lightning invoice
 
         Returns True on success, False otherwise
@@ -461,10 +483,10 @@ class BTC(Coin):
         Returns:
             bool: success or not
         """
-        return self.server.lnpay(invoice)  # type: ignore
+        return await self.server.lnpay(invoice)  # type: ignore
 
     @lightning
-    def connect(self, connection_string: str) -> bool:
+    async def connect(self, connection_string: str) -> bool:
         """Connect to lightning node
         
         connection string must respect format pubkey@ipaddress
@@ -475,10 +497,10 @@ class BTC(Coin):
         Returns:
             bool: True on success, False otherwise
         """
-        return self.server.add_peer(connection_string)  # type: ignore
+        return await self.server.add_peer(connection_string)  # type: ignore
 
     @lightning
-    def list_channels(self) -> list:
+    async def list_channels(self) -> list:
         """List all channels ever opened
         
         Possible channel statuses:
@@ -492,4 +514,4 @@ class BTC(Coin):
         Returns:
             list: list of channels
         """
-        return self.server.list_channels()  # type: ignore
+        return await self.server.list_channels()  # type: ignore

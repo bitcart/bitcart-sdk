@@ -51,7 +51,7 @@ jobs:
           destination: test-reports
   deploy:
     docker:
-       - image: circleci/python:3.6.8
+      - image: circleci/python:3.6.8
     steps:
       - checkout
       - run:
@@ -70,10 +70,6 @@ jobs:
             python setup.py bdist_wheel
             twine upload dist/*
 
-            
-      
-
-          
 workflows:
   version: 2
   test_and_deploy:
@@ -88,6 +84,6 @@ workflows:
             - test
           filters:
             tags:
-              only: /[0-9]+(\.[0-9]+)*/
+              only: /[0-9]+(\.[0-9]+)*-async/
             branches:
               ignore: /.*/

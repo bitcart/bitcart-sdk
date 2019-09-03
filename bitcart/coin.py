@@ -32,7 +32,7 @@ class Coin:
         self.providers = self.providers_new
         del self.providers_new
 
-    def help(self) -> list:
+    async def help(self) -> list:
         """Get help
 
         Returns a list of all available RPC methods
@@ -45,7 +45,7 @@ class Coin:
         """
         raise NotImplementedError()
 
-    def get_tx(self, tx: str) -> dict:
+    async def get_tx(self, tx: str) -> dict:
         """Get transaction information
 
         Given tx hash of transaction, return full information as dictionary
@@ -66,7 +66,7 @@ class Coin:
         """
         raise NotImplementedError()
 
-    def get_address(self, address: str) -> list:
+    async def get_address(self, address: str) -> list:
         """Get address history
 
         This method should return list of transaction informations for specified address
@@ -87,7 +87,7 @@ class Coin:
         """
         raise NotImplementedError()
 
-    def balance(self) -> dict:
+    async def balance(self) -> dict:
         """Get balance of wallet
 
         Example:
