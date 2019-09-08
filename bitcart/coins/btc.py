@@ -264,7 +264,7 @@ class BTC(Coin):
             self (BTC): self
             address (str): address where to send BTC
             amount (float): amount of bitcoins to send
-            fee (Optional[Union[float, Callable]], optional): Either a fixed fee, or a callable getting size as argument and returning fee. Defaults to None.
+            fee (Optional[Union[float, Callable]], optional): Either a fixed fee, or a callable getting size and default fee as argument and returning fee. Defaults to None.
             broadcast (bool, optional): Whether to broadcast transaction to network. Defaults to True.
 
         Raises:
@@ -277,8 +277,9 @@ class BTC(Coin):
         tx_data = self.server.payto(address, amount, fee=fee_arg)
         if not fee_arg:
             tx_size = self.server.get_tx_size(tx_data)
+            default_fee = self.server.get_default_fee(tx_size)
             try:
-                resulting_fee = fee(tx_size)  # type: ignore
+                resulting_fee = fee(tx_size, default_fee)  # type: ignore
             except Exception:
                 resulting_fee = None
             if resulting_fee:
