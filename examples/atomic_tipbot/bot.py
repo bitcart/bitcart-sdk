@@ -14,7 +14,8 @@ from pyrogram.errors import BadRequest
 from pyrogram.session import Session
 
 # BTC class for BTC coin, the same for others, just replace the name
-from bitcart import BTC
+# for litecoin just import LTC
+from bitcart import BTC, LTC
 
 # Don't show message
 Session.notice_displayed = True
@@ -45,11 +46,16 @@ mongo = pymongo.MongoClient()
 mongo = mongo["atomic_tip_db"]
 # bitcart: initialize btc instance
 btc = BTC(xpub=XPUB)
+# the same here
+ltc = LTC(xpub=XPUB)
+# same api, so we can do this
+instances = {"btc":btc,"ltc":ltc}
 satoshis_hundred = 0.000001
 
 # misc
 
-query_filter = Filters.create(lambda _, cbq: bool(re.match(r"^deposit_", cbq.data)))
+deposit_select_filter = Filters.create(lambda _, cbq: bool(re.match(r"^deposit_", cbq.data)))
+deposit_filter = Filters.create(lambda _, cbq: bool(re.match(r"^pay_", cbq.data)))
 
 
 def get_user_data(user_id):
@@ -83,6 +89,13 @@ def deposit_keyboard():
         [InlineKeyboardButton("1 000 Satoshi", callback_data="deposit_1000")],
         [InlineKeyboardButton("10 000 Satoshi", callback_data="deposit_10000")],
         [InlineKeyboardButton("100 000 Satoshi", callback_data="deposit_100000")],
+    ]
+    return InlineKeyboardMarkup(keyboard)
+
+def payment_method_kb(amount):
+    keyboard = [
+        [InlineKeyboardButton("Bitcoin", callback_data=f"pay_btc_{amount}")],
+        [InlineKeyboardButton("Litecoin", callback_data=f"pay_ltc_{amount}")],
     ]
     return InlineKeyboardMarkup(keyboard)
 
@@ -158,25 +171,35 @@ def send_qr(text, chat_id, client, caption=None):
     os.remove(file_name)
 
 
-@app.on_callback_query(query_filter)
+@app.on_callback_query(deposit_select_filter)
+def deposit_select_query(client, call):
+    amount = int(call.data[8:])
+    call.edit_message_text("Select payment method:", reply_markup=payment_method_kb(amount))
+
+@app.on_callback_query(deposit_filter)
 def deposit_query(client, call):
     call.edit_message_text("Okay, almost done! Now generating invoice...")
-    amount = int(call.data[8:])
+    _, currency, amount = call.data.split("_")
+    amount = int(amount)
     amount_btc = amount * 0.00000001
     userid = call.from_user.id
+    if currency == "btc":
+        amount = amount_btc
+    elif currency == "ltc":
+        amount = amount_btc / ltc.rate("BTC")
     # bitcart: create invoice
-    invoice = btc.addrequest(amount_btc, f"{userid} top-up")
-    invoice.update({"user_id": userid})
+    invoice = instances[currency].addrequest(amount, f"{userid} top-up")
+    invoice.update({"user_id": userid, "currency":currency})
     mongo.invoices.insert_one(invoice)
     send_qr(
         invoice["URI"],
         userid,
         client,
-        caption=f"Your invoice for {amount} Satoshi ({amount_btc:0.8f} BTC):\n{invoice['address']}",
+        caption=f"Your invoice for {amount} Satoshi ({amount:0.8f} {currency.upper()}):\n{invoice['address']}",
     )
 
 
-@btc.notify(skip=True)
+@btc.on("new_transaction")
 def payment_handler(updates):
     for i in updates:
         inv = mongo.invoices.find_one({"address": i["address"]})
