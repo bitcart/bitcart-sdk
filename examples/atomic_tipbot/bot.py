@@ -9,8 +9,7 @@ from os import getenv
 import pymongo
 import qrcode
 import qrcode.image.svg
-from pyrogram import (Client, Filters, InlineKeyboardButton,
-                      InlineKeyboardMarkup)
+from pyrogram import Client, Filters, InlineKeyboardButton, InlineKeyboardMarkup
 from pyrogram.errors import BadRequest
 from pyrogram.session import Session
 
@@ -22,9 +21,9 @@ Session.notice_displayed = True
 
 # load token from config
 main_config = configparser.ConfigParser()
-main_config.read('config.ini')
+main_config.read("config.ini")
 try:
-    config = main_config['app']
+    config = main_config["app"]
 except KeyError:
     raise ValueError("No [app] section found, exiting...")
 
@@ -36,10 +35,10 @@ TOKEN = config.get("token")
 XPUB = config.get("xpub")
 if not TOKEN:
     raise ValueError(
-        "No token provided. Provide it using token variable in [app] section")
+        "No token provided. Provide it using token variable in [app] section"
+    )
 if not XPUB:
-    raise ValueError(
-        "Provide your x/y/z pub/prv in xpub setting in [app] section")
+    raise ValueError("Provide your x/y/z pub/prv in xpub setting in [app] section")
 
 app = Client("tg", bot_token=TOKEN)
 mongo = pymongo.MongoClient()
@@ -50,43 +49,41 @@ satoshis_hundred = 0.000001
 
 # misc
 
-query_filter = Filters.create(
-    lambda _,
-    cbq: bool(
-        re.match(
-            r"^deposit_",
-            cbq.data)))
+query_filter = Filters.create(lambda _, cbq: bool(re.match(r"^deposit_", cbq.data)))
 
 
 def get_user_data(user_id):
     user = mongo.users.find_one({"user_id": user_id})
     if not user:
-        user = {"user_id": user_id, "balance": 0,
-                "created_time": datetime.now().strftime(DATE_FORMAT)}
+        user = {
+            "user_id": user_id,
+            "balance": 0,
+            "created_time": datetime.now().strftime(DATE_FORMAT),
+        }
         mongo.users.insert_one(user)
     return user
 
 
 def change_balance(user_id, amount, tx_type, tx_hash=None):
     mongo.users.update_one({"user_id": user_id}, {"$inc": {"balance": amount}})
-    mongo.txes.insert_one({"user_id": user_id,
-                           "amount": abs(amount),
-                           "type": tx_type,
-                           "tx_hash": tx_hash,
-                           "date": datetime.now().strftime(DATE_FORMAT)})
+    mongo.txes.insert_one(
+        {
+            "user_id": user_id,
+            "amount": abs(amount),
+            "type": tx_type,
+            "tx_hash": tx_hash,
+            "date": datetime.now().strftime(DATE_FORMAT),
+        }
+    )
 
 
 def deposit_keyboard():
     keyboard = [
-        [
-            InlineKeyboardButton(
-                '100 Satoshi', callback_data='deposit_100')], [
-            InlineKeyboardButton(
-                '1 000 Satoshi', callback_data='deposit_1000')], [
-            InlineKeyboardButton(
-                '10 000 Satoshi', callback_data='deposit_10000')], [
-            InlineKeyboardButton(
-                '100 000 Satoshi', callback_data='deposit_100000')]]
+        [InlineKeyboardButton("100 Satoshi", callback_data="deposit_100")],
+        [InlineKeyboardButton("1 000 Satoshi", callback_data="deposit_1000")],
+        [InlineKeyboardButton("10 000 Satoshi", callback_data="deposit_10000")],
+        [InlineKeyboardButton("100 000 Satoshi", callback_data="deposit_100000")],
+    ]
     return InlineKeyboardMarkup(keyboard)
 
 
@@ -95,7 +92,7 @@ def help_handler(client, message):
     # bitcart: get usd price
     usd_price = round(btc.rate() * satoshis_hundred, 2)
     message.reply(
-        f'''
+        f"""
 <b>In development, now working commands are tip!xxx, /start, /help, /deposit, /balance, /send, /history and /top</b>
 <b>Send tip in a group chat:</b>
 reply any user message in group including <b>tip!xxx</b> - where xxx is amount you wish to send.
@@ -120,8 +117,9 @@ reply any user message in group including <b>tip!xxx</b> - where xxx is amount y
 
 <b>Have a problem or suggestion?</b>
 <a href=\"https://t.me/joinchat/B9nfbhWuDDPTPUcagWAm1g\">Contact bot community</a>"
-        ''',
-        quote=False)
+        """,
+        quote=False,
+    )
 
 
 @app.on_message(Filters.command("start"))
@@ -130,8 +128,8 @@ def start(client, message):
     # app.send_message(chat_id, message)
     get_user_data(message.from_user.id)
     message.reply(
-        "Welcome to the Bitcart Atomic TipBot! /help for list of commands",
-        quote=False)
+        "Welcome to the Bitcart Atomic TipBot! /help for list of commands", quote=False
+    )
 
 
 @app.on_message(Filters.command("balance"))
@@ -145,7 +143,9 @@ def deposit(client, message):
     message.reply(
         "Choose amount you want to deposit:",
         reply_markup=deposit_keyboard(),
-        quote=False)
+        quote=False,
+    )
+
 
 # callback query
 
@@ -165,14 +165,15 @@ def deposit_query(client, call):
     amount_btc = amount * 0.00000001
     userid = call.from_user.id
     # bitcart: create invoice
-    invoice = btc.addrequest(amount_btc, f'{userid} top-up')
+    invoice = btc.addrequest(amount_btc, f"{userid} top-up")
     invoice.update({"user_id": userid})
     mongo.invoices.insert_one(invoice)
     send_qr(
         invoice["URI"],
         userid,
         client,
-        caption=f"Your invoice for {amount} Satoshi ({amount_btc:0.8f} BTC):\n{invoice['address']}")
+        caption=f"Your invoice for {amount} Satoshi ({amount_btc:0.8f} BTC):\n{invoice['address']}",
+    )
 
 
 @btc.notify(skip=True)
@@ -185,18 +186,18 @@ def payment_handler(updates):
             req = btc.getrequest(i["address"])
             if req["status"] == "Paid":
                 user = mongo.users.find_one({"user_id": inv["user_id"]})
-                amount = req['amount']
-                new_balance = user['balance'] + amount
+                amount = req["amount"]
+                new_balance = user["balance"] + amount
                 mongo.invoices.update_one(
-                    {"address": i["address"]}, {"$set": {"status": "Paid"}})
+                    {"address": i["address"]}, {"$set": {"status": "Paid"}}
+                )
                 change_balance(
-                    inv["user_id"],
-                    amount,
-                    "deposit",
-                    i["txes"][0]["tx_hash"])
+                    inv["user_id"], amount, "deposit", i["txes"][0]["tx_hash"]
+                )
                 app.send_message(
                     user["user_id"],
-                    f"{amount} Satoshis added to your balance. Your balance: {new_balance}")
+                    f"{amount} Satoshis added to your balance. Your balance: {new_balance}",
+                )
 
 
 def secret_id(user_id):
@@ -226,13 +227,16 @@ def top(client, message):
 
 @app.on_message(Filters.private & Filters.command("send"))
 def send(client, message):
-    message.reply('''
+    message.reply(
+        """
 Send me bitcoin address and amount(in satoshis) to send to, separated via space, like so:
 181AUpDVRQ3JVcb9wYLzKz2C8Rdb5mDeH7 500
-''', quote=False)
+""",
+        quote=False,
+    )
 
 
-@app.on_message(Filters.reply & Filters.regex(r'[Tt]ip!([0-9]+)'))
+@app.on_message(Filters.reply & Filters.regex(r"[Tt]ip!([0-9]+)"))
 def tip(client, message):
     reply_id = message.reply_to_message.from_user.id
     user_id = message.from_user.id
@@ -253,17 +257,19 @@ def tip(client, message):
     app.send_animation(
         user_id,
         "https://i.imgur.com/CCqdiZZ.gif",
-        f'You sent {amount} satoshis to {receiver_name}({receiver_username})')
+        f"You sent {amount} satoshis to {receiver_name}({receiver_username})",
+    )
     try:
         app.send_animation(
             reply_id,
             "https://i.imgur.com/U7VL2CV.gif",
-            f"You received {amount} satoshis")
+            f"You received {amount} satoshis",
+        )
     except BadRequest:
         pass
 
 
-@app.on_message(Filters.private & Filters.text & Filters.regex(r'(\w+) (\d+)'))
+@app.on_message(Filters.private & Filters.text & Filters.regex(r"(\w+) (\d+)"))
 def withdraw(client, message):
     user_id = message.from_user.id
     address = message.matches[0].group(1)
@@ -282,14 +288,10 @@ def withdraw(client, message):
         tx_hash = btc.pay_to(address, amount_btc)
         # payment succeeded, we have tx hash
         change_balance(user_id, -amount, "tip", tx_hash)
-        message.reply(
-            f"Successfuly withdrawn. Tx id: {tx_hash}",
-            quote=False)
+        message.reply(f"Successfuly withdrawn. Tx id: {tx_hash}", quote=False)
     except Exception:
         error_line = traceback.format_exc().splitlines()[-1]
-        message.reply(
-            f"Error occured: \n<code>{error_line}</code>",
-            quote=False)
+        message.reply(f"Error occured: \n<code>{error_line}</code>", quote=False)
 
 
 @app.on_message(Filters.private & Filters.command("history"))
