@@ -24,30 +24,30 @@ Behold, the power of Bitcart:
 
     from bitcart.coins.btc import BTC
 
-    btc = BTC("http://localhost:5000", xpub="your x/y/zpub or x/y/zprv",
-            rpc_user="your user for daemon", rpc_pass="password for daemon")
+    btc = BTC(xpub="your x/y/zpub or x/y/zprv")
 
 
-    @btc.notify(skip=False)
-    def callback_func(txes):
-        for i in txes:
-            print("Address:")
-            print(i["address"])
-            print("Transactions:")
-            for j in i["txes"]:
-                print("Tx hash:", j["tx_hash"],
-                    ", Block height:", j["height"])
+    @btc.on("new_transaction")
+    def callback_func(event, tx):
+        print(event)
+        print(tx)
 
 
     btc.poll_updates()
 
-This simple script will listen for any transaction on your wallet's addresses
-and print information about them like so:
+This simple script will listen for any new transaction on your
+wallet's addresses and print information about them like so:
 
-.. image:: images/1.jpg
+.. image:: images/1.png
 
-And if you add ``print(btc.get_tx(j["tx_hash"]))`` it would print
+And if you add ``print(btc.get_tx(tx))`` it would print
 full information about every transaction, too!
 
 To run this script, refer to :doc:`installation <installation>` section.
 For examples of usage, check examples directory in github repository.
+
+Supported coins list(⚡ means lightning is supported):
+
+- Bitcoin (⚡)
+- Litecoin (⚡)
+- Gravity Zero (⚡)
