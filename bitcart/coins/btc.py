@@ -127,7 +127,7 @@ class BTC(Coin):
             dict: Invoice data
         """
         expiration = 60 * expire if expire else None
-        return await self.server.addrequest(  # type: ignore
+        return self.server.add_request(  # type: ignore
             amount=amount, memo=description, expiration=expiration, force=True
         )
 
@@ -434,7 +434,7 @@ class BTC(Coin):
         Returns:
             str: bolt invoice id
         """
-        return await self.server.addinvoice(amount, message)  # type: ignore
+        return self.server.add_lightning_request(amount, message)  # type: ignore
 
     @lightning
     async def close_channel(self: "BTC", channel_id: str, force: bool = False) -> str:
