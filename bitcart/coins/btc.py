@@ -289,6 +289,65 @@ class BTC(Coin):
         else:
             return tx_data  # type: ignore
 
+    def pay_to_many(
+        self: "BTC",
+        outputs: Iterable[Union[dict, tuple]],
+        fee: Optional[Union[float, Callable]] = None,
+        broadcast: bool = True,
+    ) -> Union[dict, str]:
+        """Pay to multiple addresses(batch transaction)
+
+        This function creates a batch transaction, your wallet must have sufficent balance
+        and addresses must exist.
+        outputs parameter is either an iterable of ``(address, amount)`` tuples(or any iterables) or a dict with two
+        keys: address and amount ``{"address": "someaddress", "amount": 0.5}``
+
+        Examples:
+
+        >>> btc.pay_to_many([{"address":"mkHS9ne12qx9pS9VojpwU5xtRd4T7X7ZUt","amount":0.001}, {"address":"mv4rnyY3Su5gjcDNzbMLKBQkBicCtHUtFB","amount":0.0001}])
+        '60fa120d9f868a7bd03d6bbd1e225923cab0ba7a3a6b961861053c90365ed40a'
+
+        >>> btc.pay_to_many([("mkHS9ne12qx9pS9VojpwU5xtRd4T7X7ZUt",0.001), ("mv4rnyY3Su5gjcDNzbMLKBQkBicCtHUtFB",0.0001)])
+        'd80f14e20af2ceaa43a8b7e15402d420246d39e235d87874f929977fb0b1cab8'
+
+        >>> btc.pay_to_many([("mkHS9ne12qx9pS9VojpwU5xtRd4T7X7ZUt",0.001), ("mv4rnyY3Su5gjcDNzbMLKBQkBicCtHUtFB",0.0001)], broadcast=False)
+        {'hex': '0200000...', 'complete': True, 'final': False}
+
+        Args:
+            self (BTC): self
+            outputs (Iterable[Union[dict, tuple]]): An iterable with dictionary or iterable as the item
+            fee (Optional[Union[float, Callable]], optional): Either a fixed fee, or a callable getting size and default fee as argument and returning fee. Defaults to None.
+            broadcast (bool, optional): Whether to broadcast transaction to network. Defaults to True.
+
+        Raises:
+            ValueError: If address or amount is invalid or in other cases
+
+        Returns:
+            Union[dict, str]: tx hash of ready transaction or raw transaction, depending on broadcast argument.
+        """
+        new_outputs = []
+        dict_outputs = False
+        for output in outputs:
+            if isinstance(output, dict):
+                dict_outputs = True
+                new_outputs.append((output["address"], output["amount"]))
+        outputs = new_outputs if dict_outputs else outputs
+        fee_arg = fee if not callable(fee) else None
+        tx_data = self.server.paytomany(outputs, fee=fee_arg)
+        if not fee_arg:
+            tx_size = self.server.get_tx_size(tx_data)
+            default_fee = self.server.get_default_fee(tx_size)
+            try:
+                resulting_fee = fee(tx_size, default_fee)  # type: ignore
+            except Exception:
+                resulting_fee = None
+            if resulting_fee:
+                tx_data = self.server.paytomany(outputs, fee=resulting_fee)
+        if broadcast:
+            return self.server.broadcast(tx_data)  # type: ignore
+        else:
+            return tx_data  # type: ignore
+
     def rate(self: "BTC", currency: str = "USD") -> float:
         """Get bitcoin price in selected fiat currency
 
