@@ -368,7 +368,7 @@ class BTC(Coin):
         else:
             return tx_data  # type: ignore
 
-    def rate(self: "BTC", currency: str = "USD") -> float:
+    async def rate(self: "BTC", currency: str = "USD") -> float:
         """Get bitcoin price in selected fiat currency
 
         It uses the same method as electrum wallet gets exchange rate-via different payment providers
