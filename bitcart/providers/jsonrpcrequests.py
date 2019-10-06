@@ -39,13 +39,15 @@ class RPCProxy:
         self: "RPCProxy", method: str, *args: Any, **kwargs: Any
     ) -> Any:
         auth = aiohttp.BasicAuth(self.username, self.password)  # type: ignore
-        arg: Union[dict, tuple]
-        if args:
+        arg: Union[dict, tuple, list] = ()
+        if args and kwargs:
+            # JSONRPC 2.0 violation, handled by our daemon
+            arg = list(args)
+            arg.append(kwargs)
+        elif args:
             arg = args
         elif kwargs:
             arg = kwargs
-        else:
-            arg = ()
         dict_to_send = {"id": 0, "method": method, "params": arg}
         if self.xpub:
             dict_to_send["xpub"] = self.xpub
