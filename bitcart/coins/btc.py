@@ -245,6 +245,7 @@ class BTC(Coin):
         address: str,
         amount: float,
         fee: Optional[Union[float, Callable]] = None,
+        feerate: Optional[float] = None,
         broadcast: bool = True,
     ) -> Union[dict, str]:
         """Pay to address
@@ -257,6 +258,9 @@ class BTC(Coin):
         >>> btc.pay_to("mkHS9ne12qx9pS9VojpwU5xtRd4T7X7ZUt", 0.001)
         '608d9af34032868fd2849723a4de9ccd874a51544a7fba879a18c847e37e577b'
 
+        >>> btc.pay_to("mkHS9ne12qx9pS9VojpwU5xtRd4T7X7ZUt",0.001, feerate=1)
+        '23d0aec06f6ea6100ba9c6ce8a1fa5d333a6c1d39a780b5fadc4b2836d71b66f'
+
         >>> btc.pay_to("mkHS9ne12qx9pS9VojpwU5xtRd4T7X7ZUt", 0.001, broadcast=False)
         {'hex': '02000000026.....', 'complete': True, 'final': False, 'name': None, 'csv_delay': 0, 'cltv_expiry': 0}
 
@@ -265,16 +269,20 @@ class BTC(Coin):
             address (str): address where to send BTC
             amount (float): amount of bitcoins to send
             fee (Optional[Union[float, Callable]], optional): Either a fixed fee, or a callable getting size and default fee as argument and returning fee. Defaults to None.
+            feerate (Optional[float], optional): A sat/byte feerate, can't be passed together with fee argument. Defaults to None.
             broadcast (bool, optional): Whether to broadcast transaction to network. Defaults to True.
 
         Raises:
             ValueError: If address or amount is invalid or in other cases
+            TypeError: if you have provided both fee and feerate
 
         Returns:
             Union[dict, str]: tx hash of ready transaction or raw transaction, depending on broadcast argument.
         """
+        if fee and feerate:
+            raise TypeError("Can't specify both fee and feerate at the same time")
         fee_arg = fee if not callable(fee) else None
-        tx_data = self.server.payto(address, amount, fee=fee_arg)
+        tx_data = self.server.payto(address, amount, fee=fee_arg, feerate=feerate)
         if not fee_arg:
             tx_size = self.server.get_tx_size(tx_data)
             default_fee = self.server.get_default_fee(tx_size)
@@ -283,7 +291,9 @@ class BTC(Coin):
             except Exception:
                 resulting_fee = None
             if resulting_fee:
-                tx_data = self.server.payto(address, amount, fee=resulting_fee)
+                tx_data = self.server.payto(
+                    address, amount, fee=resulting_fee, feerate=feerate
+                )
         if broadcast:
             return self.server.broadcast(tx_data)  # type: ignore
         else:
@@ -293,6 +303,7 @@ class BTC(Coin):
         self: "BTC",
         outputs: Iterable[Union[dict, tuple]],
         fee: Optional[Union[float, Callable]] = None,
+        feerate: Optional[float] = None,
         broadcast: bool = True,
     ) -> Union[dict, str]:
         """Pay to multiple addresses(batch transaction)
@@ -310,6 +321,9 @@ class BTC(Coin):
         >>> btc.pay_to_many([("mkHS9ne12qx9pS9VojpwU5xtRd4T7X7ZUt",0.001), ("mv4rnyY3Su5gjcDNzbMLKBQkBicCtHUtFB",0.0001)])
         'd80f14e20af2ceaa43a8b7e15402d420246d39e235d87874f929977fb0b1cab8'
 
+        >>> btc.pay_to_many((("mkHS9ne12qx9pS9VojpwU5xtRd4T7X7ZUt",0.001),("mkHS9ne12qx9pS9VojpwU5xtRd4T7X7ZUt",0.001)), feerate=1)
+        '0a6611876e04a6f2742eac02d4fac4c242dda154d85f0d547bbac1a33dbbbe34'
+
         >>> btc.pay_to_many([("mkHS9ne12qx9pS9VojpwU5xtRd4T7X7ZUt",0.001), ("mv4rnyY3Su5gjcDNzbMLKBQkBicCtHUtFB",0.0001)], broadcast=False)
         {'hex': '0200000...', 'complete': True, 'final': False}
 
@@ -317,14 +331,18 @@ class BTC(Coin):
             self (BTC): self
             outputs (Iterable[Union[dict, tuple]]): An iterable with dictionary or iterable as the item
             fee (Optional[Union[float, Callable]], optional): Either a fixed fee, or a callable getting size and default fee as argument and returning fee. Defaults to None.
+            feerate (Optional[float], optional): A sat/byte feerate, can't be passed together with fee argument. Defaults to None.
             broadcast (bool, optional): Whether to broadcast transaction to network. Defaults to True.
 
         Raises:
             ValueError: If address or amount is invalid or in other cases
+            TypeError: if you have provided both fee and feerate
 
         Returns:
             Union[dict, str]: tx hash of ready transaction or raw transaction, depending on broadcast argument.
         """
+        if fee and feerate:
+            raise TypeError("Can't specify both fee and feerate at the same time")
         new_outputs = []
         dict_outputs = False
         for output in outputs:
@@ -333,7 +351,7 @@ class BTC(Coin):
                 new_outputs.append((output["address"], output["amount"]))
         outputs = new_outputs if dict_outputs else outputs
         fee_arg = fee if not callable(fee) else None
-        tx_data = self.server.paytomany(outputs, fee=fee_arg)
+        tx_data = self.server.paytomany(outputs, fee=fee_arg, feerate=feerate)
         if not fee_arg:
             tx_size = self.server.get_tx_size(tx_data)
             default_fee = self.server.get_default_fee(tx_size)
@@ -342,7 +360,9 @@ class BTC(Coin):
             except Exception:
                 resulting_fee = None
             if resulting_fee:
-                tx_data = self.server.paytomany(outputs, fee=resulting_fee)
+                tx_data = self.server.paytomany(
+                    outputs, fee=resulting_fee, feerate=feerate
+                )
         if broadcast:
             return self.server.broadcast(tx_data)  # type: ignore
         else:
