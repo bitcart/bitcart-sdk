@@ -37,9 +37,7 @@ jobs:
       - store_artifacts:
           path: test-reports
           destination: test-reports
-  deploy: &deploy-template
-    environment:
-      ASYNC: false
+  deploy:
     docker:
       - image: circleci/python:3.6.8
     steps:
@@ -59,10 +57,11 @@ jobs:
             python setup.py sdist 
             python setup.py bdist_wheel
             twine upload dist/*
-  deploy-async:
-    <<: *deploy-template
-    environment:
-      ASYNC: true
+            rm -rf dist/*
+            export ASYNC=false
+            python setup.py sdist 
+            python setup.py bdist_wheel
+            twine upload dist/*
 
 workflows:
   version: 2
@@ -79,14 +78,5 @@ workflows:
           filters:
             tags:
               only: /[0-9]+(\.[0-9]+)*/
-            branches:
-              ignore: /.*/
-      - deploy-async:
-          context: global
-          requires:
-            - test
-          filters:
-            tags:
-              only: /[0-9]+(\.[0-9]+)*-async/
             branches:
               ignore: /.*/
