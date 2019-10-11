@@ -16,7 +16,7 @@ def main() -> None:
     setup(
         name="bitcart" if SYNC else "bitcart-async",
         packages=find_packages(),
-        version="0.7.0",
+        version="0.8.0",
         license="MIT",
         description="Bitcart coins support library",
         long_description=open("README.md").read(),
