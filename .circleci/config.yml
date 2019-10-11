@@ -5,6 +5,8 @@
 version: 2
 jobs:
   test:
+    environment:
+      ASYNC: false
     docker:
       # specify the version you desire here
       # use `-browsers` prefix for selenium tests, e.g. `3.6.1-browsers`
@@ -19,13 +21,6 @@ jobs:
     steps:
       - checkout
 
-      # Download and cache dependencies
-      - restore_cache:
-          keys:
-            - v1-dependencies-{{ checksum "requirements.txt" }}
-            # fallback to using the latest cache if no exact match is found
-            - v1-dependencies-
-
       - run:
           name: install library
           command: |
@@ -33,11 +28,6 @@ jobs:
             . venv/bin/activate
             python setup.py install      
             pip install pytest pytest-cov pylint mypy
-
-      - save_cache:
-          paths:
-            - ./venv
-          key: v1-dependencies-{{ checksum "requirements.txt" }}
 
       - run:
           name: run tests
@@ -49,9 +39,11 @@ jobs:
       - store_artifacts:
           path: test-reports
           destination: test-reports
-  deploy:
+  deploy: &deploy-template
+    environment:
+      ASYNC: false
     docker:
-       - image: circleci/python:3.6.8
+      - image: circleci/python:3.6.8
     steps:
       - checkout
       - run:
@@ -69,11 +61,11 @@ jobs:
             python setup.py sdist 
             python setup.py bdist_wheel
             twine upload dist/*
+  deploy-async:
+    <<: *deploy-template
+    environment:
+      ASYNC: true
 
-            
-      
-
-          
 workflows:
   version: 2
   test_and_deploy:
@@ -89,5 +81,14 @@ workflows:
           filters:
             tags:
               only: /[0-9]+(\.[0-9]+)*/
+            branches:
+              ignore: /.*/
+      - deploy-async:
+          context: global
+          requires:
+            - test
+          filters:
+            tags:
+              only: /[0-9]+(\.[0-9]+)*-async/
             branches:
               ignore: /.*/

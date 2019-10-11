@@ -1,17 +1,16 @@
-"""Author: MrNaif2018
-Email: chuff184@gmail.com"""
-__author__ = "MrNaif2018"
-__email__ = "chuff184@gmail.com"
-try:
-    import requests
-except ImportError:
-    raise ImportError("You must install requests library first!")
-try:
-    from simplejson import loads as json_loads
-except (ImportError, ValueError):
-    from json import loads as json_loads
-import warnings
 from typing import Any, Optional, Union, Callable
+
+ASYNC = True
+
+try:
+    if ASYNC:
+        import aiohttp
+        from jsonrpcclient.clients.aiohttp_client import AiohttpClient as RPC
+    else:
+        import requests
+        from jsonrpcclient.clients.http_client import HTTPClient as RPC
+except (ModuleNotFoundError, ImportError):
+    pass  # probably during CI build
 
 
 class RPCProxy:
@@ -21,7 +20,7 @@ class RPCProxy:
         username: Optional[str] = None,
         password: Optional[str] = None,
         xpub: Optional[str] = None,
-        session: Optional[requests.Session] = None,
+        session: Optional[Union["aiohttp.ClientSession", "requests.Session"]] = None,
         verify: Optional[bool] = True,
     ):
         self.url = url
@@ -29,50 +28,38 @@ class RPCProxy:
         self.password = password
         self.xpub = xpub
         self.verify = verify
-        self.session = session or requests.Session()
-
-    def _send_request(self: "RPCProxy", method: str, *args: Any, **kwargs: Any) -> Any:
-        if not self.username or not self.password:
-            auth = None
+        self.session: Union["aiohttp.ClientSession", "requests.Session"]
+        if session:
+            self.sesson = session
         else:
-            auth = (self.username, self.password)
-        arg: Union[dict, tuple, list] = ()
-        if args and kwargs:
-            # JSONRPC 2.0 violation, handled by our daemon
-            arg = list(args)
-            arg.append(kwargs)
-        elif args:
-            arg = args
-        elif kwargs:
-            arg = kwargs
-        dict_to_send = {"id": 0, "method": method, "params": arg}
-        if self.xpub:
-            dict_to_send["xpub"] = self.xpub
-        response = self.session.post(
-            self.url,
-            headers={"content-type": "application/json"},
-            json=dict_to_send,
-            auth=auth,
-            verify=self.verify,
-        )
-        response.raise_for_status()
-        json = response.json()
-        if json["error"]:
-            raise ValueError("Error from server: {}".format(json["error"]))
-        if json["id"] != 0:
-            warnings.warn("ID mismatch!")
-        result = json.get("result", {})
-        if isinstance(result, str):
-            try:
-                result = json_loads(result)
-            except Exception:
-                pass
-        return result
+            self.create_session()
+        if ASYNC:
+            self.rpc = RPC(endpoint=self.url, session=self.session)
+        else:
+            self.rpc = RPC(endpoint=self.url)
+            self.rpc.session = self.session
+
+    def create_session(self: "RPCProxy") -> None:
+        if ASYNC:
+            self.session = aiohttp.ClientSession(
+                connector=aiohttp.TCPConnector(ssl=self.verify),
+                auth=aiohttp.BasicAuth(self.username, self.password),  # type: ignore
+            )
+        else:
+            self.session = requests.Session()
+            self.session.auth = (self.username, self.password)  # type: ignore
 
     def __getattr__(
         self: "RPCProxy", method: str, *args: Any, **kwargs: Any
     ) -> Callable:
-        def wrapper(*args: Any, **kwargs: Any) -> Any:
-            return self._send_request(method, *args, **kwargs)
+        async def wrapper(*args: Any, **kwargs: Any) -> Any:
+            return (
+                await self.rpc.request(
+                    method, validate_against_schema=False, *args, **kwargs
+                )
+            ).data.result
 
         return wrapper
+
+    async def _close(self: "RPCProxy") -> None:
+        await self.session.close()  # type: ignore
