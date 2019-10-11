@@ -9,14 +9,14 @@ ASYNC_REQS = ["jsonrpcclient[aiohttp]"]
 
 
 def main() -> None:
-    SYNC = os.getenv("SYNC", False)
-    if SYNC:
+    ASYNC = os.getenv("ASYNC", True) in ["true", "True", True]
+    if not ASYNC:
         generate()
 
     setup(
-        name="bitcart" if SYNC else "bitcart-async",
+        name="bitcart" if not ASYNC else "bitcart-async",
         packages=find_packages(),
-        version="0.8.0",
+        version="0.8.0.post0",
         license="MIT",
         description="Bitcart coins support library",
         long_description=open("README.md").read(),
@@ -25,7 +25,7 @@ def main() -> None:
         author_email="chuff184@gmail.com",
         url="https://github.com/MrNaif2018/bitcart-sdk",
         keywords=["electrum", " daemon", "bitcart"],
-        install_requires=SYNC_REQS if SYNC else ASYNC_REQS,
+        install_requires=SYNC_REQS if not ASYNC else ASYNC_REQS,
         classifiers=[
             "Development Status :: 3 - Alpha",
             "Intended Audience :: Developers",
