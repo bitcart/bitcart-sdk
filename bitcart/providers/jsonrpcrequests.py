@@ -1,11 +1,11 @@
 from typing import Any, Callable, Optional, Union
 
-import jsonrpcclient
-
 ASYNC = True
 
 
 try:
+    import jsonrpcclient
+
     if ASYNC:
         import aiohttp
         from jsonrpcclient.clients.aiohttp_client import AiohttpClient as RPC
