@@ -1,6 +1,9 @@
-from typing import Any, Optional, Union, Callable
+from typing import Any, Callable, Optional, Union
+
+import jsonrpcclient
 
 ASYNC = True
+
 
 try:
     if ASYNC:
@@ -53,11 +56,18 @@ class RPCProxy:
         self: "RPCProxy", method: str, *args: Any, **kwargs: Any
     ) -> Callable:
         async def wrapper(*args: Any, **kwargs: Any) -> Any:
-            return (
-                await self.rpc.request(
-                    method, validate_against_schema=False, *args, **kwargs
-                )
-            ).data.result
+            try:
+                return (
+                    await self.rpc.request(
+                        method,
+                        validate_against_schema=False,
+                        xpub=self.xpub,
+                        *args,
+                        **kwargs,
+                    )
+                ).data.result
+            except jsonrpcclient.exceptions.ReceivedErrorResponseError as e:
+                raise ValueError("Error from server: {}".format(e.response.message))
 
         return wrapper
 
