@@ -48,7 +48,7 @@ mongo = mongo["atomic_tip_db"]
 btc = BTC(xpub=XPUB)
 # the same here
 ltc = LTC(xpub=XPUB)
-gzro = GZRO(xpub=config.get("gzro_xpub"))
+gzro = GZRO(xpub=XPUB)
 # same api, so we can do this
 instances = {"btc": btc, "ltc": ltc, "gzro": gzro}
 satoshis_hundred = 0.000001
@@ -73,14 +73,15 @@ def get_user_data(user_id):
     return user
 
 
-def change_balance(user_id, amount, tx_type, tx_hash=None):
+def change_balance(user_id, amount, tx_type, tx_hash=None, address=None):
     mongo.users.update_one({"user_id": user_id}, {"$inc": {"balance": amount}})
     mongo.txes.insert_one(
         {
             "user_id": user_id,
-            "amount": abs(amount),
+            "amount": amount,
             "type": tx_type,
             "tx_hash": tx_hash,
+            "address": address,
             "date": datetime.now().strftime(DATE_FORMAT),
         }
     )
@@ -211,24 +212,19 @@ def deposit_query(client, call):
 
 @btc.on("new_payment")
 def payment_handler(event, address, status, status_str):
-    print(address)
-    print(status)
-    print(status_str)
-    inv = mongo.invoices.find_one({"address": i["address"]})
+    inv = mongo.invoices.find_one({"address": address})
     if inv and inv["status"] != "Paid":
         # bitcart: get invoice info, probably not neccesary here, you can
         # just mark it as paid, but statuses may change in other ways too
-        req = btc.getrequest(i["address"])
-        if req["status"] == "Paid":
+        req = btc.getrequest(address)
+        if req["status_str"] == "Paid":
             user = mongo.users.find_one({"user_id": inv["user_id"]})
             amount = req["amount"]
             new_balance = user["balance"] + amount
             mongo.invoices.update_one(
-                {"address": i["address"]}, {"$set": {"status": "Paid"}}
+                {"address": address}, {"$set": {"status": "Paid"}}
             )
-            change_balance(
-                inv["user_id"], amount, "deposit", i["txes"][0]["tx_hash"]
-            )
+            change_balance(inv["user_id"], amount, "deposit", address=address)
             app.send_message(
                 user["user_id"],
                 f"{amount} Satoshis added to your balance. Your balance: {new_balance}",
@@ -264,8 +260,8 @@ def top(client, message):
 def send(client, message):
     message.reply(
         """
-Send me bitcoin address and amount(in satoshis) to send to, separated via space, like so:
-181AUpDVRQ3JVcb9wYLzKz2C8Rdb5mDeH7 500
+Send me currency, address and amount(in satoshis) to send to, separated via space, like so:
+btc 181AUpDVRQ3JVcb9wYLzKz2C8Rdb5mDeH7 500
 """,
         quote=False,
     )
@@ -292,13 +288,13 @@ def tip(client, message):
     app.send_animation(
         user_id,
         "https://i.imgur.com/CCqdiZZ.gif",
-        f"You sent {amount} satoshis to {receiver_name}({receiver_username})",
+        caption=f"You sent {amount} satoshis to {receiver_name}({receiver_username})",
     )
     try:
         app.send_animation(
             reply_id,
             "https://i.imgur.com/U7VL2CV.gif",
-            f"You received {amount} satoshis",
+            caption=f"You received {amount} satoshis",
         )
     except BadRequest:
         pass
@@ -314,17 +310,21 @@ def withdraw(client, message):
     except ValueError:
         message.reply("Invalid amount specified", quote=False)
         return
-    print(currency, address, amount)
+    coin_obj = instances.get(currency.lower())
+    if not coin_obj:
+        message.reply("Invalid currency", quote=False)
+        return
     user = get_user_data(user_id)
     if amount <= 0 or user["balance"] < amount:
         message.reply("Not enough balance", quote=False)
         return
     amount_btc = amount / 100000000
+    amount_to_send = amount_btc / coin_obj.rate("BTC")
     # bitcart: send to address in BTC
     try:
-        tx_hash = btc.pay_to(address, amount_btc)
+        tx_hash = coin_obj.pay_to(address, amount_to_send)
         # payment succeeded, we have tx hash
-        change_balance(user_id, -amount, "tip", tx_hash)
+        change_balance(user_id, -amount, "withdraw", tx_hash)
         message.reply(f"Successfuly withdrawn. Tx id: {tx_hash}", quote=False)
     except Exception:
         error_line = traceback.format_exc().splitlines()[-1]
@@ -340,10 +340,11 @@ def history(client, message):
         count = 1
         for i in txes:
             msg += f"{count}. "
-            sign = "+" if i["type"] == "deposit" else "-"
-            msg += f"{sign}{i['amount']} satoshis at {i['date']}."
+            msg += f"{i['amount']} satoshis at {i['date']}."
             if i["tx_hash"]:
-                msg += f"Tx hash: {i['tx_hash']}."
+                msg += f"\nTx hash: {i['tx_hash']}."
+            elif i["address"]:
+                msg += f"\nSent to: {i['address']}."
             msg += f" Type: {i['type']}\n"
             count += 1
     else:
@@ -352,4 +353,5 @@ def history(client, message):
 
 
 with app:
-    btc.poll_updates()
+    btc.poll_updates()  # or .start_webhook()
+
