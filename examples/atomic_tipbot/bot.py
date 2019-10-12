@@ -49,12 +49,14 @@ btc = BTC(xpub=XPUB)
 # the same here
 ltc = LTC(xpub=XPUB)
 # same api, so we can do this
-instances = {"btc":btc,"ltc":ltc}
+instances = {"btc": btc, "ltc": ltc}
 satoshis_hundred = 0.000001
 
 # misc
 
-deposit_select_filter = Filters.create(lambda _, cbq: bool(re.match(r"^deposit_", cbq.data)))
+deposit_select_filter = Filters.create(
+    lambda _, cbq: bool(re.match(r"^deposit_", cbq.data))
+)
 deposit_filter = Filters.create(lambda _, cbq: bool(re.match(r"^pay_", cbq.data)))
 
 
@@ -91,6 +93,7 @@ def deposit_keyboard():
         [InlineKeyboardButton("100 000 Satoshi", callback_data="deposit_100000")],
     ]
     return InlineKeyboardMarkup(keyboard)
+
 
 def payment_method_kb(amount):
     keyboard = [
@@ -174,7 +177,10 @@ def send_qr(text, chat_id, client, caption=None):
 @app.on_callback_query(deposit_select_filter)
 def deposit_select_query(client, call):
     amount = int(call.data[8:])
-    call.edit_message_text("Select payment method:", reply_markup=payment_method_kb(amount))
+    call.edit_message_text(
+        "Select payment method:", reply_markup=payment_method_kb(amount)
+    )
+
 
 @app.on_callback_query(deposit_filter)
 def deposit_query(client, call):
@@ -189,7 +195,7 @@ def deposit_query(client, call):
         amount = amount_btc / ltc.rate("BTC")
     # bitcart: create invoice
     invoice = instances[currency].addrequest(amount, f"{userid} top-up")
-    invoice.update({"user_id": userid, "currency":currency})
+    invoice.update({"user_id": userid, "currency": currency})
     mongo.invoices.insert_one(invoice)
     send_qr(
         invoice["URI"],
