@@ -1,6 +1,7 @@
 # pylint: disable=import-error, invalid-sequence-index
 import asyncio
 import inspect
+import json
 import logging
 import sys
 import time
@@ -165,7 +166,7 @@ class BTC(Coin):
         Returns:
             dict: dictionary with some data, where key transactions is list of transactions
         """
-        return await self.server.onchain_history()  # type: ignore
+        return json.loads(await self.server.onchain_history())  # type: ignore
 
     def add_event_handler(
         self: "BTC", events: Union[Iterable[str], str], func: Callable
@@ -381,9 +382,11 @@ class BTC(Coin):
             except Exception:
                 resulting_fee = None
             if resulting_fee:
-                tx_data = await self.server.paytomany(outputs,fee=resulting_fee,feerate=feerate)
+                tx_data = await self.server.paytomany(
+                    outputs, fee=resulting_fee, feerate=feerate
+                )
         if broadcast:
-            return await self.server.broadcast(tx_data) # type: ignore
+            return await self.server.broadcast(tx_data)  # type: ignore
         else:
             return tx_data  # type: ignore
 
