@@ -15,7 +15,7 @@ from pyrogram.session import Session
 
 # BTC class for BTC coin, the same for others, just replace the name
 # for litecoin just import LTC
-from bitcart import BTC, LTC
+from bitcart import BTC, LTC, GZRO
 
 # Don't show message
 Session.notice_displayed = True
@@ -48,8 +48,9 @@ mongo = mongo["atomic_tip_db"]
 btc = BTC(xpub=XPUB)
 # the same here
 ltc = LTC(xpub=XPUB)
+gzro = GZRO(xpub=config.get("gzro_xpub"))
 # same api, so we can do this
-instances = {"btc": btc, "ltc": ltc}
+instances = {"btc": btc, "ltc": ltc, "gzro": gzro}
 satoshis_hundred = 0.000001
 
 # misc
@@ -99,6 +100,7 @@ def payment_method_kb(amount):
     keyboard = [
         [InlineKeyboardButton("Bitcoin", callback_data=f"pay_btc_{amount}")],
         [InlineKeyboardButton("Litecoin", callback_data=f"pay_ltc_{amount}")],
+        [InlineKeyboardButton("Gravity", callback_data=f"pay_gzro_{amount}")],
     ]
     return InlineKeyboardMarkup(keyboard)
 
@@ -186,13 +188,15 @@ def deposit_select_query(client, call):
 def deposit_query(client, call):
     call.edit_message_text("Okay, almost done! Now generating invoice...")
     _, currency, amount = call.data.split("_")
-    amount = int(amount)
-    amount_btc = amount * 0.00000001
+    amount_sat = int(amount)
+    amount_btc = amount_sat * 0.00000001
     userid = call.from_user.id
     if currency == "btc":
         amount = amount_btc
     elif currency == "ltc":
         amount = amount_btc / ltc.rate("BTC")
+    elif currency == "gzro":
+        amount = amount_btc / gzro.rate("BTC")
     # bitcart: create invoice
     invoice = instances[currency].addrequest(amount, f"{userid} top-up")
     invoice.update({"user_id": userid, "currency": currency})
@@ -201,32 +205,34 @@ def deposit_query(client, call):
         invoice["URI"],
         userid,
         client,
-        caption=f"Your invoice for {amount} Satoshi ({amount:0.8f} {currency.upper()}):\n{invoice['address']}",
+        caption=f"Your invoice for {amount_sat} Satoshi ({amount:0.8f} {currency.upper()}):\n{invoice['address']}",
     )
 
 
-@btc.on("new_transaction")
-def payment_handler(updates):
-    for i in updates:
-        inv = mongo.invoices.find_one({"address": i["address"]})
-        if inv and inv["status"] != "Paid":
-            # bitcart: get invoice info, probably not neccesary here, you can
-            # just mark it as paid, but statuses may change in other ways too
-            req = btc.getrequest(i["address"])
-            if req["status"] == "Paid":
-                user = mongo.users.find_one({"user_id": inv["user_id"]})
-                amount = req["amount"]
-                new_balance = user["balance"] + amount
-                mongo.invoices.update_one(
-                    {"address": i["address"]}, {"$set": {"status": "Paid"}}
-                )
-                change_balance(
-                    inv["user_id"], amount, "deposit", i["txes"][0]["tx_hash"]
-                )
-                app.send_message(
-                    user["user_id"],
-                    f"{amount} Satoshis added to your balance. Your balance: {new_balance}",
-                )
+@btc.on("new_payment")
+def payment_handler(event, address, status, status_str):
+    print(address)
+    print(status)
+    print(status_str)
+    inv = mongo.invoices.find_one({"address": i["address"]})
+    if inv and inv["status"] != "Paid":
+        # bitcart: get invoice info, probably not neccesary here, you can
+        # just mark it as paid, but statuses may change in other ways too
+        req = btc.getrequest(i["address"])
+        if req["status"] == "Paid":
+            user = mongo.users.find_one({"user_id": inv["user_id"]})
+            amount = req["amount"]
+            new_balance = user["balance"] + amount
+            mongo.invoices.update_one(
+                {"address": i["address"]}, {"$set": {"status": "Paid"}}
+            )
+            change_balance(
+                inv["user_id"], amount, "deposit", i["txes"][0]["tx_hash"]
+            )
+            app.send_message(
+                user["user_id"],
+                f"{amount} Satoshis added to your balance. Your balance: {new_balance}",
+            )
 
 
 def secret_id(user_id):
@@ -298,15 +304,17 @@ def tip(client, message):
         pass
 
 
-@app.on_message(Filters.private & Filters.text & Filters.regex(r"(\w+) (\d+)"))
+@app.on_message(Filters.private & Filters.text & Filters.regex(r"(\w+) (\w+) (\d+)"))
 def withdraw(client, message):
     user_id = message.from_user.id
-    address = message.matches[0].group(1)
+    currency = message.matches[0].group(1)
+    address = message.matches[0].group(2)
     try:
-        amount = int(message.matches[0].group(2))
+        amount = int(message.matches[0].group(3))
     except ValueError:
         message.reply("Invalid amount specified", quote=False)
         return
+    print(currency, address, amount)
     user = get_user_data(user_id)
     if amount <= 0 or user["balance"] < amount:
         message.reply("Not enough balance", quote=False)

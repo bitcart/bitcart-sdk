@@ -47,7 +47,7 @@ class BTC(Coin):
     RPC_URL = "http://localhost:5000"
     RPC_USER = "electrum"
     RPC_PASS = "electrumz"
-    ALLOWED_EVENTS = ["new_block", "new_transaction"]
+    ALLOWED_EVENTS = ["new_block", "new_transaction", "new_payment"]
 
     def __init__(
         self: "BTC",
