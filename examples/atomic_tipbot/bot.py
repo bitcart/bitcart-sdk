@@ -100,9 +100,9 @@ def deposit_keyboard():
 
 def payment_method_kb(amount):
     keyboard = [
-        [InlineKeyboardButton("Bitcoin", callback_data=f"pay_btc_{amount}")],
-        [InlineKeyboardButton("Litecoin", callback_data=f"pay_ltc_{amount}")],
-        [InlineKeyboardButton("Gravity", callback_data=f"pay_gzro_{amount}")],
+        [InlineKeyboardButton("Bitcoin (BTC)", callback_data=f"pay_btc_{amount}")],
+        [InlineKeyboardButton("Litecoin (LTC)", callback_data=f"pay_ltc_{amount}")],
+        [InlineKeyboardButton("Gravity (GZRO)", callback_data=f"pay_gzro_{amount}")],
     ]
     return InlineKeyboardMarkup(keyboard)
 
