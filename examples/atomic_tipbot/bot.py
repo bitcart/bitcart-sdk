@@ -2,6 +2,7 @@ import configparser
 import os
 import re
 import secrets
+import threading
 import traceback
 from datetime import datetime
 from os import getenv
@@ -15,7 +16,7 @@ from pyrogram.session import Session
 
 # BTC class for BTC coin, the same for others, just replace the name
 # for litecoin just import LTC
-from bitcart import BTC, LTC, GZRO
+from bitcart import BTC, GZRO, LTC
 
 # Don't show message
 Session.notice_displayed = True
@@ -200,7 +201,9 @@ def deposit_query(client, call):
         amount = amount_btc / gzro.rate("BTC")
     # bitcart: create invoice
     invoice = instances[currency].addrequest(amount, f"{userid} top-up")
-    invoice.update({"user_id": userid, "currency": currency})
+    invoice.update(
+        {"user_id": userid, "currency": currency, "original_amount": amount_sat}
+    )
     mongo.invoices.insert_one(invoice)
     send_qr(
         invoice["URI"],
@@ -210,16 +213,18 @@ def deposit_query(client, call):
     )
 
 
+# After addition of APIManager this should get even easier
 @btc.on("new_payment")
+@ltc.on("new_payment")
+@gzro.on("new_payment")
 def payment_handler(event, address, status, status_str):
     inv = mongo.invoices.find_one({"address": address})
     if inv and inv["status"] != "Paid":
-        # bitcart: get invoice info, probably not neccesary here, you can
-        # just mark it as paid, but statuses may change in other ways too
-        req = btc.getrequest(address)
-        if req["status_str"] == "Paid":
+        # bitcart: get invoice info, not neccesary here
+        # btc.getrequest(address)
+        if status_str == "Paid":
             user = mongo.users.find_one({"user_id": inv["user_id"]})
-            amount = req["amount"]
+            amount = inv["original_amount"]
             new_balance = user["balance"] + amount
             mongo.invoices.update_one(
                 {"address": address}, {"$set": {"status": "Paid"}}
@@ -352,6 +357,8 @@ def history(client, message):
     message.reply(msg, quote=False)
 
 
-with app:
-    btc.poll_updates()  # or .start_webhook()
-
+# Starting polling for all coins, with APIManager this should get easier
+threading.Thread(target=btc.poll_updates).start()  # or .start_webhook()
+threading.Thread(target=ltc.poll_updates).start()
+threading.Thread(target=gzro.poll_updates).start()
+app.start()
