@@ -218,7 +218,9 @@ def deposit_query(client, call):
 @ltc.on("new_payment")
 @gzro.on("new_payment")
 def payment_handler(event, address, status, status_str):
-    inv = mongo.invoices.find_one({"address": address})
+    inv = (
+        mongo.invoices.find({"address": address}).limit(1).sort([("$natural", -1)])[0]
+    )  # to get latest result
     if inv and inv["status"] != "Paid":
         # bitcart: get invoice info, not neccesary here
         # btc.getrequest(address)
