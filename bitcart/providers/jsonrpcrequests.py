@@ -82,4 +82,4 @@ class RPCProxy:
             if self._loop.is_running():
                 self._loop.create_task(self._close())
             else:
-                self._loop.run_until_complete(self._close())
+                self.session.connector._closed = True  # type: ignore
