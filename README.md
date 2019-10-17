@@ -27,16 +27,3 @@ For more information [Read the Docs](https://bitcart-sdk.readthedocs.io/en/lates
 
 Async version's APIs are the same as sync, just use async and await.
 Async callback functions for @btc.on now supported.
-The only main change is that you must use async with context manager or manually close connections, like so:
-
-```
-async with btc:
-    print(await btc.balance())
-```
-
-Or, if you don't use context managers, close it manually:
-
-```
-print(await btc.balance())
-await btc.close()
-```

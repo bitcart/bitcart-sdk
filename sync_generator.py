@@ -13,7 +13,6 @@ def transform_sync(f: Any) -> str:
         source.replace("async def", "def")
         .replace("await ", "")
         .replace("asyncio.sleep", "time.sleep")
-        .replace("import asyncio\n", "")
         .replace("ASYNC = True", "ASYNC = False")
     )
     with open(filename, "w") as f:

@@ -69,17 +69,6 @@ class BTC(Coin):
             self.rpc_url, self.rpc_user, self.rpc_pass, self.xpub, session=session
         )
 
-    ### async with api ###
-
-    async def close(self) -> None:
-        await self.server._close()
-
-    async def __aenter__(self) -> "BTC":
-        return self
-
-    async def __aexit__(self, exc_type: Any, exc_value: Any, tb: Any) -> None:
-        await self.close()
-
     ### High level interface ###
 
     async def help(self) -> list:
@@ -436,7 +425,7 @@ class BTC(Coin):
 
     async def set_config(self: "BTC", key: str, value: Any) -> bool:
         """Set config key to specified value
-        
+
         It sets the config value in electrum's config store, usually
         $HOME/.electrum/config
 
@@ -447,12 +436,12 @@ class BTC(Coin):
 
         >>> c.set_config("x", 5)
         True
-        
+
         Args:
             self (BTC): self
             key (str): key to set
             value (Any): value to set
-        
+
         Returns:
             bool: True on success, False otherwise
         """
@@ -460,7 +449,7 @@ class BTC(Coin):
 
     async def get_config(self: "BTC", key: str, default: Any = None) -> Any:
         """Get config key
-        
+
         If the key doesn't exist, default value is returned.
         Keys are stored in electrum's config file, check :meth:`bitcart.coins.btc.BTC.set_config` doc for details.
 
@@ -468,12 +457,12 @@ class BTC(Coin):
 
         >>> c.get_config("x")
         5
-        
+
         Args:
             self (BTC): self
             key (str): key to get
             default (Any, optional): The value to default to when key doesn't exist. Defaults to None.
-        
+
         Returns:
             Any: value of the key or default value provided
         """
@@ -572,12 +561,12 @@ class BTC(Coin):
     @lightning
     async def connect(self, connection_string: str) -> bool:
         """Connect to lightning node
-        
+
         connection string must respect format pubkey@ipaddress
-        
+
         Args:
             connection_string (str): connection string
-        
+
         Returns:
             bool: True on success, False otherwise
         """
@@ -586,7 +575,7 @@ class BTC(Coin):
     @lightning
     async def list_channels(self) -> list:
         """List all channels ever opened
-        
+
         Possible channel statuses:
         OPENING, OPEN, CLOSED, DISCONNECTED
 

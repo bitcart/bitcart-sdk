@@ -9,6 +9,7 @@ try:
     if ASYNC:
         import aiohttp
         from jsonrpcclient.clients.aiohttp_client import AiohttpClient as RPC
+        import asyncio
     else:
         import requests
         from jsonrpcclient.clients.http_client import HTTPClient as RPC
@@ -32,6 +33,8 @@ class RPCProxy:
         self.xpub = xpub
         self.verify = verify
         self.session: Union["aiohttp.ClientSession", "requests.Session"]
+        if ASYNC:
+            self._loop = asyncio.get_event_loop()
         if session:
             self.sesson = session
         else:
@@ -73,3 +76,10 @@ class RPCProxy:
 
     async def _close(self: "RPCProxy") -> None:
         await self.session.close()  # type: ignore
+
+    def __del__(self: "RPCProxy") -> None:
+        if ASYNC:
+            if self._loop.is_running():
+                self._loop.create_task(self._close())
+            else:
+                self._loop.run_until_complete(self._close())
