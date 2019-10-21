@@ -3,13 +3,15 @@ import os
 import re
 import secrets
 import threading
+import time
 import traceback
-from datetime import datetime
+from datetime import datetime, timedelta
 from os import getenv
 
 import pymongo
 import qrcode
 import qrcode.image.svg
+import requests
 from pyrogram import Client, Filters, InlineKeyboardButton, InlineKeyboardMarkup
 from pyrogram.errors import BadRequest
 from pyrogram.session import Session
@@ -31,6 +33,12 @@ except KeyError:
 
 # constants
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
+BET_LUCK_IMAGES = {
+    "up": "https://i.imgur.com/AcItxdr.gif",
+    "down": "https://i.imgur.com/wJYyCSw.gif",
+    "same": "https://i.imgur.com/VbC8kNM.gif",
+    "nobalance": "https://i.imgur.com/UY8I7ow.gif",
+}
 
 # loading variables
 TOKEN = config.get("token")
@@ -60,6 +68,7 @@ deposit_select_filter = Filters.create(
     lambda _, cbq: bool(re.match(r"^deposit_", cbq.data))
 )
 deposit_filter = Filters.create(lambda _, cbq: bool(re.match(r"^pay_", cbq.data)))
+bet_filter = Filters.create(lambda _, cbq: bool(re.match(r"^bet_", cbq.data)))
 
 
 def get_user_data(user_id):
@@ -94,6 +103,15 @@ def deposit_keyboard():
         [InlineKeyboardButton("1 000 Satoshi", callback_data="deposit_1000")],
         [InlineKeyboardButton("10 000 Satoshi", callback_data="deposit_10000")],
         [InlineKeyboardButton("100 000 Satoshi", callback_data="deposit_100000")],
+    ]
+    return InlineKeyboardMarkup(keyboard)
+
+
+def bet_menu_keyboard():
+    keyboard = [
+        [InlineKeyboardButton("Go up!", callback_data="bet_up")],
+        [InlineKeyboardButton("Go down!", callback_data="bet_down")],
+        [InlineKeyboardButton("Will stay same", callback_data="bet_same")],
     ]
     return InlineKeyboardMarkup(keyboard)
 
@@ -359,6 +377,187 @@ def history(client, message):
     message.reply(msg, quote=False)
 
 
+def charge_user(user_id, amount, tx_type="bet"):
+    user = get_user_data(user_id)
+    if amount > 0 and user["balance"] >= amount:
+        change_balance(user_id, -amount, tx_type)
+        return True
+    else:
+        return False
+
+
+def make_bet(userid, amount, trend, set_time, chat_id, msg_id):
+    if (
+        amount < 1
+        or set_time not in ["minute", "hour", "day", "month"]
+        and trend not in ["up", "down", "same"]
+    ):
+        app.send_message(
+            chat_id=chat_id,
+            text="Wrong command usage. /bet 1000 <i>[up|down|same] [minute|hour|day|month]</i>",
+            parse_mode="html",
+        )
+        return False
+
+    if charge_user(userid, amount, f"bet_{trend}_{set_time}"):
+        dtime = datetime.strftime(datetime.now(), DATE_FORMAT)
+        if set_time == "minute":
+            coef = 1.01
+            tdelta = timedelta(minutes=1)
+        elif set_time == "hour":
+            coef = 1.13
+            tdelta = timedelta(hours=1)
+        elif set_time == "day":
+            coef = 1.19
+            tdelta = timedelta(days=1)
+        elif set_time == "month":
+            coef = 1.23
+            tdelta = timedelta(days=30)
+
+        win_amount = int(round(amount * coef))
+
+        price_get = requests.get("https://www.bitstamp.net/api/v2/ticker/btcusd")
+        if price_get.status_code == 200:
+            price = int(round(float(price_get.json()["last"])))
+        else:
+            app.send_message(
+                chat_id=userid,
+                text="error occured getting rate @ bitstamp, try again later",
+            )
+            return False
+
+        recorddate = datetime.strptime(dtime, DATE_FORMAT)
+
+        unixtime_exp = recorddate + tdelta
+
+        bet_data = {
+            "timestamp": dtime,
+            "exp_timestamp": datetime.strftime(unixtime_exp, DATE_FORMAT),
+            "unixtime_exp": unixtime_exp,
+            "event": "bet",
+            "chat_id": chat_id,
+            "msg_id": msg_id,
+            "trend": trend,
+            "price": price,
+            "status": "new",
+            "timeout": set_time,
+            "userid": userid,
+            "to": "bet_" + trend + "_" + set_time,
+            "amount": amount,
+            "win": win_amount,
+        }
+        mongo.bets.insert_one(bet_data)
+
+        app.send_message(
+            chat_id=chat_id,
+            text=f"Your {amount} sat bet is accepted, hodler! You will receive {win_amount} if bitcoin price go {trend} from {price}@Bitstamp in a {set_time}",
+            reply_to_message_id=msg_id,
+        )
+
+        app.send_animation(
+            chat_id=userid, animation=BET_LUCK_IMAGES[trend], caption="Good luck!"
+        )
+        return True
+    else:
+        app.send_animation(
+            userid,
+            animation=BET_LUCK_IMAGES["nobalance"],
+            caption="Not enought funds. Would you like to top-up? /deposit",
+        )
+        return False
+
+
+@app.on_message(Filters.command("bet"))
+def bet(client, message):
+    try:
+        _, amount, trend, date = message.command
+        amount = int(amount)
+        make_bet(
+            message.from_user.id,
+            amount,
+            trend,
+            date,
+            message.chat.id,
+            message.message_id,
+        )
+    except ValueError:
+        message.reply(
+            "Bet 3000 satoshi that in a hour Bitcoin price will:",
+            reply_markup=bet_menu_keyboard(),
+            quote=False,
+        )
+
+
+@app.on_callback_query(bet_filter)
+def bet_menu(client, message):
+    trend = message.data.split("_")[-1]
+    return make_bet(
+        message.from_user.id,
+        3000,
+        trend,
+        "hour",
+        message.message.chat.id,
+        message.message.message_id,
+    )
+
+
+def betcheck(first=False):
+    if first:
+        time.sleep(10)
+    threading.Timer(30.0, betcheck).start()
+
+    ##check bets
+    bets = (
+        mongo.bets.find({"status": "new"}).sort("amount", pymongo.DESCENDING).limit(10)
+    )
+
+    gotprice = False
+    price_get = requests.get("https://www.bitstamp.net/api/v2/ticker/btcusd")
+    retry = 0
+    while not gotprice:
+        retry += 1
+        if price_get.status_code == 200:
+            gotprice = True
+            price = int(round(float(price_get.json()["last"])))
+        else:
+            print(
+                f"betcheck: Could not retrieve data from exchange, re-trying: {retry}"
+            )
+
+    for bet in bets:
+        now_time = datetime.now()
+        bet_exp = bet["unixtime_exp"]
+
+        if bet_exp < now_time:
+            if bet["trend"] == "up":
+                win = bet["price"] < price
+            elif bet["trend"] == "down":
+                win = bet["price"] > price
+            else:
+                win = bet["price"] == price
+            if win:
+                change_balance(bet["userid"], bet["win"], "bet win")
+                app.send_animation(
+                    chat_id=bet["userid"],
+                    animation="https://i.imgur.com/bZAS9ac.gif",
+                    caption=f"Congratulations! You won {bet['win']} satoshis! {bet['price']} {bet['trend']} {price}",
+                )
+                app.send_message(
+                    chat_id=bet["chat_id"],
+                    text=f'Someone just won {bet["win"]} satoshis on bets!',
+                    reply_to_message_id=bet["msg_id"],
+                )
+            else:
+                app.send_animation(
+                    chat_id=bet["userid"],
+                    animation="https://i.imgur.com/2bmpZsM.gif",
+                    caption=f"Your bet wasn't lucky one! Bet on {bet['price']} {bet['trend']}, but price is {price}",
+                )
+            mongo.bets.update_one({"_id": bet["_id"]}, {"$set": {"status": "expired"}})
+        time.sleep(1)
+
+
+threading.Thread(target=betcheck, kwargs={"first": True}).start()
 # Starting polling for all coins, with APIManager this should get easier
 threading.Thread(target=btc.poll_updates).start()  # or .start_webhook()
 threading.Thread(target=ltc.poll_updates).start()
