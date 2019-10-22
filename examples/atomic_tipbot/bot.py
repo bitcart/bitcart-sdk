@@ -69,6 +69,30 @@ deposit_select_filter = Filters.create(
 )
 deposit_filter = Filters.create(lambda _, cbq: bool(re.match(r"^pay_", cbq.data)))
 bet_filter = Filters.create(lambda _, cbq: bool(re.match(r"^bet_", cbq.data)))
+paylink_filter = Filters.create(lambda _, cbq: bool(re.match(r"^pl_", cbq.data)))
+paylink_pay_filter = Filters.create(lambda _, cbq: bool(re.match(r"^plp_", cbq.data)))
+pagination_filter = Filters.create(lambda _, cbq: bool(re.match(r"^page_", cbq.data)))
+
+
+class Paginator:
+    items_per_page = 10
+
+    def __init__(self, data):
+        self.data = data
+
+    def get_page(self, page):
+        end = page * self.items_per_page
+        start = end - self.items_per_page
+        return self.data[start:end]
+
+    def get_starting_count(self, page):
+        return ((page - 1) * self.items_per_page) + 1
+
+    def has_next_page(self, page):
+        return self.data.count() >= (page * self.items_per_page) + 1
+
+    def has_prev_page(self, page):
+        return page > 1
 
 
 def get_user_data(user_id):
@@ -125,13 +149,26 @@ def payment_method_kb(amount):
     return InlineKeyboardMarkup(keyboard)
 
 
+def paylink_kb(currency, amount):
+    keyboard = [
+        [InlineKeyboardButton("Bot link", callback_data=f"pl_bot_{currency}_{amount}")],
+        [
+            InlineKeyboardButton(
+                "Payment request(for non-bot users)",
+                callback_data=f"pl_pr_{currency}_{amount}",
+            )
+        ],
+    ]
+    return InlineKeyboardMarkup(keyboard)
+
+
 @app.on_message(Filters.command("help"))
 def help_handler(client, message):
     # bitcart: get usd price
     usd_price = round(btc.rate() * satoshis_hundred, 2)
     message.reply(
         f"""
-<b>In development, now working commands are tip!xxx, /start, /help, /deposit, /balance, /send, /history and /top</b>
+<b>In development, now working commands are tip!xxx, /start, /help, /deposit, /balance, /send, /history, /send2telegram, /paylink, /claim, /bet and /top</b>
 <b>Send tip in a group chat:</b>
 reply any user message in group including <b>tip!xxx</b> - where xxx is amount you wish to send.
 <b>Wallet commands:</b>
@@ -145,6 +182,11 @@ reply any user message in group including <b>tip!xxx</b> - where xxx is amount y
 /send2telegram @username 1000 <i> send satoshis to known telegram user</i>
 /paylink 10000 <i>request payment link for sharing</i>
 /bet 1000 <i>[up|down|same] [minute|hour|day|month] Bet on BTC price</i>
+Betting rewards amounts are based on the time you bet for:
+1 % profit if betting for one minute
+13 % profit if betting for one hour
+19 % profit if betting for one day
+23 % profit if betting for one month
 /sendsms +118767854 hello, lightning! <i>send text message to number via lnsms.world</i>
 
 <b>Misc:</b>
@@ -160,14 +202,68 @@ reply any user message in group including <b>tip!xxx</b> - where xxx is amount y
     )
 
 
+def get_user_repr(user_id):
+    user = app.get_users(user_id)
+    return f"{user.first_name}({user.username})"
+
+
+def paylink_pay_kb(deposit_id, amount):
+    keyboard = [
+        [InlineKeyboardButton("Yes", callback_data=f"plp_y_{deposit_id}_{amount}")],
+        [InlineKeyboardButton("No", callback_data=f"plp_n_{deposit_id}_{amount}")],
+    ]
+    return InlineKeyboardMarkup(keyboard)
+
+
 @app.on_message(Filters.command("start"))
 def start(client, message):
     # quote=False with reply is just a shorter version of
     # app.send_message(chat_id, message)
-    get_user_data(message.from_user.id)
-    message.reply(
-        "Welcome to the Bitcart Atomic TipBot! /help for list of commands", quote=False
-    )
+    user_id = message.from_user.id
+    user = get_user_data(user_id)
+    texts = message.text.split()
+    # paylink handling
+    send_welcome = True
+    try:
+        if len(texts) == 2:
+            deposit_id, amount = texts[1].split("=")
+            deposit_id = int(deposit_id)
+            amount = int(amount)
+            if amount <= 0 or user["balance"] < amount:
+                message.reply("Not enough balance to pay the paylink.")
+            else:
+                if deposit_id != user_id:
+                    message.reply(
+                        f"Paying paylink with {amount} satoshis to {get_user_repr(deposit_id)}. Proceed?",
+                        reply_markup=paylink_pay_kb(deposit_id, amount),
+                    )
+            send_welcome = False
+    except ValueError:
+        send_welcome = True
+    if send_welcome:
+        message.reply(
+            "Welcome to the Bitcart Atomic TipBot! /help for list of commands",
+            quote=False,
+        )
+
+
+@app.on_callback_query(paylink_pay_filter)
+def pay_paylink(client, message):
+    user_id = message.from_user.id
+    _, answer, deposit_id, amount = message.data.split("_")
+    deposit_id = int(deposit_id)
+    amount = int(amount)
+    if answer == "y":
+        change_balance(deposit_id, amount, "paylink")
+        change_balance(user_id, -amount, "paylink")
+        message.edit_message_text(
+            f"Successfully paid the paylink with {amount} satoshis."
+        )
+        app.send_message(
+            deposit_id, f"Your paylink was successfuly paid by {get_user_repr(user_id)}"
+        )
+    else:
+        message.edit_message_text(f"Paylink canceled.")
 
 
 @app.on_message(Filters.command("balance"))
@@ -204,31 +300,89 @@ def deposit_select_query(client, call):
     )
 
 
+def convert_amounts(currency, amount):
+    currency = currency.lower()
+    if currency == "ltc":
+        amount /= ltc.rate("BTC")
+    elif currency == "gzro":
+        amount /= gzro.rate("BTC")
+    return amount, instances[currency].friendly_name
+
+
+def generate_invoice(user_id, currency, amount, amount_sat, description=""):
+    amount, friendly_name = convert_amounts(currency, amount)
+    # bitcart: create invoice
+    invoice = instances[currency].addrequest(
+        amount, description, expire=20160
+    )  # 14 days
+    invoice.update(
+        {"user_id": user_id, "currency": currency, "original_amount": amount_sat}
+    )
+    mongo.invoices.insert_one(invoice)
+    return invoice, amount, friendly_name
+
+
 @app.on_callback_query(deposit_filter)
 def deposit_query(client, call):
     call.edit_message_text("Okay, almost done! Now generating invoice...")
     _, currency, amount = call.data.split("_")
     amount_sat = int(amount)
     amount_btc = amount_sat * 0.00000001
-    userid = call.from_user.id
-    if currency == "btc":
-        amount = amount_btc
-    elif currency == "ltc":
-        amount = amount_btc / ltc.rate("BTC")
-    elif currency == "gzro":
-        amount = amount_btc / gzro.rate("BTC")
-    # bitcart: create invoice
-    invoice = instances[currency].addrequest(amount, f"{userid} top-up")
-    invoice.update(
-        {"user_id": userid, "currency": currency, "original_amount": amount_sat}
+    user_id = call.from_user.id
+    invoice, amount, _ = generate_invoice(
+        user_id, currency, amount_btc, amount_sat, f"{secret_id(user_id)} top-up"
     )
-    mongo.invoices.insert_one(invoice)
     send_qr(
         invoice["URI"],
-        userid,
+        user_id,
         client,
         caption=f"Your invoice for {amount_sat} Satoshi ({amount:0.8f} {currency.upper()}):\n{invoice['address']}",
     )
+
+
+@app.on_message(Filters.private & Filters.command("paylink"))
+def paylink(client, message):
+    user_id = message.from_user.id
+    try:
+        _, currency, amount_sat = message.command
+        amount_sat = int(amount_sat)
+    except ValueError:
+        return message.reply(
+            "Invalid amount. Command format to request 1000 satoshi in BTC: /paylink btc 1000"
+        )
+    message.reply(
+        "Which link would you like to get?",
+        reply_markup=paylink_kb(currency, amount_sat),
+        quote=False,
+    )
+
+
+@app.on_callback_query(paylink_filter)
+def paylink_query(client, message):
+    user_id = message.from_user.id
+    _, link_type, currency, amount_sat = message.data.split("_")
+    amount_sat = int(amount_sat)
+    amount_btc = amount_sat / 100000000
+    amount, currency_name = convert_amounts(currency, amount_btc)
+    if link_type == "pr":
+        invoice, _, _ = generate_invoice(
+            user_id, currency, amount_btc, amount_sat, f"{secret_id(user_id)} paylink"
+        )
+        invoice_link = invoice["URI"]
+    elif link_type == "bot":
+        bot_username = app.get_me().username
+        invoice_link = f"https://t.me/{bot_username}?start={user_id}={amount_sat}"
+    try:
+        message.edit_message_text(
+            f"Invoice for {amount_sat} Satoshi [{amount:.8f} {currency.upper()}]\n\nMessage to forward:"
+        )
+        time.sleep(1)
+        app.send_message(
+            chat_id=user_id,
+            text=f"Send me {currency_name.lower()} using this link: {invoice_link}",
+        )
+    except BadRequest as e:
+        pass
 
 
 # After addition of APIManager this should get even easier
@@ -333,18 +487,31 @@ def withdraw(client, message):
     try:
         amount = int(message.matches[0].group(3))
     except ValueError:
-        message.reply("Invalid amount specified", quote=False)
-        return
+        return message.reply("Invalid amount specified", quote=False)
     coin_obj = instances.get(currency.lower())
     if not coin_obj:
-        message.reply("Invalid currency", quote=False)
-        return
+        return message.reply("Invalid currency", quote=False)
     user = get_user_data(user_id)
     if amount <= 0 or user["balance"] < amount:
-        message.reply("Not enough balance", quote=False)
-        return
+        return message.reply("Not enough balance", quote=False)
     amount_btc = amount / 100000000
     amount_to_send = amount_btc / coin_obj.rate("BTC")
+    wallet_balance = float(
+        coin_obj.balance()["confirmed"]
+    )  # TODO: investigate why it is a string
+    if wallet_balance < amount_to_send:
+        available_coins = []
+        for coin in instances:
+            coin_balance = float(instances[coin].balance()["confirmed"])
+            if coin_balance >= amount_to_send:
+                available_coins.append(instances[coin].coin_name)
+        wallet_balance_sat = int(
+            round(wallet_balance * coin_obj.rate("BTC") * 100000000, 8)
+        )
+        return message.reply(
+            f'Current {currency} wallet balance: {wallet_balance_sat}. \nIf you want to withdraw {amount} satoshis, you can do so in any of these currencies: {", ".join(available_coins)}',
+            quote=False,
+        )
     # bitcart: send to address in BTC
     try:
         tx_hash = coin_obj.pay_to(address, amount_to_send)
@@ -356,25 +523,58 @@ def withdraw(client, message):
         message.reply(f"Error occured: \n<code>{error_line}</code>", quote=False)
 
 
+def render_history_page(paginator, page):
+    count = paginator.get_starting_count(page)
+    page_data = paginator.get_page(page)
+    msg = ""
+    for i in page_data:
+        msg += f"{count}. "
+        msg += f"{i['amount']} satoshis at {i['date']}."
+        if i["tx_hash"]:
+            msg += f"\nTx hash: {i['tx_hash']}."
+        elif i["address"]:
+            msg += f"\nSent to: {i['address']}."
+        msg += f" Type: {i['type']}\n"
+        count += 1
+    return msg
+
+
 @app.on_message(Filters.private & Filters.command("history"))
 def history(client, message):
     query = {"user_id": message.from_user.id}
     msg = "Transaction history:\n"
+    markup = None
     if mongo.txes.count_documents(query):
         txes = mongo.txes.find(query)
-        count = 1
-        for i in txes:
-            msg += f"{count}. "
-            msg += f"{i['amount']} satoshis at {i['date']}."
-            if i["tx_hash"]:
-                msg += f"\nTx hash: {i['tx_hash']}."
-            elif i["address"]:
-                msg += f"\nSent to: {i['address']}."
-            msg += f" Type: {i['type']}\n"
-            count += 1
+        paginator = Paginator(txes)
+        msg += render_history_page(paginator, 1)
+        if paginator.has_next_page(1):
+            markup = InlineKeyboardMarkup(
+                [[InlineKeyboardButton("▶️", callback_data="page_2")]]
+            )
     else:
         msg += "Empty"
-    message.reply(msg, quote=False)
+    message.reply(msg, reply_markup=markup, quote=False)
+
+
+@app.on_callback_query(pagination_filter)
+def history_page(client, message):
+    _, page = message.data.split("_")
+    page = int(page)
+    query = {"user_id": message.from_user.id}
+    txes = mongo.txes.find(query)
+    paginator = Paginator(txes)
+    msg = "Transaction history:\n"
+    msg += render_history_page(paginator, page)
+    markup = None
+    keyboard = []
+    if paginator.has_prev_page(page):
+        keyboard.append(InlineKeyboardButton("◀️", callback_data=f"page_{page-1}"))
+    if paginator.has_next_page(page):
+        keyboard.append(InlineKeyboardButton("▶️", callback_data=f"page_{page+1}"))
+    if keyboard:
+        markup = InlineKeyboardMarkup([keyboard])
+    message.edit_message_text(msg, reply_markup=markup)
 
 
 def charge_user(user_id, amount, tx_type="bet"):
@@ -420,10 +620,13 @@ def make_bet(userid, amount, trend, set_time, chat_id, msg_id):
         if price_get.status_code == 200:
             price = int(round(float(price_get.json()["last"])))
         else:
-            app.send_message(
-                chat_id=userid,
-                text="error occured getting rate @ bitstamp, try again later",
-            )
+            try:
+                app.send_message(
+                    chat_id=userid,
+                    text="error occured getting rate @ bitstamp, try again later",
+                )
+            except BadRequest:
+                pass
             return False
 
         recorddate = datetime.strptime(dtime, DATE_FORMAT)
@@ -453,17 +656,22 @@ def make_bet(userid, amount, trend, set_time, chat_id, msg_id):
             text=f"Your {amount} sat bet is accepted, hodler! You will receive {win_amount} if bitcoin price go {trend} from {price}@Bitstamp in a {set_time}",
             reply_to_message_id=msg_id,
         )
-
-        app.send_animation(
-            chat_id=userid, animation=BET_LUCK_IMAGES[trend], caption="Good luck!"
-        )
+        try:
+            app.send_animation(
+                chat_id=userid, animation=BET_LUCK_IMAGES[trend], caption="Good luck!"
+            )
+        except BadRequest:
+            pass
         return True
     else:
-        app.send_animation(
-            userid,
-            animation=BET_LUCK_IMAGES["nobalance"],
-            caption="Not enought funds. Would you like to top-up? /deposit",
-        )
+        try:
+            app.send_animation(
+                userid,
+                animation=BET_LUCK_IMAGES["nobalance"],
+                caption="Not enought funds. Would you like to top-up? /deposit",
+            )
+        except BadRequest:
+            pass
         return False
 
 
@@ -499,6 +707,70 @@ def bet_menu(client, message):
         message.message.chat.id,
         message.message.message_id,
     )
+
+
+def genvoucher(user_id, amount, receiver):
+    dtime = datetime.strftime(datetime.now(), DATE_FORMAT)
+    voucher = secrets.token_urlsafe(8)
+    receiver = receiver.replace("@", "")
+
+    voucher_data = {
+        "timestamp": dtime,
+        "code": voucher,
+        "event": "send2telegram",
+        "from": user_id,
+        "to": app.resolve_peer(receiver).user_id,
+        "to_username": receiver,
+        "amount": amount,
+    }
+    mongo.vouchers.insert_one(voucher_data)
+    return voucher
+
+
+@app.on_message(Filters.command("send2telegram"))
+def send2telegram(client, message):
+    user_id = message.from_user.id
+    try:
+        _, receiver, amount = message.command
+        amount = int(amount)
+        if charge_user(user_id, amount, receiver):
+            genvoucher(user_id, amount, receiver)
+            message.reply(
+                f"Funds reserved for {receiver}, now he needs send /claim command to @bitcart_atomic_tipbot"
+            )
+        else:
+            try:
+                app.send_animation(
+                    user_id,
+                    animation="https://i.imgur.com/UY8I7ow.gif",
+                    caption="Not enought funds. Would you like to top-up? /deposit",
+                )
+            except BadRequest:
+                pass
+    except ValueError:
+        message.reply(
+            "Failed to send funds. Command format to send 10000 to @MrNaif_bel: /send2telegram @MrNaif_bel 10000"
+        )
+
+
+@app.on_message(Filters.private & Filters.command("claim"))
+def claim(client, message):
+    user_id = message.from_user.id
+    get_user_data(user_id)
+    vouchers = mongo.vouchers.find({"to": user_id})
+    count = 0
+    sum_ = 0
+    for v in vouchers:
+        count += 1
+        sum_ += v["amount"]
+        mongo.vouchers.delete_one({"_id": v["_id"]})
+        dtime = datetime.strftime(datetime.now(), DATE_FORMAT)
+        v.pop("_id", None)
+        v["redeemed"] = dtime
+        mongo.voucher_archive.insert_one(v)
+    if sum_ > 0:
+        change_balance(user_id, sum_, "vouchers")
+    message.reply(f"{count} vouchers redeemed for {sum_} satoshi in total")
 
 
 def betcheck(first=False):
