@@ -181,7 +181,7 @@ reply any user message in group including <b>tip!xxx</b> - where xxx is amount y
 /send2phone +118767854 1000 <i>send satoshi to number by sat2.io</i>
 /send2telegram @username 1000 <i> send satoshis to known telegram user</i>
 /paylink 10000 <i>request payment link for sharing</i>
-/bet 1000 <i>[up|down|same] [minute|hour|day|month] Bet on BTC price</i>
+/bet [currency] 1000 <i>[up|down|same] [minute|hour|day|month] Bet on currencies prices</i>
 Betting rewards amounts are based on the time you bet for:
 1 % profit if betting for one minute
 13 % profit if betting for one hour
@@ -586,15 +586,17 @@ def charge_user(user_id, amount, tx_type="bet"):
         return False
 
 
-def make_bet(userid, amount, trend, set_time, chat_id, msg_id):
+def make_bet(userid, currency, amount, trend, set_time, chat_id, msg_id):
+    currency = currency.lower()
     if (
         amount < 1
         or set_time not in ["minute", "hour", "day", "month"]
-        and trend not in ["up", "down", "same"]
+        or trend not in ["up", "down", "same"]
+        or currency not in instances
     ):
         app.send_message(
             chat_id=chat_id,
-            text="Wrong command usage. /bet 1000 <i>[up|down|same] [minute|hour|day|month]</i>",
+            text="Wrong command usage. /bet [currency] 1000 <i>[up|down|same] [minute|hour|day|month]</i>",
             parse_mode="html",
         )
         return False
@@ -616,18 +618,7 @@ def make_bet(userid, amount, trend, set_time, chat_id, msg_id):
 
         win_amount = int(round(amount * coef))
 
-        price_get = requests.get("https://www.bitstamp.net/api/v2/ticker/btcusd")
-        if price_get.status_code == 200:
-            price = int(round(float(price_get.json()["last"])))
-        else:
-            try:
-                app.send_message(
-                    chat_id=userid,
-                    text="error occured getting rate @ bitstamp, try again later",
-                )
-            except BadRequest:
-                pass
-            return False
+        price = instances[currency].rate("USD")
 
         recorddate = datetime.strptime(dtime, DATE_FORMAT)
 
@@ -646,14 +637,15 @@ def make_bet(userid, amount, trend, set_time, chat_id, msg_id):
             "timeout": set_time,
             "userid": userid,
             "to": "bet_" + trend + "_" + set_time,
+            "currency": currency,
             "amount": amount,
             "win": win_amount,
         }
         mongo.bets.insert_one(bet_data)
-
+        coin_name = instances[currency].coin_name.lower()  # bitcart: get coin data
         app.send_message(
             chat_id=chat_id,
-            text=f"Your {amount} sat bet is accepted, hodler! You will receive {win_amount} if bitcoin price go {trend} from {price}@Bitstamp in a {set_time}",
+            text=f"Your {amount} sat bet is accepted, hodler! You will receive {win_amount} if {coin_name} price go {trend} from {price}@Coingecko in a {set_time}",
             reply_to_message_id=msg_id,
         )
         try:
@@ -678,10 +670,11 @@ def make_bet(userid, amount, trend, set_time, chat_id, msg_id):
 @app.on_message(Filters.command("bet"))
 def bet(client, message):
     try:
-        _, amount, trend, date = message.command
+        _, currency, amount, trend, date = message.command
         amount = int(amount)
         make_bet(
             message.from_user.id,
+            currency,
             amount,
             trend,
             date,
@@ -701,6 +694,7 @@ def bet_menu(client, message):
     trend = message.data.split("_")[-1]
     return make_bet(
         message.from_user.id,
+        "btc",
         3000,
         trend,
         "hour",
@@ -783,23 +777,14 @@ def betcheck(first=False):
         mongo.bets.find({"status": "new"}).sort("amount", pymongo.DESCENDING).limit(10)
     )
 
-    gotprice = False
-    price_get = requests.get("https://www.bitstamp.net/api/v2/ticker/btcusd")
-    retry = 0
-    while not gotprice:
-        retry += 1
-        if price_get.status_code == 200:
-            gotprice = True
-            price = int(round(float(price_get.json()["last"])))
-        else:
-            print(
-                f"betcheck: Could not retrieve data from exchange, re-trying: {retry}"
-            )
+    prices = {
+        currency: instances[currency].rate("USD") for currency in instances
+    }  # dict comprehension
 
     for bet in bets:
         now_time = datetime.now()
         bet_exp = bet["unixtime_exp"]
-
+        price = prices[bet["currency"]]
         if bet_exp < now_time:
             if bet["trend"] == "up":
                 win = bet["price"] < price
