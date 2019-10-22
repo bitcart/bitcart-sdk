@@ -645,7 +645,7 @@ def make_bet(userid, currency, amount, trend, set_time, chat_id, msg_id):
         coin_name = instances[currency].coin_name.lower()  # bitcart: get coin data
         app.send_message(
             chat_id=chat_id,
-            text=f"Your {amount} sat bet is accepted, hodler! You will receive {win_amount} if {coin_name} price go {trend} from {price}@Coingecko in a {set_time}",
+            text=f"Your {amount} sat bet is accepted, hodler! You will receive {win_amount} if {coin_name} price go {trend} from {price:.8f}@Coingecko in a {set_time}",
             reply_to_message_id=msg_id,
         )
         try:
@@ -797,7 +797,7 @@ def betcheck(first=False):
                 app.send_animation(
                     chat_id=bet["userid"],
                     animation="https://i.imgur.com/bZAS9ac.gif",
-                    caption=f"Congratulations! You won {bet['win']} satoshis! {bet['price']} {bet['trend']} {price}",
+                    caption=f"Congratulations! You won {bet['win']} satoshis! {bet['price']:.8f} {bet['trend']} {price:.8f}",
                 )
                 app.send_message(
                     chat_id=bet["chat_id"],
@@ -808,7 +808,7 @@ def betcheck(first=False):
                 app.send_animation(
                     chat_id=bet["userid"],
                     animation="https://i.imgur.com/2bmpZsM.gif",
-                    caption=f"Your bet wasn't lucky one! Bet on {bet['price']} {bet['trend']}, but price is {price}",
+                    caption=f"Your bet wasn't lucky one! Bet on {bet['price']:.8f} {bet['trend']}, but price is {price:.8f}",
                 )
             mongo.bets.update_one({"_id": bet["_id"]}, {"$set": {"status": "expired"}})
         time.sleep(1)
