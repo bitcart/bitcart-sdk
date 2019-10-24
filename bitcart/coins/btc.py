@@ -27,6 +27,17 @@ from ..errors import InvalidEventError, LightningDisabledError
 if TYPE_CHECKING:
     import requests
 
+ASYNC = True
+
+webhook_available = True
+try:
+    if ASYNC:
+        from aiohttp import web
+    else:
+        from flask import Flask, request
+except (ModuleNotFoundError, ImportError):
+    webhook_available = False
+
 
 def lightning(f: Callable) -> Callable:
     @wraps(f)
@@ -68,6 +79,14 @@ class BTC(Coin):
         self.server = self.providers["jsonrpcrequests"].RPCProxy(  # type: ignore
             self.rpc_url, self.rpc_user, self.rpc_pass, self.xpub, session=session
         )
+        if ASYNC:
+            self._configure_webhook = self._configure_webhook_async
+            self.handle_webhook = self.handle_webhook_async
+            self._start_webhook = self._start_webhook_async
+        else:
+            self._configure_webhook = self._configure_webhook_sync
+            self.handle_webhook = self.handle_webhook_sync  # type: ignore
+            self._start_webhook = self._start_webhook_sync
 
     ### High level interface ###
 
@@ -209,6 +228,18 @@ class BTC(Coin):
 
         return wrapper
 
+    async def process_updates(self: "BTC", updates: Iterable[dict]) -> None:
+        for event_info in updates:
+            event = event_info.get("event")
+            event_info.pop("event")
+            if not event or event not in self.ALLOWED_EVENTS:
+                raise InvalidEventError(f"Invalid event from server: {event}")
+            handler = self.event_handlers.get(event)
+            if handler:
+                handler = handler(event, **event_info)
+                if inspect.isawaitable(handler):
+                    await handler  # type: ignore
+
     async def poll_updates(self: "BTC", timeout: Union[int, float] = 2) -> None:
         await self.server.subscribe(list(self.event_handlers.keys()))
         while True:
@@ -218,17 +249,7 @@ class BTC(Coin):
                 logging.error(err)
                 await asyncio.sleep(timeout)
                 continue
-            if data:
-                for event_info in data:
-                    event = event_info.get("event")
-                    event_info.pop("event")
-                    if not event or event not in self.ALLOWED_EVENTS:
-                        raise InvalidEventError(f"Invalid event from server: {event}")
-                    handler = self.event_handlers.get(event)
-                    if handler:
-                        handler = handler(event, **event_info)
-                        if inspect.isawaitable(handler):
-                            await handler  # type: ignore
+            await self.process_updates(data)
             await asyncio.sleep(timeout)
 
     def poll_updates_sync(self: "BTC", timeout: Union[int, float] = 2) -> None:
@@ -249,7 +270,7 @@ class BTC(Coin):
         Returns:
             None: This function runs forever
         """
-        self.server.loop.run_until_complete(self.poll_updates(timeout))
+        self.server._loop.run_until_complete(self.poll_updates(timeout))
 
     async def pay_to(
         self: "BTC",
@@ -467,6 +488,55 @@ class BTC(Coin):
             Any: value of the key or default value provided
         """
         return await self.server.getconfig(key) or default
+
+    ### Webhooks ###
+
+    def handle_webhook_sync(self: "BTC") -> dict:
+        self.process_updates([request.json])
+        return {}
+
+    async def handle_webhook_async(
+        self: "BTC", request: "web.Request"
+    ) -> "web.Response":
+        await self.process_updates([await request.json()])
+        return web.json_response({})
+
+    def _configure_webhook_async(self) -> None:
+        self.webhook_app = web.Application()
+        self.webhook_app.router.add_post("/", self.handle_webhook)
+
+    def _configure_webhook_sync(self) -> None:
+        self.webhook_app = Flask(__name__)  # type: ignore
+        self.webhook_app.add_url_rule(  # type: ignore
+            "/", "handle_webhook", self.handle_webhook, methods=["POST"]
+        )
+
+    async def configure_webhook(self: "BTC", autoconfigure: bool = True) -> None:
+        if not webhook_available:
+            raise ValueError(
+                "Webhook support not installed. Install it with pip install bitcart[webhook]"
+            )
+        self._configure_webhook()
+        await self.server.subscribe(list(self.event_handlers.keys()))
+        if autoconfigure:
+            await self.server.configure_notifications("http://localhost:6000")
+
+    def _start_webhook_sync(self: "BTC", port: int = 6000, **kwargs: Any) -> None:
+        self.webhook_app.run(port=port, **kwargs)  # type: ignore
+
+    def _start_webhook_async(self: "BTC", port: int = 6000, **kwargs: Any) -> None:
+        web.run_app(self.webhook_app, port=port, **kwargs)
+
+    def start_webhook(self: "BTC", port: int = 6000, **kwargs: Any) -> None:
+        if not webhook_available:
+            raise ValueError(
+                "Webhook support not installed. Install it with pip install bitcart[webhook]"
+            )
+        if ASYNC:
+            self.server._loop.run_until_complete(self.configure_webhook())
+        else:
+            self.configure_webhook()
+        self._start_webhook(port=port, **kwargs)
 
     ### Lightning apis ###
 

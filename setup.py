@@ -6,6 +6,8 @@ from sync_generator import main as generate
 
 SYNC_REQS = ["jsonrpcclient[requests]"]
 ASYNC_REQS = ["jsonrpcclient[aiohttp]"]
+SYNC_EXTRAS = {"webhook": ["flask"]}
+ASYNC_EXTRAS = {}
 
 
 def main() -> None:
@@ -16,7 +18,7 @@ def main() -> None:
     setup(
         name="bitcart" if not ASYNC else "bitcart-async",
         packages=find_packages(),
-        version="0.8.0.post4",
+        version="0.8.1",
         license="MIT",
         description="Bitcart coins support library",
         long_description=open("README.md").read(),
@@ -26,6 +28,7 @@ def main() -> None:
         url="https://github.com/MrNaif2018/bitcart-sdk",
         keywords=["electrum", " daemon", "bitcart"],
         install_requires=SYNC_REQS if not ASYNC else ASYNC_REQS,
+        extras_require=SYNC_EXTRAS if not ASYNC else ASYNC_EXTRAS,
         classifiers=[
             "Development Status :: 3 - Alpha",
             "Intended Audience :: Developers",
