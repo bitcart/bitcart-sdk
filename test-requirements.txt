@@ -1,0 +1,6 @@
+pytest
+pytest-cov
+pytest-asyncio
+pylint
+mypy
+codecov

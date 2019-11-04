@@ -9,3 +9,5 @@ backups/
 .idea/
 .mypy_cache/
 docs/_build
+env/
+venv/
