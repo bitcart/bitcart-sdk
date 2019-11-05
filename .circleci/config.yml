@@ -40,7 +40,7 @@ jobs:
             . venv/bin/activate
             pylint -E bitcart
             mypy bitcart
-            coverage run -m pytest
+            coverage run -m pytest tests/
             coverage report
             codecov
 
