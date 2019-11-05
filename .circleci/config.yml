@@ -33,7 +33,8 @@ jobs:
             . venv/bin/activate
             pylint -E bitcart
             mypy bitcart
-            pytest --cov=.
+            coverage run -m pytest
+            coverage report
             codecov
 
       - store_artifacts:
