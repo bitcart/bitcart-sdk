@@ -20,6 +20,7 @@ jobs:
       - run:
           name: install daemon
           command: |
+            . venv/bin/activate
             git clone https://github.com/MrNaif2018/bitcart bitcart-daemon
             cd bitcart-daemon
             pip install -r requirements/base.txt
