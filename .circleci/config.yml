@@ -27,8 +27,8 @@ jobs:
       - run:
           name: install daemon
           command: |
-            git clone https://github.com/MrNaif2018/bitcart
-            cd bitcart
+            git clone https://github.com/MrNaif2018/bitcart bitcart-daemon
+            cd bitcart-daemon
             pip install -r requirements/base.txt
             pip install -r requirements/daemons/btc.txt
 
@@ -36,7 +36,7 @@ jobs:
           name: prepare daemon
           command: |
             . venv/bin/activate
-            cd bitcart
+            cd bitcart-daemon
             BTC_DEBUG=true python3 daemons/btc.py
           background: true
 
