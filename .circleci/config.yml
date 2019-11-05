@@ -28,6 +28,22 @@ jobs:
             pip install -r test-requirements.txt
 
       - run:
+          name: install daemon
+          command: |
+            git clone https://github.com/MrNaif2018/bitcart
+            cd bitcart
+            pip install -r requirements/base.txt
+            pip install -r requirements/daemons/btc.txt
+
+      - run:
+          name: prepare daemon
+          command: |
+            . venv/bin/activate
+            cd bitcart
+            BTC_DEBUG=true python3 daemons/btc.py
+          background: true
+
+      - run:
           name: run tests
           command: |
             . venv/bin/activate
