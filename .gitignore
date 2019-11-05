@@ -11,3 +11,5 @@ backups/
 docs/_build
 env/
 venv/
+htmlcov/
+.coverage

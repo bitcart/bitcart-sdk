@@ -1,0 +1,10 @@
+[run]
+omit =
+    *__init__.py,
+    tests/*,
+    venv/*,
+    env/*,
+    setup.py,
+    sync_generator.py,
+    
+    
