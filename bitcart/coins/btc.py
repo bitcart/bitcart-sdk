@@ -489,6 +489,32 @@ class BTC(Coin):
         """
         return await self.server.getconfig(key) or default
 
+    async def validate_key(self: "BTC", key: str) -> bool:
+        """Validate whether provided key is valid to restore a wallet
+        
+        If the key is x/y/z pub/prv or electrum seed at the network daemon is running
+        at, then it would be valid(True), else False
+
+        Examples:
+
+        >>> c.validate_key("test")
+        False
+
+        >>> c.validate_key("your awesome electrum seed")
+        True
+
+        >>> c.validate_key("x/y/z pub/prv here")
+        True
+        
+        Args:
+            self (BTC): self
+            key (str): key to check
+        
+        Returns:
+            bool: Whether the key is valid or not
+        """
+        return await self.server.validatekey(key)
+
     ### Webhooks ###
 
     def handle_webhook_sync(self: "BTC") -> dict:
