@@ -513,7 +513,7 @@ class BTC(Coin):
         Returns:
             bool: Whether the key is valid or not
         """
-        return await self.server.validatekey(key)
+        return await self.server.validatekey(key) # type: ignore
 
     ### Webhooks ###
 
