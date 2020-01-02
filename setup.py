@@ -5,7 +5,7 @@ from setuptools import find_packages, setup
 from sync_generator import main as generate
 
 SYNC_REQS = ["jsonrpcclient[requests]"]
-ASYNC_REQS = ["jsonrpcclient[aiohttp]"]
+ASYNC_REQS = ["jsonrpcclient[aiohttp]", "aiohttp<4.0.0"]
 SYNC_EXTRAS = {"webhook": ["flask"]}
 ASYNC_EXTRAS = {}
 
@@ -18,7 +18,7 @@ def main() -> None:
     setup(
         name="bitcart" if not ASYNC else "bitcart-async",
         packages=find_packages(),
-        version="0.8.3",
+        version="0.8.4",
         license="MIT",
         description="Bitcart coins support library",
         long_description=open("README.md").read(),

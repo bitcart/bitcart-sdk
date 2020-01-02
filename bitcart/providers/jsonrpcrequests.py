@@ -49,6 +49,7 @@ class RPCProxy:
         if ASYNC:
             self.session = aiohttp.ClientSession(
                 connector=aiohttp.TCPConnector(ssl=self.verify),
+                loop=self._loop,
                 auth=aiohttp.BasicAuth(self.username, self.password),  # type: ignore
             )
         else:
@@ -79,7 +80,10 @@ class RPCProxy:
 
     def __del__(self: "RPCProxy") -> None:
         if ASYNC:
+            if not hasattr(self, "_loop"):
+                return
             if self._loop.is_running():
                 self._loop.create_task(self._close())
+                return
             else:
                 self.session.connector._closed = True  # type: ignore
