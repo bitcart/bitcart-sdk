@@ -18,7 +18,7 @@ from pyrogram.session import Session
 
 # BTC class for BTC coin, the same for others, just replace the name
 # for litecoin just import LTC
-from bitcart import BTC, GZRO, LTC, BSTY
+from bitcart import BCH, BSTY, BTC, GZRO, LTC
 
 # Don't show message
 Session.notice_displayed = True
@@ -56,11 +56,12 @@ mongo = mongo["atomic_tip_db"]
 # bitcart: initialize btc instance
 btc = BTC(xpub=XPUB)
 # the same here
+bch = BCH(xpub=XPUB)
 ltc = LTC(xpub=XPUB)
 gzro = GZRO(xpub=XPUB)
 bsty = BSTY(xpub=XPUB)
 # same api, so we can do this
-instances = {"btc": btc, "ltc": ltc, "gzro": gzro, "bsty": bsty}
+instances = {"btc": btc, "bch": bch, "ltc": ltc, "gzro": gzro, "bsty": bsty}
 satoshis_hundred = 0.000001
 
 # misc
@@ -145,6 +146,9 @@ def payment_method_kb(amount):
     keyboard = [
         [
             InlineKeyboardButton("Bitcoin (BTC)", callback_data=f"pay_btc_{amount}"),
+            InlineKeyboardButton(
+                "Bitcoin Cash (BCH)", callback_data=f"pay_bch_{amount}"
+            ),
             InlineKeyboardButton("Litecoin (LTC)", callback_data=f"pay_ltc_{amount}"),
         ],
         [
@@ -392,6 +396,7 @@ def paylink_query(client, message):
 
 # After addition of APIManager this should get even easier
 @btc.on("new_payment")
+@bch.on("new_payment")
 @ltc.on("new_payment")
 @gzro.on("new_payment")
 @bsty.on("new_payment")
@@ -823,6 +828,7 @@ def betcheck(first=False):
 threading.Thread(target=betcheck, kwargs={"first": True}).start()
 # Starting polling for all coins, with APIManager this should get easier
 threading.Thread(target=btc.poll_updates).start()  # or .start_webhook()
+threading.Thread(target=bch.poll_updates).start()
 threading.Thread(target=ltc.poll_updates).start()
 threading.Thread(target=gzro.poll_updates).start()
 threading.Thread(target=bsty.poll_updates).start()
