@@ -35,6 +35,7 @@ class RPCProxy:
         self.session: Union["aiohttp.ClientSession", "requests.Session"]
         if ASYNC:
             self._loop = asyncio.get_event_loop()
+            self._loop.set_exception_handler(lambda loop, context: None)
         if session:
             self.sesson = session
         else:
@@ -79,11 +80,5 @@ class RPCProxy:
         await self.session.close()  # type: ignore
 
     def __del__(self: "RPCProxy") -> None:
-        if ASYNC:
-            if not hasattr(self, "_loop"):
-                return
-            if self._loop.is_running():
-                self._loop.create_task(self._close())
-                return
-            else:
-                self.session.connector._closed = True  # type: ignore
+        if ASYNC and self._loop.is_running():
+            self._loop.create_task(self._close())
