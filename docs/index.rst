@@ -22,9 +22,9 @@ Behold, the power of Bitcart:
 
 .. code-block:: python
 
-    from bitcart.coins.btc import BTC
+    from bitcart import BTC
 
-    btc = BTC(xpub="your x/y/zpub or x/y/zprv")
+    btc = BTC(xpub="your (x/y/z)pub or (x/y/z)prv or electrum seed")
 
 
     @btc.on("new_transaction")
@@ -48,6 +48,8 @@ For examples of usage, check examples directory in github repository.
 
 Supported coins list(⚡ means lightning is supported):
 
-- Bitcoin (⚡)
-- Litecoin (⚡)
-- Gravity Zero (⚡)
+- Bitcoin(⚡)
+- Bitcoin Cash
+- Litecoin(⚡)
+- Gravity Zero(⚡)
+- Globalboost(⚡)

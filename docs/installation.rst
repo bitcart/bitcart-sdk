@@ -21,7 +21,6 @@ You can't install both.
 
 Async version of the library has the same API, but is intended to be used in asyncio application.
 All is the same, just use async/await.
-For more details, check `async branch README <https://github.com/MrNaif2018/bitcart-sdk/blob/async/README.md/>`_
 
 But to initialize bitcoin instance you will need
 ``rpc_url``, ``rpc_login`` and ``rpc_password`` (not required, defaults
@@ -80,9 +79,8 @@ import it and use those settings:
 
 .. code-block:: python
 
-    from bitcart.coins.btc import BTC
-    btc = BTC("http://localhost:5000", xpub="your x/y/zpub or x/y/zprv",
-            rpc_user="electrum", rpc_pass="electrumz")
+    from bitcart import BTC
+    btc = BTC(xpub="your (x/y/z)pub or (x/y/z)prv or electrum seed")
 
 All the variables are actually optional, so you can just do
 ``btc = BTC()``

@@ -8,8 +8,10 @@
 This is a client library(wrapper) around bitcart daemon. It is used to simplify common commands.
 Coins support(⚡ means lightning is supported):
 - Bitcoin(⚡)
+- Bitcoin Cash
 - Litecoin(⚡)
 - Gravity Zero(⚡)
+- Globalboost(⚡)
 
 Main focus is Bitcoin.
 
