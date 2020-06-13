@@ -77,10 +77,7 @@ workflows:
   version: 2
   test_and_deploy:
     jobs:
-      - test:
-          filters:
-            tags:
-              only: /.*/
+      - test
       - deploy:
           context: global
           requires:
