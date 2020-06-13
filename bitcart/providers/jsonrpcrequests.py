@@ -43,8 +43,7 @@ class RPCProxy:
         if ASYNC:
             self.rpc = RPC(endpoint=self.url, session=self.session)
         else:
-            self.rpc = RPC(endpoint=self.url)
-            self.rpc.session = self.session
+            self.rpc = RPC(endpoint=self.url, session=self.session)
 
     def create_session(self: "RPCProxy") -> None:
         if ASYNC:
