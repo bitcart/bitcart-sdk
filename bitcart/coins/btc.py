@@ -66,6 +66,7 @@ class BTC(Coin):
         rpc_user: Optional[str] = None,
         rpc_pass: Optional[str] = None,
         xpub: Optional[str] = None,
+        proxy: Optional[str] = None,
         session: Optional["requests.Session"] = None,
     ):
         super().__init__()
@@ -77,7 +78,12 @@ class BTC(Coin):
         self.xpub = xpub
         self.event_handlers: Dict[str, Callable] = {}
         self.server = self.providers["jsonrpcrequests"].RPCProxy(  # type: ignore
-            self.rpc_url, self.rpc_user, self.rpc_pass, self.xpub, session=session
+            self.rpc_url,
+            self.rpc_user,
+            self.rpc_pass,
+            self.xpub,
+            session=session,
+            proxy=proxy,
         )
         if ASYNC:
             self._configure_webhook = self._configure_webhook_async
@@ -513,7 +519,7 @@ class BTC(Coin):
         Returns:
             bool: Whether the key is valid or not
         """
-        return await self.server.validatekey(key) # type: ignore
+        return await self.server.validatekey(key)  # type: ignore
 
     ### Webhooks ###
 

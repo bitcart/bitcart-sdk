@@ -53,3 +53,14 @@ Supported coins list(⚡ means lightning is supported):
 - Litecoin(⚡)
 - Gravity Zero(⚡)
 - Globalboost(⚡)
+
+To use proxy, install optional dependencies:
+
+``pip install bitcart[proxy]`` for sync version, ``pip install bitcart-async[proxy]`` for async version.
+HTTP, SOCKS4 and SOCKS5 proxies supported.
+
+To use, pass proxy url to coin constructor:
+
+.. code-block:: python
+
+    btc = BTC(proxy="socks5://localhost:9050")

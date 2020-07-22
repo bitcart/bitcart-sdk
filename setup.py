@@ -6,8 +6,8 @@ from sync_generator import main as generate
 
 SYNC_REQS = ["jsonrpcclient[requests]"]
 ASYNC_REQS = ["jsonrpcclient[aiohttp]", "aiohttp<4.0.0"]
-SYNC_EXTRAS = {"webhook": ["flask"]}
-ASYNC_EXTRAS = {}
+SYNC_EXTRAS = {"webhook": ["flask"], "proxy": ["requests[socks]"]}
+ASYNC_EXTRAS = {"proxy": ["aiohttp_socks"]}
 
 
 def main() -> None:
@@ -18,7 +18,7 @@ def main() -> None:
     setup(
         name="bitcart" if not ASYNC else "bitcart-async",
         packages=find_packages(),
-        version="0.8.5",
+        version="0.9.0",
         license="MIT",
         description="Bitcart coins support library",
         long_description=open("README.md").read(),
