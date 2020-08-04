@@ -1,4 +1,4 @@
-# Full example of using bitcart: Telegram Atomic Tip Bot
+# Full example of using BitcartCC: Telegram Atomic Tip Bot
 
 The bot is available in telegram at @bitcart_atomic_tipbot
 
@@ -7,10 +7,10 @@ Used tools:
  - Mongo DB
  - Pyrogram(for bot)
  - qrcode library for generating qr codes
- - Bitcart to do all the bitcoin and lightning job.
+ - BitcartCC to do all the bitcoin and lightning job.
 
 Special thanks to @reablaz, for his original [Atomic tips bot](https://github.com/reablaz/atomic_tipbot)
-This bot is rewritten in my style, using modern python 3.6+ f-strings, and of course, bitcart. (and made this example reproducible)
+This bot is rewritten in my style, using modern python 3.6+ f-strings, and of course, BitcartCC. (and made this example reproducible)
 
 ## Installation
 
@@ -21,7 +21,7 @@ After that, install dependencies of this example using:
 `pip install -r requirements.txt`
 
 Check requirements.txt if you want to know exactly which dependencies were used and why.
-Bitcart SDK in pip is just bitcart.
+BitcartCC SDK in pip is just `bitcart`.
 
 After that, to run your bot, you need to have a telegram account, login to
 my.telegram.org, click on API development tools, create app if not yet, and take App api_id and api_hash from there.
@@ -36,7 +36,7 @@ After that, you need to get your x/y/z pub/prv(or Electrum seed). Get it from yo
 Enter it in xpub section of config.
 After that, rename config.ini.example to config.ini.
 
-Now everything is ready, we only need to start bitcart daemon.
+Now everything is ready, we only need to start BitcartCC daemon.
 There are two ways to do it, automatic(via docker, recommended), or directly via your installed python.
 
 ### Automatic
@@ -46,7 +46,7 @@ Clone bitcart-docker repository:
 git clone https://github.com/MrNaif2018/bitcart-docker
 cd bitcart-docker
 
-Now you need to configure bitcart, but if you need only BTC daemon, run those
+Now you need to configure BitcartCC, but if you need only BTC daemon, run those
 
 ```
 export BITCART_INSTALL=none
@@ -70,7 +70,7 @@ If you will later need to stop them, run `./stop.sh`
 
 As for this example, Python 3.6+ is required. Using virtualenv is recommended.
 
-Clone bitcart repository:
+Clone BitcartCC repository:
 
 ```
 git clone https://github.com/MrNaif2018/bitcart
@@ -104,16 +104,16 @@ If you have come here to see how it works, read the next part.
 Code is formatted using autopep8, checked with pylint.
 Below are some comments regarding what is what.
 
-### Bitcart
+### BitcartCC
 
-Bitcart is main in this example, it is used for all bot functions(generate invoice, wait for invoice payment, withdraw, etc.)
+BitcartCC is main in this example, it is used for all bot functions(generate invoice, wait for invoice payment, withdraw, etc.)
 
-[Bitcart Python SDK](https://pypi.org/project/bitcart) is used to make bitcart usage easy. It internally connects to bitcart daemon.
+[BitcartCC Python SDK](https://pypi.org/project/bitcart) is used to make BitcartCC usage easy. It internally connects to BitcartCC daemon.
 
-Look at # bitcart: comments in code to find things related to bitcart.
+Look at # bitcart: comments in code to find things related to BitcartCC.
 As you can see, it is quite simple, but let's recap it.
 
-To use any coins you need, simply import them from bitcart, in case of bitcoin:
+To use any coins you need, simply import them from `bitcart`, in case of bitcoin:
 
 `from bitcart import BTC`
 
@@ -125,17 +125,17 @@ You can initialize it without any parameters, too, but it will be limited(wallet
 
 BTC class accepts the following parameters:
 
- - rpc_url - url of bitcart daemon to connect to
- - rpc_user - user to login into your bitcart daemon
- - rpc_pass - password to login into your bitcart daemon
+ - rpc_url - url of BitcartCC daemon to connect to
+ - rpc_user - user to login into your BitcartCC daemon
+ - rpc_pass - password to login into your BitcartCC daemon
  - xpub - actually it is not just xpub, it can be x/y/z pub/prv, almost anything. Electrum seed can be used too.
  - session - completely optional, pass your precreated requests.Session(only if you need to customize something in default session)
 
 
 After intializing coin, you can start using it.
-bitcart SDK coins' main methods are fully documented(often with examples)
+BitcartCC SDK coins' main methods are fully documented(often with examples)
 Those are highlevel methods.
-If you see something missing, open issue at [Bitcart SDK repository](https://github.com/MrNaif2018/bitcart-sdk)
+If you see something missing, open issue at [BitcartCC SDK repository](https://github.com/MrNaif2018/bitcart-sdk)
 If you need to use electrum's RPC methods, call them via btc.server(a wrapper around it), like:
 
 `btc.server.validateaddress()`
@@ -148,7 +148,7 @@ To see a list of all RPC methods, call
 
 RPC methods accessible via btc.server can't have intellisence in your IDE because they are completely dynamic(via `__getattr__`).
 
-Now, about using bitcart in this bot's code.
+Now, about using BitcartCC in this bot's code.
 To get price of 1 bitcoin in USD, simply call btc.rate()
 Use btc.addrequest(amount, description="", expire=15) to create BTC invoice
 Amount is amount in BTC, description is optional and is description of invoice, expire is the time invoice will expire in, 
@@ -227,7 +227,7 @@ btc.pay_to(address, amount)
 
 To get transaction, use btc.get_tx(tx_hash)
 
-For more information, read [Bitcart SDK docs](https://sdk.bitcartcc.com) and [Main Bitcart docs](https://docs.bitcartcc.com)
+For more information, read [BitcartCC SDK docs](https://sdk.bitcartcc.com) and [Main BitcartCC docs](https://docs.bitcartcc.com)
 
 ### Telegram bot 
 

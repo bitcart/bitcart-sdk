@@ -14,7 +14,7 @@ try:
 except ValueError:
     print("Invalid amount passed")
     sys.exit(1)
-# bitcart-related code
+# bitcartcc-related code
 btc = BTC(xpub=xpub)
 try:
     tx_hash = btc.pay_to(address, amount)

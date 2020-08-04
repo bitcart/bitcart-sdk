@@ -254,7 +254,7 @@ def start(client, message):
         send_welcome = True
     if send_welcome:
         message.reply(
-            "Welcome to the Bitcart Atomic TipBot! /help for list of commands",
+            "Welcome to the BitcartCC Atomic TipBot! /help for list of commands",
             quote=False,
         )
 
