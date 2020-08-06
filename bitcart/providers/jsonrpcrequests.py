@@ -83,7 +83,7 @@ class RPCProxy:
             self.session = requests.Session()
             self.session.proxies = proxies  # type: ignore
             self.session.auth = (self.username, self.password)  # type: ignore
-            self.session.timeout = 5 * 60
+            self.session.timeout = 5 * 60  # type: ignore
 
     def __getattr__(
         self: "RPCProxy", method: str, *args: Any, **kwargs: Any
