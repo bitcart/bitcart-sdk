@@ -3,8 +3,6 @@ import asyncio
 import inspect
 import json
 import logging
-import sys
-import time
 import warnings
 from decimal import Decimal
 from functools import wraps
@@ -16,13 +14,12 @@ from typing import (
     Dict,
     Iterable,
     Optional,
-    SupportsFloat,
-    SupportsInt,
     Union,
 )
 
 from ..coin import Coin
 from ..errors import InvalidEventError, LightningDisabledError
+from ..utils import convert_coin_value_type
 
 if TYPE_CHECKING:
     import requests
@@ -108,20 +105,20 @@ class BTC(Coin):
             i["tx"] = await self.get_tx(i["tx_hash"])
         return out
 
-    async def balance(self) -> dict:
+    async def balance(self, accurate: bool = False) -> dict:
         data = await self.server.getbalance()
-        return {
-            "confirmed": data.get("confirmed", 0),
-            "unconfirmed": data.get("unconfirmed", 0),
-            "unmatured": data.get("unmatured", 0),
-            "lightning": data.get("lightning", 0),
-        }
+        result = {}
+        for attr in ["confirmed", "unconfirmed", "unmatured", "lightning"]:
+            value = data.get(attr, 0)
+            result[attr] = convert_coin_value_type(value, accurate=accurate)
+        return result
 
     async def addrequest(
         self: "BTC",
         amount: Union[int, float],
         description: str = "",
         expire: Union[int, float] = 15,
+        accurate: bool = False,
     ) -> dict:
         """Add invoice
 
@@ -138,16 +135,21 @@ class BTC(Coin):
             amount (Union[int, float]): amount to open invoice
             description (str, optional): Description of invoice. Defaults to "".
             expire (Union[int, float], optional): The time invoice will expire in. Defaults to 15.
+            accurate (bool, optional): Whether to return values harder to work with(decimals) or not very accurate floats. Defaults to False.
 
         Returns:
             dict: Invoice data
         """
         expiration = 60 * expire if expire else None
-        return await self.server.add_request(  # type: ignore
+        data = await self.server.add_request(
             amount=amount, memo=description, expiration=expiration, force=True
         )
+        data["amount_BTC"] = convert_coin_value_type(
+            data["amount_BTC"], accurate=accurate
+        )
+        return data  # type: ignore
 
-    async def getrequest(self: "BTC", address: str) -> dict:
+    async def getrequest(self: "BTC", address: str, accurate: bool = False) -> dict:
         """Get invoice info
 
         Get invoice information by address got from addrequest
@@ -160,11 +162,16 @@ class BTC(Coin):
         Args:
             self (BTC): self
             address (str): address of invoice
+            accurate (bool, optional): Whether to return values harder to work with(decimals) or not very accurate floats. Defaults to False.
 
         Returns:
             dict: Invoice data
         """
-        return await self.server.getrequest(address)  # type: ignore
+        data = await self.server.getrequest(address)
+        data["amount_BTC"] = convert_coin_value_type(
+            data["amount_BTC"], accurate=accurate
+        )
+        return data  # type: ignore
 
     async def history(self: "BTC") -> dict:
         """Get transaction history of wallet
@@ -430,7 +437,7 @@ class BTC(Coin):
             Union[float, Decimal]: price of 1 bitcoin in selected fiat currency
         """
         rate_str = await self.server.exchange_rate(currency)
-        return Decimal(rate_str) if accurate else float(rate_str)
+        return convert_coin_value_type(rate_str, accurate=accurate)
 
     async def list_fiat(self: "BTC") -> Iterable[str]:
         """List of all available fiat currencies to get price for

@@ -3,7 +3,6 @@ import pytest
 from bitcart import BTC
 from bitcart.coin import Coin
 
-TEST_XPUB_MAINNET = "xprv9yFGRF1GzMMydx5AK9FEU3UhqcHAmKZNSy8EvfBtztGvNtSfB1jLnkAJa4cvc33DJEpY5JXMDAdhN3fyanJJsNGcXSNsojKxzeX7EPEe8rg"
 TEST_XPUB_TESTNET = "tprv8ZgxMBicQKsPepFfedsYPCgWioGqkbnRbMmprdTq3jFmRf7JQwe3Yo8DMBwttKFNLpp3xVx6Rfv7ChxZbkLXgnmb8hcq4uN2hVKLmCNcTpB"
 
 
@@ -27,3 +26,8 @@ async def btc_wallet():
 @pytest.fixture
 async def btc():
     return BTC()
+
+
+@pytest.fixture(autouse=True)
+async def setup_btc_wallet(btc_wallet):
+    await btc_wallet.set_config("lightning", True)

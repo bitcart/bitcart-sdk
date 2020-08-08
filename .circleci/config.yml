@@ -40,7 +40,7 @@ jobs:
           command: |
             . venv/bin/activate
             mypy bitcart
-            pytest
+            pytest tests/
             codecov
 
       - store_artifacts:

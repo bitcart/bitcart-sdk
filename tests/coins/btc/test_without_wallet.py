@@ -1,0 +1,170 @@
+"""Tests bitcoin methods implementation on mainnet, requires daemon to be running on localhost:5000
+
+If this succeeds, most likely other coins will succeed too
+"""
+import os
+import pytest
+import decimal
+
+pytestmark = pytest.mark.asyncio
+
+
+async def test_help(btc):
+    data = await btc.help()
+    assert isinstance(data, list)
+    assert len(data) > 0
+    assert "broadcast" in data
+    assert "gettransaction" in data
+    assert "help" in data
+
+
+@pytest.mark.parametrize(
+    "currency,accurate",
+    [
+        ("USD", True),
+        ("USD", False),
+        ("RUB", True),
+        ("RUB", False),
+        ("JPY", True),
+        ("JPY", False),
+    ],
+)
+async def test_rate(btc, currency, accurate):
+    price = await btc.rate(currency, accurate)
+    assert price > 0
+    price_type = decimal.Decimal if accurate else float
+    assert isinstance(price, price_type)
+
+
+async def test_fiat(btc):
+    fiat_currencies = await btc.list_fiat()
+    assert fiat_currencies == [
+        "AED",
+        "ARS",
+        "AUD",
+        "BCH",
+        "BDT",
+        "BHD",
+        "BMD",
+        "BNB",
+        "BRL",
+        "BTC",
+        "CAD",
+        "CHF",
+        "CLP",
+        "CNY",
+        "CZK",
+        "DKK",
+        "EOS",
+        "ETH",
+        "EUR",
+        "GBP",
+        "HKD",
+        "HUF",
+        "IDR",
+        "ILS",
+        "INR",
+        "JPY",
+        "KRW",
+        "KWD",
+        "LKR",
+        "LTC",
+        "MMK",
+        "MXN",
+        "MYR",
+        "NOK",
+        "NZD",
+        "PHP",
+        "PKR",
+        "PLN",
+        "RUB",
+        "SAR",
+        "SEK",
+        "SGD",
+        "THB",
+        "TRY",
+        "TWD",
+        "USD",
+        "VEF",
+        "VND",
+        "XAG",
+        "XAU",
+        "XDR",
+        "XLM",
+        "XRP",
+        "ZAR",
+    ]
+
+
+@pytest.mark.parametrize(
+    "address,expected", [("x", False), ("2MxtJ3iBTaEUvmiEshfW35jDzLHsY5kh9ZM", True),]
+)
+async def test_electrum_validate_address(btc, address, expected):
+    is_valid = await btc.server.validateaddress(address)
+    assert is_valid == expected
+
+
+async def test_get_tx(btc):
+    info = await btc.get_tx(
+        "1d8a65ec103338bb51d125015fc736a3aa93eae1d7d534ec374f6517f665c5e2"
+    )
+    assert (
+        info.items()
+        >= {
+            "partial": False,
+            "version": 1,
+            "segwit_ser": True,
+            "inputs": [
+                {
+                    "prevout_hash": "3d4131a9659c442706d00b387030931778040c1d431ea188b97b090781637de3",
+                    "prevout_n": 0,
+                    "scriptSig": "1600144784353af5633deb3711ea68596a4d02de7bbcd0",
+                    "sequence": 4294967295,
+                    "type": "unknown",
+                    "address": None,
+                    "num_sig": 0,
+                    "witness": "02483045022100e6d2b31377269c43e2aad18d252f43ef2aa36ea0ab8a822dbb9b559e33cca42e02201a25f1cf2b97c35bdf510cce0138ca2ae2a2413dbb32fd7d6f5d9fa3b029f19801210282b7d73ee29098c55e011e2624f5271d0723311c880bd1d63142037a3ec9ce32",
+                }
+            ],
+            "outputs": [
+                {
+                    "value": 73061,
+                    "type": 0,
+                    "address": "2MxtJ3iBTaEUvmiEshfW35jDzLHsY5kh9ZM",
+                    "scriptPubKey": "a9143ddb68695d7f35307c2f2e36c92cc19c06eeb31f87",
+                    "prevout_n": 0,
+                }
+            ],
+            "lockTime": 0,
+        }.items()
+    )
+
+
+async def test_config_methods(btc):
+    k, v = "x", 1
+    await btc.set_config(k, v)
+    assert await btc.get_config(k) == v
+
+
+async def test_get_address(btc):
+    addresses = await btc.get_address("2NGHDQcccX3EVehSRtSMXj8u5AhpGQ4nR6b")
+    assert isinstance(addresses, list)
+    address = addresses[0]
+    assert (
+        address["tx_hash"]
+        == "0eca272d77ab362e9fbcabd9a5803ba3a7fd4382a302ae9028cfacd015cc65b9"
+    )
+    assert address["height"] == 1805666
+    tx = address["tx"]
+    assert isinstance(tx["inputs"], list)
+    assert isinstance(tx["outputs"], list)
+    assert tx["lockTime"] == 1805597
+    assert tx["partial"] is False
+    assert tx["segwit_ser"] is True
+
+
+async def test_create_wallet(btc, tmp_path):
+    wallet_path = os.path.join(str(tmp_path), "my_wallet")
+    wallet = await btc.server.create(wallet_path=wallet_path)
+    assert set(wallet.keys()) == {"seed", "path", "msg"}
+    assert wallet["path"] == wallet_path

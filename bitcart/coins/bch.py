@@ -1,6 +1,7 @@
 from typing import Union
 
 from .btc import BTC
+from ..utils import convert_coin_value_type
 
 ASYNC = True
 
@@ -18,8 +19,13 @@ class BCH(BTC):
         amount: Union[int, float],
         description: str = "",
         expire: Union[int, float] = 15,
+        accurate: bool = False,
     ) -> dict:
         expiration = 60 * expire if expire else None
-        return await self.server.addrequest(  # type: ignore
+        data = await self.server.addrequest(
             amount=amount, memo=description, expiration=expiration, force=True
         )
+        data["amount_BCH"] = convert_coin_value_type(
+            data["amount_BCH"], accurate=accurate
+        )
+        return data  # type: ignore
