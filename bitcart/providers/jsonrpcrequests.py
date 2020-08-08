@@ -49,7 +49,7 @@ class RPCProxy:
         else:
             self.create_session()
         if ASYNC:
-            self.rpc = RPC(endpoint=self.url, session=self.session)
+            self.rpc = RPC(endpoint=self.url, session=self.session, timeout=5 * 60)
         else:
             self.rpc = RPC(endpoint=self.url)  # pylint: disable=no-value-for-parameter
             self.rpc.session = self.session
@@ -83,6 +83,7 @@ class RPCProxy:
             self.session = requests.Session()
             self.session.proxies = proxies  # type: ignore
             self.session.auth = (self.username, self.password)  # type: ignore
+            self.session.timeout = 5 * 60  # type: ignore
 
     def __getattr__(
         self: "RPCProxy", method: str, *args: Any, **kwargs: Any

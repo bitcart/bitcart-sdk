@@ -18,15 +18,15 @@ def main() -> None:
     setup(
         name="bitcart" if not ASYNC else "bitcart-async",
         packages=find_packages(),
-        version="0.9.0",
+        version="0.9.1",
         license="MIT",
-        description="Bitcart coins support library",
+        description="BitcartCC coins support library",
         long_description=open("README.md").read(),
         long_description_content_type="text/markdown",
         author="MrNaif2018",
         author_email="chuff184@gmail.com",
         url="https://github.com/MrNaif2018/bitcart-sdk",
-        keywords=["electrum", " daemon", "bitcart"],
+        keywords=["electrum", "daemon", "bitcart", "bitcartcc"],
         install_requires=SYNC_REQS if not ASYNC else ASYNC_REQS,
         extras_require=SYNC_EXTRAS if not ASYNC else ASYNC_EXTRAS,
         classifiers=[

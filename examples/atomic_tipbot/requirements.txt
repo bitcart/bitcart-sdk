@@ -5,5 +5,5 @@ tgcrypto
 pymongo
 # qr codes
 qrcode[pil]
-# bitcart SDK
+# BitcartCC SDK
 bitcart

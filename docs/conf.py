@@ -19,7 +19,7 @@ sys.path.insert(0, os.path.abspath('..'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'Bitcart SDK'
+project = 'BitcartCC SDK'
 copyright = '2019, MrNaif2018'
 author = 'MrNaif2018'
 

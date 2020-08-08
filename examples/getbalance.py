@@ -7,7 +7,7 @@ if len(sys.argv) != 2:
     print("Usage: ./getbalance xpub")
     sys.exit(1)
 xpub = sys.argv[1]
-# bitcart-related code
+# bitcartcc-related code
 btc = BTC(xpub=xpub)
 try:
     balance = btc.balance()

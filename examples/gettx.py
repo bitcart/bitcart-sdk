@@ -8,7 +8,7 @@ if len(sys.argv) != 2:
     print("Usage: ./gettx txhash")
     sys.exit(1)
 tx = sys.argv[1]
-# bitcart-related code
+# bitcartcc-related code
 with warnings.catch_warnings():  # to ignore no xpub passed warning
     warnings.simplefilter("ignore")
     btc = BTC()

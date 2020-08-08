@@ -1,5 +1,5 @@
-Installing Bitcart SDK
-======================
+Installing BitcartCC SDK
+========================
 
 Simply run
 
@@ -25,7 +25,7 @@ All is the same, just use async/await.
 But to initialize bitcoin instance you will need
 ``rpc_url``, ``rpc_login`` and ``rpc_password`` (not required, defaults
 work with default ports and authentification).
-For that you'll need bitcart daemon, so:
+For that you'll need BitcartCC daemon, so:
 
 .. code-block:: sh
 
@@ -41,7 +41,7 @@ For example if you run bitcoin, ``coin_name=btc, COIN_NAME=BTC``, for litecoin `
 Run ``pip install -r requirements/daemons/coin_name.txt`` to install
 requirements for daemon of ``coin_name``.
 
-This will clone main bitcart repo and install dependencies,
+This will clone main BitcartCC repo and install dependencies,
 we recommend using virtualenv for consistency.(some daemons conflict one
 with another, so using one virtualenv per daemon is fine).
 
@@ -71,10 +71,10 @@ Where port is the port your daemon uses.
 You can change port and host by using ``COIN_NAME_HOST`` and ``COIN_NAME_PORT``
 env variables.
 Default ports are starting from 5000 and increase for each daemon by 1
-(in order how they were added to bitcart).
+(in order how they were added to BitcartCC).
 Refer to main docs for ports information.
 Bitcoin port is 5000, litecoin is 5001, etc.
-So, to initialize your bitcart instance right now,
+So, to initialize your BitcartCC instance right now,
 import it and use those settings:
 
 .. code-block:: python
