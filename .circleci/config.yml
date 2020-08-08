@@ -39,10 +39,8 @@ jobs:
           name: run tests
           command: |
             . venv/bin/activate
-            pylint -E bitcart
             mypy bitcart
-            coverage run -m pytest tests/
-            coverage report
+            pytest
             codecov
 
       - store_artifacts:
