@@ -2,9 +2,10 @@
 
 If this succeeds, most likely other coins will succeed too
 """
-import os
-import pytest
 import decimal
+import os
+
+import pytest
 
 pytestmark = pytest.mark.asyncio
 
@@ -18,22 +19,11 @@ async def test_help(btc):
     assert "help" in data
 
 
-@pytest.mark.parametrize(
-    "currency,accurate",
-    [
-        ("USD", True),
-        ("USD", False),
-        ("RUB", True),
-        ("RUB", False),
-        ("JPY", True),
-        ("JPY", False),
-    ],
-)
-async def test_rate(btc, currency, accurate):
-    price = await btc.rate(currency, accurate)
+@pytest.mark.parametrize("currency", ["USD", "RUB", "JPY"])
+async def test_rate(btc, currency):
+    price = await btc.rate(currency)
     assert price > 0
-    price_type = decimal.Decimal if accurate else float
-    assert isinstance(price, price_type)
+    assert isinstance(price, decimal.Decimal)
 
 
 async def test_fiat(btc):

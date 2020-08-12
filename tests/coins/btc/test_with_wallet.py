@@ -10,11 +10,7 @@ async def test_balance(btc_wallet):
     balance = await btc_wallet.balance()
     for attr in attrs:
         assert balance[attr] >= 0
-        assert isinstance(balance[attr], float)
-    accurate_balance = await btc_wallet.balance(accurate=True)
-    for attr in attrs:
-        assert accurate_balance[attr] >= 0
-        assert isinstance(accurate_balance[attr], Decimal)
+        assert isinstance(balance[attr], Decimal)
 
 
 async def test_history(btc_wallet):

@@ -57,6 +57,7 @@ class BTC(Coin):
     RPC_USER = "electrum"
     RPC_PASS = "electrumz"
     ALLOWED_EVENTS = ["new_block", "new_transaction", "new_payment"]
+    BALANCE_ATTRS = ["confirmed", "unconfirmed", "unmatured", "lightning"]
 
     def __init__(
         self: "BTC",
@@ -106,20 +107,17 @@ class BTC(Coin):
             i["tx"] = await self.get_tx(i["tx_hash"])
         return out
 
-    async def balance(self, accurate: bool = False) -> dict:
+    async def balance(self) -> dict:
         data = await self.server.getbalance()
-        result = {}
-        for attr in ["confirmed", "unconfirmed", "unmatured", "lightning"]:
-            value = data.get(attr, 0)
-            result[attr] = convert_amount_type(value, accurate=accurate)
-        return result
+        return {
+            attr: convert_amount_type(data.get(attr, 0)) for attr in self.BALANCE_ATTRS
+        }
 
     async def addrequest(
         self: "BTC",
         amount: Union[int, float],
         description: str = "",
         expire: Union[int, float] = 15,
-        accurate: bool = False,
     ) -> dict:
         """Add invoice
 
@@ -136,7 +134,6 @@ class BTC(Coin):
             amount (Union[int, float]): amount to open invoice
             description (str, optional): Description of invoice. Defaults to "".
             expire (Union[int, float], optional): The time invoice will expire in. Defaults to 15.
-            accurate (bool, optional): Whether to return values harder to work with (decimals) or not very accurate floats. Defaults to False.
 
         Returns:
             dict: Invoice data
@@ -145,10 +142,10 @@ class BTC(Coin):
         data = await self.server.add_request(
             amount=amount, memo=description, expiration=expiration, force=True
         )
-        data["amount_BTC"] = convert_amount_type(data["amount_BTC"], accurate=accurate)
+        data["amount_BTC"] = convert_amount_type(data["amount_BTC"])
         return data  # type: ignore
 
-    async def getrequest(self: "BTC", address: str, accurate: bool = False) -> dict:
+    async def getrequest(self: "BTC", address: str) -> dict:
         """Get invoice info
 
         Get invoice information by address got from addrequest
@@ -161,13 +158,12 @@ class BTC(Coin):
         Args:
             self (BTC): self
             address (str): address of invoice
-            accurate (bool, optional): Whether to return values harder to work with (decimals) or not very accurate floats. Defaults to False.
 
         Returns:
             dict: Invoice data
         """
         data = await self.server.getrequest(address)
-        data["amount_BTC"] = convert_amount_type(data["amount_BTC"], accurate=accurate)
+        data["amount_BTC"] = convert_amount_type(data["amount_BTC"])
         return data  # type: ignore
 
     async def history(self: "BTC") -> dict:
@@ -410,9 +406,7 @@ class BTC(Coin):
         else:
             return tx_data  # type: ignore
 
-    async def rate(
-        self: "BTC", currency: str = "USD", accurate: bool = False
-    ) -> Union[float, Decimal]:
+    async def rate(self: "BTC", currency: str = "USD") -> Decimal:
         """Get bitcoin price in selected fiat currency
 
         It uses the same method as electrum wallet gets exchange rate-via different payment providers
@@ -428,13 +422,12 @@ class BTC(Coin):
         Args:
             self (BTC): self
             currency (str, optional): Currency to get rate into. Defaults to "USD".
-            accurate (bool, optional): Whether to return values harder to work with (decimals) or not very accurate floats. Defaults to False.
 
         Returns:
-            Union[float, Decimal]: price of 1 bitcoin in selected fiat currency
+            Decimal: price of 1 bitcoin in selected fiat currency
         """
         rate_str = await self.server.exchange_rate(currency)
-        return convert_amount_type(rate_str, accurate=accurate)
+        return convert_amount_type(rate_str)
 
     async def list_fiat(self: "BTC") -> Iterable[str]:
         """List of all available fiat currencies to get price for

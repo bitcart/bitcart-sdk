@@ -19,11 +19,10 @@ class BCH(BTC):
         amount: Union[int, float],
         description: str = "",
         expire: Union[int, float] = 15,
-        accurate: bool = False,
     ) -> dict:
         expiration = 60 * expire if expire else None
         data = await self.server.addrequest(
             amount=amount, memo=description, expiration=expiration, force=True
         )
-        data["amount_BCH"] = convert_amount_type(data["amount_BCH"], accurate=accurate)
+        data["amount_BCH"] = convert_amount_type(data["amount_BCH"])
         return data  # type: ignore
