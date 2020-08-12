@@ -1,33 +1,36 @@
-import asyncio
 import warnings
-
 import pytest
-
 from bitcart import BTC
 from bitcart.coin import Coin
 
-TEST_XPUB = "xprv9yFGRF1GzMMydx5AK9FEU3UhqcHAmKZNSy8EvfBtztGvNtSfB1jLnkAJa4cvc33DJEpY5JXMDAdhN3fyanJJsNGcXSNsojKxzeX7EPEe8rg"
+TEST_XPUB_TESTNET = "tprv8ZgxMBicQKsPepFfedsYPCgWioGqkbnRbMmprdTq3jFmRf7JQwe3Yo8DMBwttKFNLpp3xVx6Rfv7ChxZbkLXgnmb8hcq4uN2hVKLmCNcTpB"
 
 
-@pytest.yield_fixture(scope="session")
-def event_loop(request):
-    loop = asyncio.get_event_loop_policy().new_event_loop()
-    yield loop
-    loop.close()
-
-
-@pytest.fixture(autouse=True, scope="session")
+@pytest.fixture
 async def coin():
     return Coin()
 
 
-@pytest.fixture(autouse=True, scope="session")
+@pytest.fixture
 async def btc_nowallet():
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         return BTC()
 
 
-@pytest.fixture(autouse=True, scope="session")
+@pytest.fixture
+async def btc_wallet():
+    return BTC(xpub=TEST_XPUB_TESTNET)
+
+
+@pytest.fixture
 async def btc():
-    return BTC(xpub=TEST_XPUB)
+    with warnings.catch_warnings():  # to ignore no xpub passed warning
+        warnings.simplefilter("ignore")
+        btc_obj = BTC()
+    return btc_obj
+
+
+@pytest.fixture(autouse=True)
+async def setup_btc_wallet(btc_wallet):
+    await btc_wallet.set_config("lightning", True)

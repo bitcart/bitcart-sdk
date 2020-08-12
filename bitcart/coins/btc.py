@@ -3,7 +3,6 @@ import asyncio
 import inspect
 import json
 import logging
-import sys
 import time
 import warnings
 from decimal import Decimal
@@ -16,13 +15,12 @@ from typing import (
     Dict,
     Iterable,
     Optional,
-    SupportsFloat,
-    SupportsInt,
     Union,
 )
 
 from ..coin import Coin
 from ..errors import InvalidEventError, LightningDisabledError
+from ..utils import convert_amount_type
 
 if TYPE_CHECKING:
     import requests
@@ -59,6 +57,7 @@ class BTC(Coin):
     RPC_USER = "electrum"
     RPC_PASS = "electrumz"
     ALLOWED_EVENTS = ["new_block", "new_transaction", "new_payment"]
+    BALANCE_ATTRS = ["confirmed", "unconfirmed", "unmatured", "lightning"]
 
     def __init__(
         self: "BTC",
@@ -77,6 +76,7 @@ class BTC(Coin):
         self.rpc_pass = rpc_pass or self.RPC_PASS
         self.xpub = xpub
         self.event_handlers: Dict[str, Callable] = {}
+        self.amount_field = getattr(self, "AMOUNT_FIELD", f"amount_{self.coin_name}")
         self.server = self.providers["jsonrpcrequests"].RPCProxy(  # type: ignore
             self.rpc_url,
             self.rpc_user,
@@ -111,15 +111,12 @@ class BTC(Coin):
     async def balance(self) -> dict:
         data = await self.server.getbalance()
         return {
-            "confirmed": data.get("confirmed", 0),
-            "unconfirmed": data.get("unconfirmed", 0),
-            "unmatured": data.get("unmatured", 0),
-            "lightning": data.get("lightning", 0),
+            attr: convert_amount_type(data.get(attr, 0)) for attr in self.BALANCE_ATTRS
         }
 
     async def addrequest(
         self: "BTC",
-        amount: Union[int, float],
+        amount: Union[int, str],
         description: str = "",
         expire: Union[int, float] = 15,
     ) -> dict:
@@ -135,7 +132,7 @@ class BTC(Coin):
 
         Args:
             self (BTC): self
-            amount (Union[int, float]): amount to open invoice
+            amount (Union[int, str]): amount to open invoice
             description (str, optional): Description of invoice. Defaults to "".
             expire (Union[int, float], optional): The time invoice will expire in. Defaults to 15.
 
@@ -143,9 +140,11 @@ class BTC(Coin):
             dict: Invoice data
         """
         expiration = 60 * expire if expire else None
-        return await self.server.add_request(  # type: ignore
+        data = await self.server.add_request(
             amount=amount, memo=description, expiration=expiration, force=True
         )
+        data[self.amount_field] = convert_amount_type(data[self.amount_field])
+        return data  # type: ignore
 
     async def getrequest(self: "BTC", address: str) -> dict:
         """Get invoice info
@@ -164,7 +163,9 @@ class BTC(Coin):
         Returns:
             dict: Invoice data
         """
-        return await self.server.getrequest(address)  # type: ignore
+        data = await self.server.getrequest(address)
+        data[self.amount_field] = convert_amount_type(data[self.amount_field])
+        return data  # type: ignore
 
     async def history(self: "BTC") -> dict:
         """Get transaction history of wallet
@@ -406,9 +407,7 @@ class BTC(Coin):
         else:
             return tx_data  # type: ignore
 
-    async def rate(
-        self: "BTC", currency: str = "USD", accurate: bool = False
-    ) -> Union[float, Decimal]:
+    async def rate(self: "BTC", currency: str = "USD") -> Decimal:
         """Get bitcoin price in selected fiat currency
 
         It uses the same method as electrum wallet gets exchange rate-via different payment providers
@@ -424,13 +423,12 @@ class BTC(Coin):
         Args:
             self (BTC): self
             currency (str, optional): Currency to get rate into. Defaults to "USD".
-            accurate (bool, optional): Whether to return values harder to work with(decimals) or not very accurate floats. Defaults to False.
 
         Returns:
-            Union[float, Decimal]: price of 1 bitcoin in selected fiat currency
+            Decimal: price of 1 bitcoin in selected fiat currency
         """
         rate_str = await self.server.exchange_rate(currency)
-        return Decimal(rate_str) if accurate else float(rate_str)
+        return convert_amount_type(rate_str)
 
     async def list_fiat(self: "BTC") -> Iterable[str]:
         """List of all available fiat currencies to get price for
@@ -573,7 +571,7 @@ class BTC(Coin):
     ### Lightning apis ###
 
     @lightning
-    async def open_channel(self: "BTC", node_id: str, amount: Union[int, float]) -> str:
+    async def open_channel(self: "BTC", node_id: str, amount: Union[int, str]) -> str:
         """Open lightning channel
 
         Open channel with node, returns string of format
@@ -582,7 +580,7 @@ class BTC(Coin):
         Args:
             self (BTC): self
             node_id (str): id of node to open channel with
-            amount (Union[int, float]): amount to open channel
+            amount (Union[int, str]): amount to open channel
 
         Returns:
             str: string of format txid:output_index
@@ -591,7 +589,7 @@ class BTC(Coin):
 
     @lightning
     async def addinvoice(
-        self: "BTC", amount: Union[int, float], message: Optional[str] = ""
+        self: "BTC", amount: Union[int, str], message: Optional[str] = ""
     ) -> str:
         """Create lightning invoice
 
@@ -604,7 +602,7 @@ class BTC(Coin):
 
         Args:
             self (BTC): self
-            amount (Union[int,float]): invoice amount
+            amount (Union[int, str]): invoice amount
             message (Optional[str], optional): Invoice message. Defaults to "".
 
         Returns:

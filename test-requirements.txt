@@ -1,6 +1,6 @@
 pytest
-coverage
+pytest-cov
+pytest-pylint
 pytest-asyncio
-pylint
 mypy
 codecov

@@ -93,7 +93,7 @@ class Coin:
         Example:
 
         >>> self.balance()
-        {"confirmed": "0.00005", "unconfirmed": 0, "unmatured": 0}
+        {"confirmed": 0.00005, "unconfirmed": 0, "unmatured": 0}
 
         Raises:
             NotImplementedError: Implement in your subclass
