@@ -25,7 +25,10 @@ async def btc_wallet():
 
 @pytest.fixture
 async def btc():
-    return BTC()
+    with warnings.catch_warnings():  # to ignore no xpub passed warning
+        warnings.simplefilter("ignore")
+        btc_obj = BTC()
+    return btc_obj
 
 
 @pytest.fixture(autouse=True)

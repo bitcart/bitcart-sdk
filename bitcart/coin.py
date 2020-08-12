@@ -87,13 +87,16 @@ class Coin:
         """
         raise NotImplementedError()
 
-    async def balance(self) -> dict:
+    async def balance(self, accurate: bool = False) -> dict:
         """Get balance of wallet
 
         Example:
 
         >>> self.balance()
         {"confirmed": "0.00005", "unconfirmed": 0, "unmatured": 0}
+
+        Args:
+            accurate (bool, optional): Whether to return values harder to work with (decimals) or not very accurate floats. Defaults to False.
 
         Raises:
             NotImplementedError: Implement in your subclass

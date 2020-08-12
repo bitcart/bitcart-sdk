@@ -1,12 +1,20 @@
+from decimal import Decimal
+
 import pytest
 
 pytestmark = pytest.mark.asyncio
 
 
 async def test_balance(btc_wallet):
+    attrs = ["confirmed", "unconfirmed", "unmatured", "lightning"]
     balance = await btc_wallet.balance()
-    for attr in ["confirmed", "unconfirmed", "unmatured", "lightning"]:
-        assert balance.get(attr) >= 0
+    for attr in attrs:
+        assert balance[attr] >= 0
+        assert isinstance(balance[attr], float)
+    accurate_balance = await btc_wallet.balance(accurate=True)
+    for attr in attrs:
+        assert accurate_balance[attr] >= 0
+        assert isinstance(accurate_balance[attr], Decimal)
 
 
 async def test_history(btc_wallet):

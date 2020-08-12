@@ -38,70 +38,14 @@ async def test_rate(btc, currency, accurate):
 
 async def test_fiat(btc):
     fiat_currencies = await btc.list_fiat()
-    assert fiat_currencies == [
-        "AED",
-        "ARS",
-        "AUD",
-        "BCH",
-        "BDT",
-        "BHD",
-        "BMD",
-        "BNB",
-        "BRL",
-        "BTC",
-        "CAD",
-        "CHF",
-        "CLP",
-        "CNY",
-        "CZK",
-        "DKK",
-        "EOS",
-        "ETH",
-        "EUR",
-        "GBP",
-        "HKD",
-        "HUF",
-        "IDR",
-        "ILS",
-        "INR",
-        "JPY",
-        "KRW",
-        "KWD",
-        "LKR",
-        "LTC",
-        "MMK",
-        "MXN",
-        "MYR",
-        "NOK",
-        "NZD",
-        "PHP",
-        "PKR",
-        "PLN",
-        "RUB",
-        "SAR",
-        "SEK",
-        "SGD",
-        "THB",
-        "TRY",
-        "TWD",
-        "USD",
-        "VEF",
-        "VND",
-        "XAG",
-        "XAU",
-        "XDR",
-        "XLM",
-        "XRP",
-        "ZAR",
-    ]
+    assert ["USD", "BTC", "RUB", "JPY", "EUR"] >= fiat_currencies
 
 
 @pytest.mark.parametrize(
     "address,expected", [("x", False), ("2MxtJ3iBTaEUvmiEshfW35jDzLHsY5kh9ZM", True),]
 )
 async def test_electrum_validate_address(btc, address, expected):
-    is_valid = await btc.server.validateaddress(address)
-    assert is_valid == expected
+    assert await btc.server.validateaddress(address) == expected
 
 
 async def test_get_tx(btc):
@@ -147,20 +91,15 @@ async def test_config_methods(btc):
 
 
 async def test_get_address(btc):
-    addresses = await btc.get_address("2NGHDQcccX3EVehSRtSMXj8u5AhpGQ4nR6b")
-    assert isinstance(addresses, list)
-    address = addresses[0]
+    txes = await btc.get_address("2NGHDQcccX3EVehSRtSMXj8u5AhpGQ4nR6b")
+    assert isinstance(txes, list)
+    tx = txes[0]
     assert (
-        address["tx_hash"]
+        tx["tx_hash"]
         == "0eca272d77ab362e9fbcabd9a5803ba3a7fd4382a302ae9028cfacd015cc65b9"
     )
-    assert address["height"] == 1805666
-    tx = address["tx"]
-    assert isinstance(tx["inputs"], list)
-    assert isinstance(tx["outputs"], list)
-    assert tx["lockTime"] == 1805597
-    assert tx["partial"] is False
-    assert tx["segwit_ser"] is True
+    assert tx["height"] == 1805666
+    assert tx["tx"] == await btc.get_tx(tx["tx_hash"])
 
 
 async def test_create_wallet(btc, tmp_path):
