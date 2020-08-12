@@ -76,6 +76,7 @@ class BTC(Coin):
         self.rpc_pass = rpc_pass or self.RPC_PASS
         self.xpub = xpub
         self.event_handlers: Dict[str, Callable] = {}
+        self.amount_field = getattr(self, "AMOUNT_FIELD", f"amount_{self.coin_name}")
         self.server = self.providers["jsonrpcrequests"].RPCProxy(  # type: ignore
             self.rpc_url,
             self.rpc_user,
@@ -115,7 +116,7 @@ class BTC(Coin):
 
     async def addrequest(
         self: "BTC",
-        amount: Union[int, float],
+        amount: Union[int, str],
         description: str = "",
         expire: Union[int, float] = 15,
     ) -> dict:
@@ -131,7 +132,7 @@ class BTC(Coin):
 
         Args:
             self (BTC): self
-            amount (Union[int, float]): amount to open invoice
+            amount (Union[int, str]): amount to open invoice
             description (str, optional): Description of invoice. Defaults to "".
             expire (Union[int, float], optional): The time invoice will expire in. Defaults to 15.
 
@@ -142,7 +143,7 @@ class BTC(Coin):
         data = await self.server.add_request(
             amount=amount, memo=description, expiration=expiration, force=True
         )
-        data["amount_BTC"] = convert_amount_type(data["amount_BTC"])
+        data[self.amount_field] = convert_amount_type(data[self.amount_field])
         return data  # type: ignore
 
     async def getrequest(self: "BTC", address: str) -> dict:
@@ -163,7 +164,7 @@ class BTC(Coin):
             dict: Invoice data
         """
         data = await self.server.getrequest(address)
-        data["amount_BTC"] = convert_amount_type(data["amount_BTC"])
+        data[self.amount_field] = convert_amount_type(data[self.amount_field])
         return data  # type: ignore
 
     async def history(self: "BTC") -> dict:
@@ -570,7 +571,7 @@ class BTC(Coin):
     ### Lightning apis ###
 
     @lightning
-    async def open_channel(self: "BTC", node_id: str, amount: Union[int, float]) -> str:
+    async def open_channel(self: "BTC", node_id: str, amount: Union[int, str]) -> str:
         """Open lightning channel
 
         Open channel with node, returns string of format
@@ -579,7 +580,7 @@ class BTC(Coin):
         Args:
             self (BTC): self
             node_id (str): id of node to open channel with
-            amount (Union[int, float]): amount to open channel
+            amount (Union[int, str]): amount to open channel
 
         Returns:
             str: string of format txid:output_index
@@ -588,7 +589,7 @@ class BTC(Coin):
 
     @lightning
     async def addinvoice(
-        self: "BTC", amount: Union[int, float], message: Optional[str] = ""
+        self: "BTC", amount: Union[int, str], message: Optional[str] = ""
     ) -> str:
         """Create lightning invoice
 
@@ -601,7 +602,7 @@ class BTC(Coin):
 
         Args:
             self (BTC): self
-            amount (Union[int,float]): invoice amount
+            amount (Union[int, str]): invoice amount
             message (Optional[str], optional): Invoice message. Defaults to "".
 
         Returns:

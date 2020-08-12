@@ -10,13 +10,14 @@ class BCH(BTC):
     coin_name = "BCH"
     friendly_name = "Bitcoin Cash"
     RPC_URL = "http://localhost:5004"
+    AMOUNT_FIELD = "amount (BCH)"
 
     async def history(self: "BCH") -> dict:
         return await self.server.history()  # type: ignore
 
     async def addrequest(
         self: "BCH",
-        amount: Union[int, float],
+        amount: Union[int, str],
         description: str = "",
         expire: Union[int, float] = 15,
     ) -> dict:
@@ -24,5 +25,5 @@ class BCH(BTC):
         data = await self.server.addrequest(
             amount=amount, memo=description, expiration=expiration, force=True
         )
-        data["amount_BCH"] = convert_amount_type(data["amount_BCH"])
+        data[self.amount_field] = convert_amount_type(data[self.amount_field])
         return data  # type: ignore

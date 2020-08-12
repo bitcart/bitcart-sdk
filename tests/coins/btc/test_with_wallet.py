@@ -21,17 +21,21 @@ async def test_history(btc_wallet):
 
 async def test_payment_request(btc_wallet):
     # request1
-    request1_amount = 0.5
+    request1_amount = "0.5"
     request1 = await btc_wallet.addrequest(request1_amount)
-    assert request1["amount_BTC"] <= request1_amount
+    assert (
+        request1[btc_wallet.amount_field]
+        == request1["amount_BTC"]
+        == Decimal(request1_amount)
+    )
     # request2
-    request2_amount, request2_desc = 0.6, "test description"
+    request2_amount, request2_desc = "0.6", "test description"
     request2 = await btc_wallet.addrequest(request2_amount, request2_desc)
-    assert request2["amount_BTC"] <= request2_amount
+    assert request2["amount_BTC"] == Decimal(request2_amount)
     assert request2["memo"] == request2_desc
     # get request2
     response2 = await btc_wallet.getrequest(request2["address"])
-    assert response2["amount_BTC"] <= request2_amount
+    assert response2["amount_BTC"] == Decimal(request2_amount)
     assert response2["memo"] == request2_desc
 
 
