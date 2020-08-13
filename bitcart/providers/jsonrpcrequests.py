@@ -7,9 +7,10 @@ try:
     import jsonrpcclient
 
     if ASYNC:
+        import asyncio
+
         import aiohttp
         from jsonrpcclient.clients.aiohttp_client import AiohttpClient as RPC
-        import asyncio
     else:
         import requests
         from jsonrpcclient.clients.http_client import HTTPClient as RPC

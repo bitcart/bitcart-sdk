@@ -19,8 +19,12 @@ print(btc.rate("RUB"))  # BTC rate in rubles, or any other currency
 print(btc.list_fiat())  # List of all fiat currencies to get bitcoin rate in
 print(btc.help())  # List of low level electrum methods
 print(btc.server.validateaddress("x"))  # Example of calling lowlevel electrum method
-print(btc.get_tx("d0e9433f41e17ef74547aa5e1873cd3ad12f1402b488eb93e1c8e3dda971ef53"))  # Get transaction info
-print(btc.set_config("x", 1))  # Set a key in electrum config, also some type of a temporary storage
+print(
+    btc.get_tx("d0e9433f41e17ef74547aa5e1873cd3ad12f1402b488eb93e1c8e3dda971ef53")
+)  # Get transaction info
+print(
+    btc.set_config("x", 1)
+)  # Set a key in electrum config, also some type of a temporary storage
 print(btc.get_config("x"))  # -> 1 Get config key
 print(btc.get_address("1MBbj9ENeEdSeJwJFReWNgrDJrSMMqWqH4"))  # Address history
 try:
@@ -42,17 +46,30 @@ if DONATE_TO_AUTHOR:
     print(btc2.pay_to("1A6jnc6xQwmhsChNLcyKAQNWPcWsVYqCqJ", 0.1))  # tx hash returned
     # raw hash returned, not broadcasted to network
     print(btc2.pay_to("1A6jnc6xQwmhsChNLcyKAQNWPcWsVYqCqJ", 0.1, broadcast=False))
-    print(btc2.pay_to("1A6jnc6xQwmhsChNLcyKAQNWPcWsVYqCqJ", 0.1, fee=0.00000001))  # custom fee
+    print(
+        btc2.pay_to("1A6jnc6xQwmhsChNLcyKAQNWPcWsVYqCqJ", 0.1, fee=0.00000001)
+    )  # custom fee
 
     def fee_func(size, default_fee):
         return size / 4  # just a random calculation
 
-    print(btc2.pay_to("1A6jnc6xQwmhsChNLcyKAQNWPcWsVYqCqJ", 0.1, fee=fee_func))  # Dynamic fee calculation
+    print(
+        btc2.pay_to("1A6jnc6xQwmhsChNLcyKAQNWPcWsVYqCqJ", 0.1, fee=fee_func)
+    )  # Dynamic fee calculation
 
     ### Bulk payments, specify in one of two formats, same return values and parameters as in pay_to ###
-    btc2.pay_to_many([("1A6jnc6xQwmhsChNLcyKAQNWPcWsVYqCqJ", 0.1), ("1A6jnc6xQwmhsChNLcyKAQNWPcWsVYqCqJ", 0.1)])
-    btc2.pay_to_many([{"address": "1A6jnc6xQwmhsChNLcyKAQNWPcWsVYqCqJ", "amount": 0.1},
-                      {"address": "1A6jnc6xQwmhsChNLcyKAQNWPcWsVYqCqJ", "amount": 0.1}])
+    btc2.pay_to_many(
+        [
+            ("1A6jnc6xQwmhsChNLcyKAQNWPcWsVYqCqJ", 0.1),
+            ("1A6jnc6xQwmhsChNLcyKAQNWPcWsVYqCqJ", 0.1),
+        ]
+    )
+    btc2.pay_to_many(
+        [
+            {"address": "1A6jnc6xQwmhsChNLcyKAQNWPcWsVYqCqJ", "amount": 0.1},
+            {"address": "1A6jnc6xQwmhsChNLcyKAQNWPcWsVYqCqJ", "amount": 0.1},
+        ]
+    )
 
 # Lightning(requires wallet) #
 print(btc2.node_id)  # your lightning node id(lightning daemon is bitcart daemon itself)
@@ -74,6 +91,7 @@ def new_block(event, height):
 def new_tx(event, tx):
     print(event)
     print(tx)  # tx hash
+
 
 ### Or register a function under multiple events ###
 # @btc.on(["new_block","new_transaction"])

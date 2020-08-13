@@ -1,7 +1,7 @@
 from typing import Union
 
-from .btc import BTC
 from ..utils import convert_amount_type
+from .btc import BTC
 
 ASYNC = True
 

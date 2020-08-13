@@ -8,15 +8,7 @@ import warnings
 from decimal import Decimal
 from functools import wraps
 from types import ModuleType
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Callable,
-    Dict,
-    Iterable,
-    Optional,
-    Union,
-)
+from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, Optional, Union
 
 from ..coin import Coin
 from ..errors import InvalidEventError, LightningDisabledError
