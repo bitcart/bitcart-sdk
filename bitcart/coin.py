@@ -24,9 +24,7 @@ class Coin:
         self.providers_new: Dict[str, ModuleType] = {}
         for i in self.providers:
             if i not in SYSTEM_PACKAGES:
-                self.providers_new[i] = importlib.import_module(
-                    ".providers." + i, "bitcart"
-                )
+                self.providers_new[i] = importlib.import_module(".providers." + i, "bitcart")
             else:
                 self.providers_new[i] = importlib.import_module(i)
         self.providers = self.providers_new

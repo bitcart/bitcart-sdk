@@ -70,12 +70,7 @@ class BTC(Coin):
         self.event_handlers: Dict[str, Callable] = {}
         self.amount_field = getattr(self, "AMOUNT_FIELD", f"amount_{self.coin_name}")
         self.server = self.providers["jsonrpcrequests"].RPCProxy(  # type: ignore
-            self.rpc_url,
-            self.rpc_user,
-            self.rpc_pass,
-            self.xpub,
-            session=session,
-            proxy=proxy,
+            self.rpc_url, self.rpc_user, self.rpc_pass, self.xpub, session=session, proxy=proxy,
         )
         if ASYNC:
             self._configure_webhook = self._configure_webhook_async
@@ -102,16 +97,9 @@ class BTC(Coin):
 
     async def balance(self) -> dict:
         data = await self.server.getbalance()
-        return {
-            attr: convert_amount_type(data.get(attr, 0)) for attr in self.BALANCE_ATTRS
-        }
+        return {attr: convert_amount_type(data.get(attr, 0)) for attr in self.BALANCE_ATTRS}
 
-    async def addrequest(
-        self: "BTC",
-        amount: Union[int, str],
-        description: str = "",
-        expire: Union[int, float] = 15,
-    ) -> dict:
+    async def addrequest(self: "BTC", amount: Union[int, str], description: str = "", expire: Union[int, float] = 15,) -> dict:
         """Add invoice
 
         Create an invoice and request amount in BTC, it will expire by parameter provided.
@@ -132,9 +120,7 @@ class BTC(Coin):
             dict: Invoice data
         """
         expiration = 60 * expire if expire else None
-        data = await self.server.add_request(
-            amount=amount, memo=description, expiration=expiration, force=True
-        )
+        data = await self.server.add_request(amount=amount, memo=description, expiration=expiration, force=True)
         data[self.amount_field] = convert_amount_type(data[self.amount_field])
         return data  # type: ignore
 
@@ -175,9 +161,7 @@ class BTC(Coin):
         """
         return json.loads(await self.server.onchain_history())  # type: ignore
 
-    def add_event_handler(
-        self: "BTC", events: Union[Iterable[str], str], func: Callable
-    ) -> None:
+    def add_event_handler(self: "BTC", events: Union[Iterable[str], str], func: Callable) -> None:
         """Add event handler to handle event(s) provided
 
         Args:
@@ -322,9 +306,7 @@ class BTC(Coin):
             except Exception:
                 resulting_fee = None
             if resulting_fee:
-                tx_data = await self.server.payto(
-                    address, amount, fee=resulting_fee, feerate=feerate
-                )
+                tx_data = await self.server.payto(address, amount, fee=resulting_fee, feerate=feerate)
         if broadcast:
             return await self.server.broadcast(tx_data)  # type: ignore
         else:
@@ -391,9 +373,7 @@ class BTC(Coin):
             except Exception:
                 resulting_fee = None
             if resulting_fee:
-                tx_data = await self.server.paytomany(
-                    outputs, fee=resulting_fee, feerate=feerate
-                )
+                tx_data = await self.server.paytomany(outputs, fee=resulting_fee, feerate=feerate)
         if broadcast:
             return await self.server.broadcast(tx_data)  # type: ignore
         else:
@@ -517,9 +497,7 @@ class BTC(Coin):
         self.process_updates([request.json])
         return {}
 
-    async def handle_webhook_async(
-        self: "BTC", request: "web.Request"
-    ) -> "web.Response":
+    async def handle_webhook_async(self: "BTC", request: "web.Request") -> "web.Response":
         await self.process_updates([await request.json()])
         return web.json_response({})
 
@@ -535,9 +513,7 @@ class BTC(Coin):
 
     async def configure_webhook(self: "BTC", autoconfigure: bool = True) -> None:
         if not webhook_available:
-            raise ValueError(
-                "Webhook support not installed. Install it with pip install bitcart[webhook]"
-            )
+            raise ValueError("Webhook support not installed. Install it with pip install bitcart[webhook]")
         self._configure_webhook()
         await self.server.subscribe(list(self.event_handlers.keys()))
         if autoconfigure:
@@ -551,9 +527,7 @@ class BTC(Coin):
 
     def start_webhook(self: "BTC", port: int = 6000, **kwargs: Any) -> None:
         if not webhook_available:
-            raise ValueError(
-                "Webhook support not installed. Install it with pip install bitcart[webhook]"
-            )
+            raise ValueError("Webhook support not installed. Install it with pip install bitcart[webhook]")
         if ASYNC:
             self.server._loop.run_until_complete(self.configure_webhook())
         else:
@@ -580,9 +554,7 @@ class BTC(Coin):
         return await self.server.open_channel(node_id, amount)  # type: ignore
 
     @lightning
-    async def addinvoice(
-        self: "BTC", amount: Union[int, str], message: Optional[str] = ""
-    ) -> str:
+    async def addinvoice(self: "BTC", amount: Union[int, str], message: Optional[str] = "") -> str:
         """Create lightning invoice
 
         Create lightning invoice and return bolt invoice id

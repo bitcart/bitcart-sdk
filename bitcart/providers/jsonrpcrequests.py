@@ -35,9 +35,7 @@ class RPCProxy:
         self.xpub = xpub
         self.proxy = proxy
         if not ASYNC and self.proxy:
-            self.proxy = self.proxy.replace(
-                "socks5://", "socks5h://"
-            )  # replace protocol
+            self.proxy = self.proxy.replace("socks5://", "socks5h://")  # replace protocol
         self.verify = verify
         self.session: Union["aiohttp.ClientSession", "requests.Session"]
         if ASYNC:
@@ -63,12 +61,7 @@ class RPCProxy:
             proxy_type, host, port, username, password = parse_proxy_url(self.proxy)
             self._connector_class = ProxyConnector
             self._connector_init.update(
-                proxy_type=proxy_type,
-                host=host,
-                port=port,
-                username=username,
-                password=password,
-                rdns=True,
+                proxy_type=proxy_type, host=host, port=port, username=username, password=password, rdns=True,
             )
 
     def create_session(self: "RPCProxy") -> None:
@@ -86,19 +79,11 @@ class RPCProxy:
             self.session.auth = (self.username, self.password)  # type: ignore
             self.session.timeout = 5 * 60  # type: ignore
 
-    def __getattr__(
-        self: "RPCProxy", method: str, *args: Any, **kwargs: Any
-    ) -> Callable:
+    def __getattr__(self: "RPCProxy", method: str, *args: Any, **kwargs: Any) -> Callable:
         async def wrapper(*args: Any, **kwargs: Any) -> Any:
             try:
                 return (
-                    await self.rpc.request(
-                        method,
-                        validate_against_schema=False,
-                        xpub=self.xpub,
-                        *args,
-                        **kwargs,
-                    )
+                    await self.rpc.request(method, validate_against_schema=False, xpub=self.xpub, *args, **kwargs,)
                 ).data.result
             except jsonrpcclient.exceptions.ReceivedErrorResponseError as e:
                 raise ValueError("Error from server: {}".format(e.response.message))

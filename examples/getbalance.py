@@ -12,8 +12,6 @@ xpub = sys.argv[1]
 btc = BTC(xpub=xpub)
 try:
     balance = btc.balance()
-    print(
-        f"Onchain balance: {balance['confirmed']}\nOffchain balance:{balance['lightning']}"
-    )
+    print(f"Onchain balance: {balance['confirmed']}\nOffchain balance:{balance['lightning']}")
 except ValueError:
     print("Bad wallet provided, or daemon not running.")

@@ -31,17 +31,13 @@ async def test_fiat(btc):
     assert ["USD", "BTC", "RUB", "JPY", "EUR"] >= fiat_currencies
 
 
-@pytest.mark.parametrize(
-    "address,expected", [("x", False), ("2MxtJ3iBTaEUvmiEshfW35jDzLHsY5kh9ZM", True),]
-)
+@pytest.mark.parametrize("address,expected", [("x", False), ("2MxtJ3iBTaEUvmiEshfW35jDzLHsY5kh9ZM", True),])
 async def test_electrum_validate_address(btc, address, expected):
     assert await btc.server.validateaddress(address) == expected
 
 
 async def test_get_tx(btc):
-    info = await btc.get_tx(
-        "1d8a65ec103338bb51d125015fc736a3aa93eae1d7d534ec374f6517f665c5e2"
-    )
+    info = await btc.get_tx("1d8a65ec103338bb51d125015fc736a3aa93eae1d7d534ec374f6517f665c5e2")
     assert (
         info.items()
         >= {
@@ -84,10 +80,7 @@ async def test_get_address(btc):
     txes = await btc.get_address("2NGHDQcccX3EVehSRtSMXj8u5AhpGQ4nR6b")
     assert isinstance(txes, list)
     tx = txes[0]
-    assert (
-        tx["tx_hash"]
-        == "0eca272d77ab362e9fbcabd9a5803ba3a7fd4382a302ae9028cfacd015cc65b9"
-    )
+    assert tx["tx_hash"] == "0eca272d77ab362e9fbcabd9a5803ba3a7fd4382a302ae9028cfacd015cc65b9"
     assert tx["height"] == 1805666
     assert tx["tx"] == await btc.get_tx(tx["tx_hash"])
 
