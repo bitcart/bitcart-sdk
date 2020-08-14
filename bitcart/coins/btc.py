@@ -3,20 +3,12 @@ import asyncio
 import inspect
 import json
 import logging
-import time
+import time  # noqa: F401: for sync generator
 import warnings
 from decimal import Decimal
 from functools import wraps
 from types import ModuleType
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Callable,
-    Dict,
-    Iterable,
-    Optional,
-    Union,
-)
+from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, Optional, Union
 
 from ..coin import Coin
 from ..errors import InvalidEventError, LightningDisabledError
@@ -78,12 +70,7 @@ class BTC(Coin):
         self.event_handlers: Dict[str, Callable] = {}
         self.amount_field = getattr(self, "AMOUNT_FIELD", f"amount_{self.coin_name}")
         self.server = self.providers["jsonrpcrequests"].RPCProxy(  # type: ignore
-            self.rpc_url,
-            self.rpc_user,
-            self.rpc_pass,
-            self.xpub,
-            session=session,
-            proxy=proxy,
+            self.rpc_url, self.rpc_user, self.rpc_pass, self.xpub, session=session, proxy=proxy,
         )
         if ASYNC:
             self._configure_webhook = self._configure_webhook_async
@@ -110,16 +97,9 @@ class BTC(Coin):
 
     async def balance(self) -> dict:
         data = await self.server.getbalance()
-        return {
-            attr: convert_amount_type(data.get(attr, 0)) for attr in self.BALANCE_ATTRS
-        }
+        return {attr: convert_amount_type(data.get(attr, 0)) for attr in self.BALANCE_ATTRS}
 
-    async def addrequest(
-        self: "BTC",
-        amount: Union[int, str],
-        description: str = "",
-        expire: Union[int, float] = 15,
-    ) -> dict:
+    async def addrequest(self: "BTC", amount: Union[int, str], description: str = "", expire: Union[int, float] = 15,) -> dict:
         """Add invoice
 
         Create an invoice and request amount in BTC, it will expire by parameter provided.
@@ -140,9 +120,7 @@ class BTC(Coin):
             dict: Invoice data
         """
         expiration = 60 * expire if expire else None
-        data = await self.server.add_request(
-            amount=amount, memo=description, expiration=expiration, force=True
-        )
+        data = await self.server.add_request(amount=amount, memo=description, expiration=expiration, force=True)
         data[self.amount_field] = convert_amount_type(data[self.amount_field])
         return data  # type: ignore
 
@@ -183,9 +161,7 @@ class BTC(Coin):
         """
         return json.loads(await self.server.onchain_history())  # type: ignore
 
-    def add_event_handler(
-        self: "BTC", events: Union[Iterable[str], str], func: Callable
-    ) -> None:
+    def add_event_handler(self: "BTC", events: Union[Iterable[str], str], func: Callable) -> None:
         """Add event handler to handle event(s) provided
 
         Args:
@@ -307,8 +283,10 @@ class BTC(Coin):
             self (BTC): self
             address (str): address where to send BTC
             amount (float): amount of bitcoins to send
-            fee (Optional[Union[float, Callable]], optional): Either a fixed fee, or a callable getting size and default fee as argument and returning fee. Defaults to None.
-            feerate (Optional[float], optional): A sat/byte feerate, can't be passed together with fee argument. Defaults to None.
+            fee (Optional[Union[float, Callable]], optional): Either a fixed fee, or a callable getting size and default fee
+                as argument and returning fee. Defaults to None.
+            feerate (Optional[float], optional): A sat/byte feerate, can't be passed together with fee argument.
+                Defaults to None.
             broadcast (bool, optional): Whether to broadcast transaction to network. Defaults to True.
 
         Raises:
@@ -330,9 +308,7 @@ class BTC(Coin):
             except Exception:
                 resulting_fee = None
             if resulting_fee:
-                tx_data = await self.server.payto(
-                    address, amount, fee=resulting_fee, feerate=feerate
-                )
+                tx_data = await self.server.payto(address, amount, fee=resulting_fee, feerate=feerate)
         if broadcast:
             return await self.server.broadcast(tx_data)  # type: ignore
         else:
@@ -354,23 +330,28 @@ class BTC(Coin):
 
         Examples:
 
-        >>> btc.pay_to_many([{"address":"mkHS9ne12qx9pS9VojpwU5xtRd4T7X7ZUt","amount":0.001}, {"address":"mv4rnyY3Su5gjcDNzbMLKBQkBicCtHUtFB","amount":0.0001}])
+        >>> btc.pay_to_many([{"address":"mkHS9ne12qx9pS9VojpwU5xtRd4T7X7ZUt","amount":0.001}, \
+{"address":"mv4rnyY3Su5gjcDNzbMLKBQkBicCtHUtFB","amount":0.0001}])
         '60fa120d9f868a7bd03d6bbd1e225923cab0ba7a3a6b961861053c90365ed40a'
 
         >>> btc.pay_to_many([("mkHS9ne12qx9pS9VojpwU5xtRd4T7X7ZUt",0.001), ("mv4rnyY3Su5gjcDNzbMLKBQkBicCtHUtFB",0.0001)])
         'd80f14e20af2ceaa43a8b7e15402d420246d39e235d87874f929977fb0b1cab8'
 
-        >>> btc.pay_to_many((("mkHS9ne12qx9pS9VojpwU5xtRd4T7X7ZUt",0.001),("mkHS9ne12qx9pS9VojpwU5xtRd4T7X7ZUt",0.001)), feerate=1)
+        >>> btc.pay_to_many((("mkHS9ne12qx9pS9VojpwU5xtRd4T7X7ZUt",0.001), \
+("mkHS9ne12qx9pS9VojpwU5xtRd4T7X7ZUt",0.001)), feerate=1)
         '0a6611876e04a6f2742eac02d4fac4c242dda154d85f0d547bbac1a33dbbbe34'
 
-        >>> btc.pay_to_many([("mkHS9ne12qx9pS9VojpwU5xtRd4T7X7ZUt",0.001), ("mv4rnyY3Su5gjcDNzbMLKBQkBicCtHUtFB",0.0001)], broadcast=False)
+        >>> btc.pay_to_many([("mkHS9ne12qx9pS9VojpwU5xtRd4T7X7ZUt",0.001), \
+("mv4rnyY3Su5gjcDNzbMLKBQkBicCtHUtFB",0.0001)], broadcast=False)
         {'hex': '0200000...', 'complete': True, 'final': False}
 
         Args:
             self (BTC): self
             outputs (Iterable[Union[dict, tuple]]): An iterable with dictionary or iterable as the item
-            fee (Optional[Union[float, Callable]], optional): Either a fixed fee, or a callable getting size and default fee as argument and returning fee. Defaults to None.
-            feerate (Optional[float], optional): A sat/byte feerate, can't be passed together with fee argument. Defaults to None.
+            fee (Optional[Union[float, Callable]], optional): Either a fixed fee, or a callable getting size and default fee
+                as argument and returning fee. Defaults to None.
+            feerate (Optional[float], optional): A sat/byte feerate, can't be passed together with fee argument.
+                Defaults to None.
             broadcast (bool, optional): Whether to broadcast transaction to network. Defaults to True.
 
         Raises:
@@ -399,9 +380,7 @@ class BTC(Coin):
             except Exception:
                 resulting_fee = None
             if resulting_fee:
-                tx_data = await self.server.paytomany(
-                    outputs, fee=resulting_fee, feerate=feerate
-                )
+                tx_data = await self.server.paytomany(outputs, fee=resulting_fee, feerate=feerate)
         if broadcast:
             return await self.server.broadcast(tx_data)  # type: ignore
         else:
@@ -495,7 +474,7 @@ class BTC(Coin):
 
     async def validate_key(self: "BTC", key: str) -> bool:
         """Validate whether provided key is valid to restore a wallet
-        
+
         If the key is x/y/z pub/prv or electrum seed at the network daemon is running
         at, then it would be valid(True), else False
 
@@ -509,11 +488,11 @@ class BTC(Coin):
 
         >>> c.validate_key("x/y/z pub/prv here")
         True
-        
+
         Args:
             self (BTC): self
             key (str): key to check
-        
+
         Returns:
             bool: Whether the key is valid or not
         """
@@ -525,9 +504,7 @@ class BTC(Coin):
         self.process_updates([request.json])
         return {}
 
-    async def handle_webhook_async(
-        self: "BTC", request: "web.Request"
-    ) -> "web.Response":
+    async def handle_webhook_async(self: "BTC", request: "web.Request") -> "web.Response":
         await self.process_updates([await request.json()])
         return web.json_response({})
 
@@ -537,15 +514,11 @@ class BTC(Coin):
 
     def _configure_webhook_sync(self) -> None:
         self.webhook_app = Flask(__name__)  # type: ignore
-        self.webhook_app.add_url_rule(  # type: ignore
-            "/", "handle_webhook", self.handle_webhook, methods=["POST"]
-        )
+        self.webhook_app.add_url_rule("/", "handle_webhook", self.handle_webhook, methods=["POST"])  # type: ignore
 
     async def configure_webhook(self: "BTC", autoconfigure: bool = True) -> None:
         if not webhook_available:
-            raise ValueError(
-                "Webhook support not installed. Install it with pip install bitcart[webhook]"
-            )
+            raise ValueError("Webhook support not installed. Install it with pip install bitcart[webhook]")
         self._configure_webhook()
         await self.server.subscribe(list(self.event_handlers.keys()))
         if autoconfigure:
@@ -559,9 +532,7 @@ class BTC(Coin):
 
     def start_webhook(self: "BTC", port: int = 6000, **kwargs: Any) -> None:
         if not webhook_available:
-            raise ValueError(
-                "Webhook support not installed. Install it with pip install bitcart[webhook]"
-            )
+            raise ValueError("Webhook support not installed. Install it with pip install bitcart[webhook]")
         if ASYNC:
             self.server._loop.run_until_complete(self.configure_webhook())
         else:
@@ -588,9 +559,7 @@ class BTC(Coin):
         return await self.server.open_channel(node_id, amount)  # type: ignore
 
     @lightning
-    async def addinvoice(
-        self: "BTC", amount: Union[int, str], message: Optional[str] = ""
-    ) -> str:
+    async def addinvoice(self: "BTC", amount: Union[int, str], message: Optional[str] = "") -> str:
         """Create lightning invoice
 
         Create lightning invoice and return bolt invoice id

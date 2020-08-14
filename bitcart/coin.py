@@ -1,6 +1,6 @@
 import importlib
-from typing import Dict, Iterable, Union
 from types import ModuleType
+from typing import Dict, Iterable, Union
 
 SYSTEM_PACKAGES = ["electrum"]
 
@@ -24,9 +24,7 @@ class Coin:
         self.providers_new: Dict[str, ModuleType] = {}
         for i in self.providers:
             if i not in SYSTEM_PACKAGES:
-                self.providers_new[i] = importlib.import_module(
-                    ".providers." + i, "bitcart"
-                )
+                self.providers_new[i] = importlib.import_module(".providers." + i, "bitcart")
             else:
                 self.providers_new[i] = importlib.import_module(i)
         self.providers = self.providers_new
@@ -74,7 +72,7 @@ class Coin:
         Example:
 
         >>> c.get_address("31smpLFzLnza6k8tJbVpxXiatGjiEQDmzc")
-        [{'tx_hash': '7854bdf4c4e27276ecc1fb8d666d6799a248f5e81bdd58b16432d1ddd1d4c332', 'height': 581878, 'tx': {'partial': False,...
+        [{'tx_hash': '7854bdf4c4e27276ecc1fb8d666d6799a248f5e81bdd58b16432d1ddd1d4c332', 'height': 581878, 'tx': ...
 
         Args:
             address (str): address to get transactions for

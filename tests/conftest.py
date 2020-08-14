@@ -1,9 +1,13 @@
 import warnings
+
 import pytest
+
 from bitcart import BTC
 from bitcart.coin import Coin
 
-TEST_XPUB_TESTNET = "tprv8ZgxMBicQKsPepFfedsYPCgWioGqkbnRbMmprdTq3jFmRf7JQwe3Yo8DMBwttKFNLpp3xVx6Rfv7ChxZbkLXgnmb8hcq4uN2hVKLmCNcTpB"
+TEST_XPUB_TESTNET = (
+    "tprv8ZgxMBicQKsPepFfedsYPCgWioGqkbnRbMmprdTq3jFmRf7JQwe3Yo8DMBwttKFNLpp3xVx6Rfv7ChxZbkLXgnmb8hcq4uN2hVKLmCNcTpB"
+)
 
 
 @pytest.fixture

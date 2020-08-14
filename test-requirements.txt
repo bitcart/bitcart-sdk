@@ -1,6 +1,8 @@
 pytest
 pytest-cov
-pytest-pylint
 pytest-asyncio
+flake8
 mypy
+black
+isort>=5
 codecov

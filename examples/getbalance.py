@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # A command line utility returning balance of a wallet by it's x/y/z pub/prv or electrum seed
-from bitcart import BTC
 import sys
+
+from bitcart import BTC
 
 if len(sys.argv) != 2:
     print("Usage: ./getbalance xpub")

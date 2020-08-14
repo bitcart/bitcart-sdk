@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # A command line utility returning tx info by tx hash
-from bitcart import BTC
 import sys
 import warnings
+
+from bitcart import BTC
 
 if len(sys.argv) != 2:
     print("Usage: ./gettx txhash")

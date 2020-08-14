@@ -1,4 +1,5 @@
 import pytest
+
 from bitcart.errors import LightningDisabledError
 
 pytestmark = pytest.mark.asyncio

@@ -6,12 +6,10 @@ import threading
 import time
 import traceback
 from datetime import datetime, timedelta
-from os import getenv
 
 import pymongo
 import qrcode
 import qrcode.image.svg
-import requests
 from pyrogram import Client, Filters, InlineKeyboardButton, InlineKeyboardMarkup
 from pyrogram.errors import BadRequest
 from pyrogram.session import Session
@@ -44,9 +42,7 @@ BET_LUCK_IMAGES = {
 TOKEN = config.get("token")
 XPUB = config.get("xpub")
 if not TOKEN:
-    raise ValueError(
-        "No token provided. Provide it using token variable in [app] section"
-    )
+    raise ValueError("No token provided. Provide it using token variable in [app] section")
 if not XPUB:
     raise ValueError("Provide your x/y/z pub/prv in xpub setting in [app] section")
 
@@ -66,9 +62,7 @@ satoshis_hundred = 0.000001
 
 # misc
 
-deposit_select_filter = Filters.create(
-    lambda _, cbq: bool(re.match(r"^deposit_", cbq.data))
-)
+deposit_select_filter = Filters.create(lambda _, cbq: bool(re.match(r"^deposit_", cbq.data)))
 deposit_filter = Filters.create(lambda _, cbq: bool(re.match(r"^pay_", cbq.data)))
 bet_filter = Filters.create(lambda _, cbq: bool(re.match(r"^bet_", cbq.data)))
 paylink_filter = Filters.create(lambda _, cbq: bool(re.match(r"^pl_", cbq.data)))
@@ -146,16 +140,12 @@ def payment_method_kb(amount):
     keyboard = [
         [
             InlineKeyboardButton("Bitcoin (BTC)", callback_data=f"pay_btc_{amount}"),
-            InlineKeyboardButton(
-                "Bitcoin Cash (BCH)", callback_data=f"pay_bch_{amount}"
-            ),
+            InlineKeyboardButton("Bitcoin Cash (BCH)", callback_data=f"pay_bch_{amount}"),
             InlineKeyboardButton("Litecoin (LTC)", callback_data=f"pay_ltc_{amount}"),
         ],
         [
             InlineKeyboardButton("Gravity (GZRO)", callback_data=f"pay_gzro_{amount}"),
-            InlineKeyboardButton(
-                "GlobalBoost (BSTY)", callback_data=f"pay_bsty_{amount}"
-            ),
+            InlineKeyboardButton("GlobalBoost (BSTY)", callback_data=f"pay_bsty_{amount}"),
         ],
     ]
     return InlineKeyboardMarkup(keyboard)
@@ -164,12 +154,7 @@ def payment_method_kb(amount):
 def paylink_kb(currency, amount):
     keyboard = [
         [InlineKeyboardButton("Bot link", callback_data=f"pl_bot_{currency}_{amount}")],
-        [
-            InlineKeyboardButton(
-                "Payment request(for non-bot users)",
-                callback_data=f"pl_pr_{currency}_{amount}",
-            )
-        ],
+        [InlineKeyboardButton("Payment request(for non-bot users)", callback_data=f"pl_pr_{currency}_{amount}",)],
     ]
     return InlineKeyboardMarkup(keyboard)
 
@@ -180,7 +165,8 @@ def help_handler(client, message):
     usd_price = round(btc.rate() * satoshis_hundred, 2)
     message.reply(
         f"""
-<b>In development, now working commands are tip!xxx, /start, /help, /deposit, /balance, /send, /history, /send2telegram, /paylink, /claim, /bet and /top</b>
+<b>In development, now working commands are tip!xxx, /start, /help, /deposit, /balance, /send, /history, /send2telegram,
+/paylink, /claim, /bet and /top</b>
 <b>Send tip in a group chat:</b>
 reply any user message in group including <b>tip!xxx</b> - where xxx is amount you wish to send.
 <b>Wallet commands:</b>
@@ -205,7 +191,9 @@ Betting rewards amounts are based on the time you bet for:
 /top show user rank
 
 <b>What is 'satoshi'?</b>
-<a href=\"https://en.wikipedia.org/wiki/Satoshi_Nakamoto\">Satoshi</a> is a creator of Bitcoin and <a href=\"https://en.bitcoin.it/wiki/Satoshi_(unit)\">currently the smallest unit of the bitcoin currency</a>. Price of 1000 satoshis now is about ${usd_price} (USD)
+<a href=\"https://en.wikipedia.org/wiki/Satoshi_Nakamoto\">Satoshi</a> is a creator of Bitcoin
+and <a href=\"https://en.bitcoin.it/wiki/Satoshi_(unit)\">currently the smallest unit of the bitcoin currency</a>.
+Price of 1000 satoshis now is about ${usd_price} (USD)
 
 <b>Have a problem or suggestion?</b>
 <a href=\"https://t.me/joinchat/B9nfbhWuDDPTPUcagWAm1g\">Contact bot community</a>"
@@ -254,8 +242,7 @@ def start(client, message):
         send_welcome = True
     if send_welcome:
         message.reply(
-            "Welcome to the BitcartCC Atomic TipBot! /help for list of commands",
-            quote=False,
+            "Welcome to the BitcartCC Atomic TipBot! /help for list of commands", quote=False,
         )
 
 
@@ -268,14 +255,10 @@ def pay_paylink(client, message):
     if answer == "y":
         change_balance(deposit_id, amount, "paylink")
         change_balance(user_id, -amount, "paylink")
-        message.edit_message_text(
-            f"Successfully paid the paylink with {amount} satoshis."
-        )
-        app.send_message(
-            deposit_id, f"Your paylink was successfuly paid by {get_user_repr(user_id)}"
-        )
+        message.edit_message_text(f"Successfully paid the paylink with {amount} satoshis.")
+        app.send_message(deposit_id, f"Your paylink was successfuly paid by {get_user_repr(user_id)}")
     else:
-        message.edit_message_text(f"Paylink canceled.")
+        message.edit_message_text("Paylink canceled.")
 
 
 @app.on_message(Filters.command("balance"))
@@ -287,9 +270,7 @@ def balance(client, message):
 @app.on_message(Filters.command("deposit") & Filters.private)
 def deposit(client, message):
     message.reply(
-        "Choose amount you want to deposit:",
-        reply_markup=deposit_keyboard(),
-        quote=False,
+        "Choose amount you want to deposit:", reply_markup=deposit_keyboard(), quote=False,
     )
 
 
@@ -307,9 +288,7 @@ def send_qr(text, chat_id, client, caption=None):
 @app.on_callback_query(deposit_select_filter)
 def deposit_select_query(client, call):
     amount = int(call.data[8:])
-    call.edit_message_text(
-        "Select payment method:", reply_markup=payment_method_kb(amount)
-    )
+    call.edit_message_text("Select payment method:", reply_markup=payment_method_kb(amount))
 
 
 def convert_amounts(currency, amount):
@@ -321,12 +300,8 @@ def convert_amounts(currency, amount):
 def generate_invoice(user_id, currency, amount, amount_sat, description=""):
     amount, friendly_name = convert_amounts(currency, amount)
     # bitcart: create invoice
-    invoice = instances[currency].addrequest(
-        amount, description, expire=20160
-    )  # 14 days
-    invoice.update(
-        {"user_id": user_id, "currency": currency, "original_amount": amount_sat}
-    )
+    invoice = instances[currency].addrequest(amount, description, expire=20160)  # 14 days
+    invoice.update({"user_id": user_id, "currency": currency, "original_amount": amount_sat})
     mongo.invoices.insert_one(invoice)
     return invoice, amount, friendly_name
 
@@ -338,9 +313,7 @@ def deposit_query(client, call):
     amount_sat = int(amount)
     amount_btc = amount_sat * 0.00000001
     user_id = call.from_user.id
-    invoice, amount, _ = generate_invoice(
-        user_id, currency, amount_btc, amount_sat, f"{secret_id(user_id)} top-up"
-    )
+    invoice, amount, _ = generate_invoice(user_id, currency, amount_btc, amount_sat, f"{secret_id(user_id)} top-up")
     send_qr(
         invoice["URI"],
         user_id,
@@ -351,18 +324,13 @@ def deposit_query(client, call):
 
 @app.on_message(Filters.private & Filters.command("paylink"))
 def paylink(client, message):
-    user_id = message.from_user.id
     try:
         _, currency, amount_sat = message.command
         amount_sat = int(amount_sat)
     except ValueError:
-        return message.reply(
-            "Invalid amount. Command format to request 1000 satoshi in BTC: /paylink btc 1000"
-        )
+        return message.reply("Invalid amount. Command format to request 1000 satoshi in BTC: /paylink btc 1000")
     message.reply(
-        "Which link would you like to get?",
-        reply_markup=paylink_kb(currency, amount_sat),
-        quote=False,
+        "Which link would you like to get?", reply_markup=paylink_kb(currency, amount_sat), quote=False,
     )
 
 
@@ -374,23 +342,18 @@ def paylink_query(client, message):
     amount_btc = amount_sat / 100000000
     amount, currency_name = convert_amounts(currency, amount_btc)
     if link_type == "pr":
-        invoice, _, _ = generate_invoice(
-            user_id, currency, amount_btc, amount_sat, f"{secret_id(user_id)} paylink"
-        )
+        invoice, _, _ = generate_invoice(user_id, currency, amount_btc, amount_sat, f"{secret_id(user_id)} paylink")
         invoice_link = invoice["URI"]
     elif link_type == "bot":
         bot_username = app.get_me().username
         invoice_link = f"https://t.me/{bot_username}?start={user_id}={amount_sat}"
     try:
-        message.edit_message_text(
-            f"Invoice for {amount_sat} Satoshi [{amount:.8f} {currency.upper()}]\n\nMessage to forward:"
-        )
+        message.edit_message_text(f"Invoice for {amount_sat} Satoshi [{amount:.8f} {currency.upper()}]\n\nMessage to forward:")
         time.sleep(1)
         app.send_message(
-            chat_id=user_id,
-            text=f"Send me {currency_name.lower()} using this link: {invoice_link}",
+            chat_id=user_id, text=f"Send me {currency_name.lower()} using this link: {invoice_link}",
         )
-    except BadRequest as e:
+    except BadRequest:
         pass
 
 
@@ -401,9 +364,7 @@ def paylink_query(client, message):
 @gzro.on("new_payment")
 @bsty.on("new_payment")
 def payment_handler(event, address, status, status_str):
-    inv = (
-        mongo.invoices.find({"address": address}).limit(1).sort([("$natural", -1)])[0]
-    )  # to get latest result
+    inv = mongo.invoices.find({"address": address}).limit(1).sort([("$natural", -1)])[0]  # to get latest result
     if inv and inv["status"] != "Paid":
         # bitcart: get invoice info, not neccesary here
         # btc.getrequest(address)
@@ -411,13 +372,10 @@ def payment_handler(event, address, status, status_str):
             user = mongo.users.find_one({"user_id": inv["user_id"]})
             amount = inv["original_amount"]
             new_balance = user["balance"] + amount
-            mongo.invoices.update_one(
-                {"address": address}, {"$set": {"status": "Paid"}}
-            )
+            mongo.invoices.update_one({"address": address}, {"$set": {"status": "Paid"}})
             change_balance(inv["user_id"], amount, "deposit", address=address)
             app.send_message(
-                user["user_id"],
-                f"{amount} Satoshis added to your balance. Your balance: {new_balance}",
+                user["user_id"], f"{amount} Satoshis added to your balance. Your balance: {new_balance}",
             )
 
 
@@ -482,9 +440,7 @@ def tip(client, message):
     )
     try:
         app.send_animation(
-            reply_id,
-            "https://i.imgur.com/U7VL2CV.gif",
-            caption=f"You received {amount} satoshis",
+            reply_id, "https://i.imgur.com/U7VL2CV.gif", caption=f"You received {amount} satoshis",
         )
     except BadRequest:
         pass
@@ -507,20 +463,17 @@ def withdraw(client, message):
         return message.reply("Not enough balance", quote=False)
     amount_btc = amount / 100000000
     amount_to_send = amount_btc / coin_obj.rate("BTC")
-    wallet_balance = float(
-        coin_obj.balance()["confirmed"]
-    )  # TODO: investigate why it is a string
+    wallet_balance = float(coin_obj.balance()["confirmed"])  # TODO: investigate why it is a string
     if wallet_balance < amount_to_send:
         available_coins = []
         for coin in instances:
             coin_balance = float(instances[coin].balance()["confirmed"])
             if coin_balance >= amount_to_send:
                 available_coins.append(instances[coin].coin_name)
-        wallet_balance_sat = int(
-            round(wallet_balance * coin_obj.rate("BTC") * 100000000, 8)
-        )
+        wallet_balance_sat = int(round(wallet_balance * coin_obj.rate("BTC") * 100000000, 8))
         return message.reply(
-            f'Current {currency} wallet balance: {wallet_balance_sat}. \nIf you want to withdraw {amount} satoshis, you can do so in any of these currencies: {", ".join(available_coins)}',
+            f"Current {currency} wallet balance: {wallet_balance_sat}. \nIf you want to withdraw {amount} satoshis, you can do"
+            f' so in any of these currencies: {", ".join(available_coins)}',
             quote=False,
         )
     # bitcart: send to address in BTC
@@ -560,9 +513,7 @@ def history(client, message):
         paginator = Paginator(txes)
         msg += render_history_page(paginator, 1)
         if paginator.has_next_page(1):
-            markup = InlineKeyboardMarkup(
-                [[InlineKeyboardButton("▶️", callback_data="page_2")]]
-            )
+            markup = InlineKeyboardMarkup([[InlineKeyboardButton("▶️", callback_data="page_2")]])
     else:
         msg += "Empty"
     message.reply(msg, reply_markup=markup, quote=False)
@@ -656,13 +607,14 @@ def make_bet(userid, currency, amount, trend, set_time, chat_id, msg_id):
         coin_name = instances[currency].coin_name.lower()  # bitcart: get coin data
         app.send_message(
             chat_id=chat_id,
-            text=f"Your {amount} sat bet is accepted, hodler! You will receive {win_amount} if {coin_name} price go {trend} from {price:.8f}@Coingecko in a {set_time}",
+            text=(
+                f"Your {amount} sat bet is accepted, hodler! You will receive {win_amount} if {coin_name} price go {trend}"
+                f" from {price:.8f}@Coingecko in a {set_time}"
+            ),
             reply_to_message_id=msg_id,
         )
         try:
-            app.send_animation(
-                chat_id=userid, animation=BET_LUCK_IMAGES[trend], caption="Good luck!"
-            )
+            app.send_animation(chat_id=userid, animation=BET_LUCK_IMAGES[trend], caption="Good luck!")
         except BadRequest:
             pass
         return True
@@ -684,34 +636,18 @@ def bet(client, message):
         _, currency, amount, trend, date = message.command
         amount = int(amount)
         make_bet(
-            message.from_user.id,
-            currency,
-            amount,
-            trend,
-            date,
-            message.chat.id,
-            message.message_id,
+            message.from_user.id, currency, amount, trend, date, message.chat.id, message.message_id,
         )
     except ValueError:
         message.reply(
-            "Bet 3000 satoshi that in a hour Bitcoin price will:",
-            reply_markup=bet_menu_keyboard(),
-            quote=False,
+            "Bet 3000 satoshi that in a hour Bitcoin price will:", reply_markup=bet_menu_keyboard(), quote=False,
         )
 
 
 @app.on_callback_query(bet_filter)
 def bet_menu(client, message):
     trend = message.data.split("_")[-1]
-    return make_bet(
-        message.from_user.id,
-        "btc",
-        3000,
-        trend,
-        "hour",
-        message.message.chat.id,
-        message.message.message_id,
-    )
+    return make_bet(message.from_user.id, "btc", 3000, trend, "hour", message.message.chat.id, message.message.message_id,)
 
 
 def genvoucher(user_id, amount, receiver):
@@ -740,9 +676,7 @@ def send2telegram(client, message):
         amount = int(amount)
         if charge_user(user_id, amount, receiver):
             genvoucher(user_id, amount, receiver)
-            message.reply(
-                f"Funds reserved for {receiver}, now he needs send /claim command to @bitcart_atomic_tipbot"
-            )
+            message.reply(f"Funds reserved for {receiver}, now he needs send /claim command to @bitcart_atomic_tipbot")
         else:
             try:
                 app.send_animation(
@@ -753,9 +687,7 @@ def send2telegram(client, message):
             except BadRequest:
                 pass
     except ValueError:
-        message.reply(
-            "Failed to send funds. Command format to send 10000 to @MrNaif_bel: /send2telegram @MrNaif_bel 10000"
-        )
+        message.reply("Failed to send funds. Command format to send 10000 to @MrNaif_bel: /send2telegram @MrNaif_bel 10000")
 
 
 @app.on_message(Filters.private & Filters.command("claim"))
@@ -783,14 +715,10 @@ def betcheck(first=False):
         time.sleep(10)
     threading.Timer(30.0, betcheck).start()
 
-    ##check bets
-    bets = (
-        mongo.bets.find({"status": "new"}).sort("amount", pymongo.DESCENDING).limit(10)
-    )
+    # check bets
+    bets = mongo.bets.find({"status": "new"}).sort("amount", pymongo.DESCENDING).limit(10)
 
-    prices = {
-        currency: instances[currency].rate("USD") for currency in instances
-    }  # dict comprehension
+    prices = {currency: instances[currency].rate("USD") for currency in instances}  # dict comprehension
 
     for bet in bets:
         now_time = datetime.now()

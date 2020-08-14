@@ -27,6 +27,8 @@ From now on, development environment is ready.
 
 Make sure to follow [our coding guidelines](https://github.com/MrNaif2018/bitcart/wiki/Coding-Guidelines) when developing.
 
+To run all checks before commiting, use `make` command.
+
 # Thank You!
 
 Your contributions to open source, large or small, make great projects like this possible. Thank you for taking the time to contribute.

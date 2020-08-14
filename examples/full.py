@@ -51,8 +51,12 @@ if DONATE_TO_AUTHOR:
 
     ### Bulk payments, specify in one of two formats, same return values and parameters as in pay_to ###
     btc2.pay_to_many([("1A6jnc6xQwmhsChNLcyKAQNWPcWsVYqCqJ", 0.1), ("1A6jnc6xQwmhsChNLcyKAQNWPcWsVYqCqJ", 0.1)])
-    btc2.pay_to_many([{"address": "1A6jnc6xQwmhsChNLcyKAQNWPcWsVYqCqJ", "amount": 0.1},
-                      {"address": "1A6jnc6xQwmhsChNLcyKAQNWPcWsVYqCqJ", "amount": 0.1}])
+    btc2.pay_to_many(
+        [
+            {"address": "1A6jnc6xQwmhsChNLcyKAQNWPcWsVYqCqJ", "amount": 0.1},
+            {"address": "1A6jnc6xQwmhsChNLcyKAQNWPcWsVYqCqJ", "amount": 0.1},
+        ]
+    )
 
 # Lightning(requires wallet) #
 print(btc2.node_id)  # your lightning node id(lightning daemon is bitcart daemon itself)
@@ -64,6 +68,8 @@ print(btc2.list_channels())  # List of lightning channels
 # print(btc2.lnpay("lightning invoice here"))  # pay a lightning invoice
 
 # Notification API(requires wallet)
+
+
 @btc.on("new_block")
 def new_block(event, height):
     print(event)
@@ -74,6 +80,7 @@ def new_block(event, height):
 def new_tx(event, tx):
     print(event)
     print(tx)  # tx hash
+
 
 ### Or register a function under multiple events ###
 # @btc.on(["new_block","new_transaction"])

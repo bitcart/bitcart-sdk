@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 # A command line utility to send to some address from your wallet
-from bitcart import BTC
 import sys
+
 import requests
+
+from bitcart import BTC
 
 if len(sys.argv) != 4:
     print("Usage: ./donateto xpub address amount")
