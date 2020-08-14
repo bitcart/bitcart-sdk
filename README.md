@@ -21,7 +21,7 @@ Use `bitcart` as a sync version(better for beginners), and `bitcart-async` for a
 If you install from github, by default it is async.
 Use:
 ```
-ASYNC=false python setup.py install
+ASYNC=false pip install .
 ```
 For it to convert async version to sync and install that.
 That process is done via ``sync_generator.py``.
