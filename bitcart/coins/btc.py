@@ -3,7 +3,7 @@ import asyncio
 import inspect
 import json
 import logging
-import time
+import time  # noqa: F401: for sync generator
 import warnings
 from decimal import Decimal
 from functools import wraps
@@ -283,8 +283,10 @@ class BTC(Coin):
             self (BTC): self
             address (str): address where to send BTC
             amount (float): amount of bitcoins to send
-            fee (Optional[Union[float, Callable]], optional): Either a fixed fee, or a callable getting size and default fee as argument and returning fee. Defaults to None.
-            feerate (Optional[float], optional): A sat/byte feerate, can't be passed together with fee argument. Defaults to None.
+            fee (Optional[Union[float, Callable]], optional): Either a fixed fee, or a callable getting size and default fee
+                as argument and returning fee. Defaults to None.
+            feerate (Optional[float], optional): A sat/byte feerate, can't be passed together with fee argument.
+                Defaults to None.
             broadcast (bool, optional): Whether to broadcast transaction to network. Defaults to True.
 
         Raises:
@@ -328,23 +330,28 @@ class BTC(Coin):
 
         Examples:
 
-        >>> btc.pay_to_many([{"address":"mkHS9ne12qx9pS9VojpwU5xtRd4T7X7ZUt","amount":0.001}, {"address":"mv4rnyY3Su5gjcDNzbMLKBQkBicCtHUtFB","amount":0.0001}])
+        >>> btc.pay_to_many([{"address":"mkHS9ne12qx9pS9VojpwU5xtRd4T7X7ZUt","amount":0.001}, \
+{"address":"mv4rnyY3Su5gjcDNzbMLKBQkBicCtHUtFB","amount":0.0001}])
         '60fa120d9f868a7bd03d6bbd1e225923cab0ba7a3a6b961861053c90365ed40a'
 
         >>> btc.pay_to_many([("mkHS9ne12qx9pS9VojpwU5xtRd4T7X7ZUt",0.001), ("mv4rnyY3Su5gjcDNzbMLKBQkBicCtHUtFB",0.0001)])
         'd80f14e20af2ceaa43a8b7e15402d420246d39e235d87874f929977fb0b1cab8'
 
-        >>> btc.pay_to_many((("mkHS9ne12qx9pS9VojpwU5xtRd4T7X7ZUt",0.001),("mkHS9ne12qx9pS9VojpwU5xtRd4T7X7ZUt",0.001)), feerate=1)
+        >>> btc.pay_to_many((("mkHS9ne12qx9pS9VojpwU5xtRd4T7X7ZUt",0.001), \
+("mkHS9ne12qx9pS9VojpwU5xtRd4T7X7ZUt",0.001)), feerate=1)
         '0a6611876e04a6f2742eac02d4fac4c242dda154d85f0d547bbac1a33dbbbe34'
 
-        >>> btc.pay_to_many([("mkHS9ne12qx9pS9VojpwU5xtRd4T7X7ZUt",0.001), ("mv4rnyY3Su5gjcDNzbMLKBQkBicCtHUtFB",0.0001)], broadcast=False)
+        >>> btc.pay_to_many([("mkHS9ne12qx9pS9VojpwU5xtRd4T7X7ZUt",0.001), \
+("mv4rnyY3Su5gjcDNzbMLKBQkBicCtHUtFB",0.0001)], broadcast=False)
         {'hex': '0200000...', 'complete': True, 'final': False}
 
         Args:
             self (BTC): self
             outputs (Iterable[Union[dict, tuple]]): An iterable with dictionary or iterable as the item
-            fee (Optional[Union[float, Callable]], optional): Either a fixed fee, or a callable getting size and default fee as argument and returning fee. Defaults to None.
-            feerate (Optional[float], optional): A sat/byte feerate, can't be passed together with fee argument. Defaults to None.
+            fee (Optional[Union[float, Callable]], optional): Either a fixed fee, or a callable getting size and default fee
+                as argument and returning fee. Defaults to None.
+            feerate (Optional[float], optional): A sat/byte feerate, can't be passed together with fee argument.
+                Defaults to None.
             broadcast (bool, optional): Whether to broadcast transaction to network. Defaults to True.
 
         Raises:
@@ -467,7 +474,7 @@ class BTC(Coin):
 
     async def validate_key(self: "BTC", key: str) -> bool:
         """Validate whether provided key is valid to restore a wallet
-        
+
         If the key is x/y/z pub/prv or electrum seed at the network daemon is running
         at, then it would be valid(True), else False
 
@@ -481,11 +488,11 @@ class BTC(Coin):
 
         >>> c.validate_key("x/y/z pub/prv here")
         True
-        
+
         Args:
             self (BTC): self
             key (str): key to check
-        
+
         Returns:
             bool: Whether the key is valid or not
         """
@@ -507,9 +514,7 @@ class BTC(Coin):
 
     def _configure_webhook_sync(self) -> None:
         self.webhook_app = Flask(__name__)  # type: ignore
-        self.webhook_app.add_url_rule(  # type: ignore
-            "/", "handle_webhook", self.handle_webhook, methods=["POST"]
-        )
+        self.webhook_app.add_url_rule("/", "handle_webhook", self.handle_webhook, methods=["POST"])  # type: ignore
 
     async def configure_webhook(self: "BTC", autoconfigure: bool = True) -> None:
         if not webhook_available:

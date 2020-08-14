@@ -50,9 +50,7 @@ if DONATE_TO_AUTHOR:
     print(btc2.pay_to("1A6jnc6xQwmhsChNLcyKAQNWPcWsVYqCqJ", 0.1, fee=fee_func))  # Dynamic fee calculation
 
     ### Bulk payments, specify in one of two formats, same return values and parameters as in pay_to ###
-    btc2.pay_to_many(
-        [("1A6jnc6xQwmhsChNLcyKAQNWPcWsVYqCqJ", 0.1), ("1A6jnc6xQwmhsChNLcyKAQNWPcWsVYqCqJ", 0.1),]
-    )
+    btc2.pay_to_many([("1A6jnc6xQwmhsChNLcyKAQNWPcWsVYqCqJ", 0.1), ("1A6jnc6xQwmhsChNLcyKAQNWPcWsVYqCqJ", 0.1)])
     btc2.pay_to_many(
         [
             {"address": "1A6jnc6xQwmhsChNLcyKAQNWPcWsVYqCqJ", "amount": 0.1},
@@ -70,6 +68,8 @@ print(btc2.list_channels())  # List of lightning channels
 # print(btc2.lnpay("lightning invoice here"))  # pay a lightning invoice
 
 # Notification API(requires wallet)
+
+
 @btc.on("new_block")
 def new_block(event, height):
     print(event)

@@ -55,14 +55,16 @@ async def test_insufficient_funds_pay(btc_wallet):
     ],
 )
 async def test_payment_to_single(btc_wallet, fee, feerate, broadcast):
-    tx = await btc_wallet.pay_to("37NFX8KWAQbaodUG6pE1hNUH1dXgkpzbyZ", 0.1, fee=fee, feerate=feerate, broadcast=broadcast,)
+    await btc_wallet.pay_to(
+        "37NFX8KWAQbaodUG6pE1hNUH1dXgkpzbyZ", 0.1, fee=fee, feerate=feerate, broadcast=broadcast,
+    )
 
 
 @pytest.mark.skip(reason="TODO: need a way having a wallet with sufficient fund")
 @pytest.mark.parametrize(
     "payload",
     [
-        [("1A6jnc6xQwmhsChNLcyKAQNWPcWsVYqCqJ", 0.1), ("1A6jnc6xQwmhsChNLcyKAQNWPcWsVYqCqJ", 0.1),],
+        [("1A6jnc6xQwmhsChNLcyKAQNWPcWsVYqCqJ", 0.1), ("1A6jnc6xQwmhsChNLcyKAQNWPcWsVYqCqJ", 0.1)],
         [
             {"address": "1A6jnc6xQwmhsChNLcyKAQNWPcWsVYqCqJ", "amount": 0.1},
             {"address": "1A6jnc6xQwmhsChNLcyKAQNWPcWsVYqCqJ", "amount": 0.1},
@@ -70,4 +72,4 @@ async def test_payment_to_single(btc_wallet, fee, feerate, broadcast):
     ],
 )
 async def test_payment_to_many(btc_wallet, payload):
-    tx = await btc_wallet.pay_to_many(payload)
+    await btc_wallet.pay_to_many(payload)

@@ -72,7 +72,7 @@ class Coin:
         Example:
 
         >>> c.get_address("31smpLFzLnza6k8tJbVpxXiatGjiEQDmzc")
-        [{'tx_hash': '7854bdf4c4e27276ecc1fb8d666d6799a248f5e81bdd58b16432d1ddd1d4c332', 'height': 581878, 'tx': {'partial': False,...
+        [{'tx_hash': '7854bdf4c4e27276ecc1fb8d666d6799a248f5e81bdd58b16432d1ddd1d4c332', 'height': 581878, 'tx': ...
 
         Args:
             address (str): address to get transactions for

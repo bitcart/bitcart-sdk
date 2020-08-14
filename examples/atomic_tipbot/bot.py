@@ -6,12 +6,10 @@ import threading
 import time
 import traceback
 from datetime import datetime, timedelta
-from os import getenv
 
 import pymongo
 import qrcode
 import qrcode.image.svg
-import requests
 from pyrogram import Client, Filters, InlineKeyboardButton, InlineKeyboardMarkup
 from pyrogram.errors import BadRequest
 from pyrogram.session import Session
@@ -167,7 +165,8 @@ def help_handler(client, message):
     usd_price = round(btc.rate() * satoshis_hundred, 2)
     message.reply(
         f"""
-<b>In development, now working commands are tip!xxx, /start, /help, /deposit, /balance, /send, /history, /send2telegram, /paylink, /claim, /bet and /top</b>
+<b>In development, now working commands are tip!xxx, /start, /help, /deposit, /balance, /send, /history, /send2telegram,
+/paylink, /claim, /bet and /top</b>
 <b>Send tip in a group chat:</b>
 reply any user message in group including <b>tip!xxx</b> - where xxx is amount you wish to send.
 <b>Wallet commands:</b>
@@ -192,7 +191,9 @@ Betting rewards amounts are based on the time you bet for:
 /top show user rank
 
 <b>What is 'satoshi'?</b>
-<a href=\"https://en.wikipedia.org/wiki/Satoshi_Nakamoto\">Satoshi</a> is a creator of Bitcoin and <a href=\"https://en.bitcoin.it/wiki/Satoshi_(unit)\">currently the smallest unit of the bitcoin currency</a>. Price of 1000 satoshis now is about ${usd_price} (USD)
+<a href=\"https://en.wikipedia.org/wiki/Satoshi_Nakamoto\">Satoshi</a> is a creator of Bitcoin
+and <a href=\"https://en.bitcoin.it/wiki/Satoshi_(unit)\">currently the smallest unit of the bitcoin currency</a>.
+Price of 1000 satoshis now is about ${usd_price} (USD)
 
 <b>Have a problem or suggestion?</b>
 <a href=\"https://t.me/joinchat/B9nfbhWuDDPTPUcagWAm1g\">Contact bot community</a>"
@@ -257,7 +258,7 @@ def pay_paylink(client, message):
         message.edit_message_text(f"Successfully paid the paylink with {amount} satoshis.")
         app.send_message(deposit_id, f"Your paylink was successfuly paid by {get_user_repr(user_id)}")
     else:
-        message.edit_message_text(f"Paylink canceled.")
+        message.edit_message_text("Paylink canceled.")
 
 
 @app.on_message(Filters.command("balance"))
@@ -323,7 +324,6 @@ def deposit_query(client, call):
 
 @app.on_message(Filters.private & Filters.command("paylink"))
 def paylink(client, message):
-    user_id = message.from_user.id
     try:
         _, currency, amount_sat = message.command
         amount_sat = int(amount_sat)
@@ -353,7 +353,7 @@ def paylink_query(client, message):
         app.send_message(
             chat_id=user_id, text=f"Send me {currency_name.lower()} using this link: {invoice_link}",
         )
-    except BadRequest as e:
+    except BadRequest:
         pass
 
 
@@ -472,7 +472,8 @@ def withdraw(client, message):
                 available_coins.append(instances[coin].coin_name)
         wallet_balance_sat = int(round(wallet_balance * coin_obj.rate("BTC") * 100000000, 8))
         return message.reply(
-            f'Current {currency} wallet balance: {wallet_balance_sat}. \nIf you want to withdraw {amount} satoshis, you can do so in any of these currencies: {", ".join(available_coins)}',
+            f"Current {currency} wallet balance: {wallet_balance_sat}. \nIf you want to withdraw {amount} satoshis, you can do"
+            f' so in any of these currencies: {", ".join(available_coins)}',
             quote=False,
         )
     # bitcart: send to address in BTC
@@ -606,7 +607,10 @@ def make_bet(userid, currency, amount, trend, set_time, chat_id, msg_id):
         coin_name = instances[currency].coin_name.lower()  # bitcart: get coin data
         app.send_message(
             chat_id=chat_id,
-            text=f"Your {amount} sat bet is accepted, hodler! You will receive {win_amount} if {coin_name} price go {trend} from {price:.8f}@Coingecko in a {set_time}",
+            text=(
+                f"Your {amount} sat bet is accepted, hodler! You will receive {win_amount} if {coin_name} price go {trend}"
+                f" from {price:.8f}@Coingecko in a {set_time}"
+            ),
             reply_to_message_id=msg_id,
         )
         try:
@@ -711,7 +715,7 @@ def betcheck(first=False):
         time.sleep(10)
     threading.Timer(30.0, betcheck).start()
 
-    ##check bets
+    # check bets
     bets = mongo.bets.find({"status": "new"}).sort("amount", pymongo.DESCENDING).limit(10)
 
     prices = {currency: instances[currency].rate("USD") for currency in instances}  # dict comprehension

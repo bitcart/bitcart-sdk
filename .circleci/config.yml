@@ -39,8 +39,7 @@ jobs:
           name: run tests
           command: |
             . venv/bin/activate
-            mypy bitcart
-            pytest tests/
+            make ci
             codecov
 
       - store_artifacts:
