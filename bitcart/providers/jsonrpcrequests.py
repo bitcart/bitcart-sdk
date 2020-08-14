@@ -50,7 +50,7 @@ class RPCProxy:
         if ASYNC:
             self.rpc = RPC(endpoint=self.url, session=self.session, timeout=5 * 60)
         else:
-            self.rpc = RPC(endpoint=self.url)  # pylint: disable=no-value-for-parameter
+            self.rpc = RPC(endpoint=self.url)
             self.rpc.session = self.session
 
     def init_proxy(self: "RPCProxy") -> None:

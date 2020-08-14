@@ -101,7 +101,7 @@ If you have come here to see how it works, read the next part.
 
 ## Reading code
 
-Code is formatted using autopep8, checked with pylint.
+Code is formatted using black, checked with flake8.
 Below are some comments regarding what is what.
 
 ### BitcartCC
