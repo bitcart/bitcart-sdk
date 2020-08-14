@@ -12,15 +12,15 @@ jobs:
       - run:
           name: install library
           command: |
-            python3 -m venv venv
-            . venv/bin/activate
+            python3 -m venv ~/venv
+            . ~/venv/bin/activate
             python setup.py install      
             pip install -r test-requirements.txt
 
       - run:
           name: install daemon
           command: |
-            . venv/bin/activate
+            . ~/venv/bin/activate
             sudo apt install libsecp256k1-dev
             git clone https://github.com/MrNaif2018/bitcart ~/bitcart-daemon
             cd ~/bitcart-daemon
@@ -30,7 +30,7 @@ jobs:
       - run:
           name: prepare daemon
           command: |
-            . venv/bin/activate
+            . ~/venv/bin/activate
             cd ~/bitcart-daemon
             BTC_DEBUG=true BTC_LIGHTNING=true BTC_NETWORK=testnet python3 daemons/btc.py
           background: true
@@ -38,7 +38,7 @@ jobs:
       - run:
           name: run tests
           command: |
-            . venv/bin/activate
+            . ~/venv/bin/activate
             make ci
             codecov
 
