@@ -22,8 +22,8 @@ jobs:
           command: |
             . venv/bin/activate
             sudo apt install libsecp256k1-dev
-            git clone https://github.com/MrNaif2018/bitcart /opt/bitcart-daemon
-            cd /opt/bitcart-daemon
+            git clone https://github.com/MrNaif2018/bitcart ~/bitcart-daemon
+            cd ~/bitcart-daemon
             pip install -r requirements/base.txt
             pip install -r requirements/daemons/btc.txt
 
@@ -31,7 +31,7 @@ jobs:
           name: prepare daemon
           command: |
             . venv/bin/activate
-            cd /opt/bitcart-daemon
+            cd ~/bitcart-daemon
             BTC_DEBUG=true BTC_LIGHTNING=true BTC_NETWORK=testnet python3 daemons/btc.py
           background: true
 
