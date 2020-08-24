@@ -18,10 +18,14 @@ jobs:
             pip install -r test-requirements.txt
 
       - run:
-          name: install daemon
+          name: install daemon and regtest utils
           command: |
             . ~/venv/bin/activate
+            sudo add-apt-repository -y ppa:luke-jr/bitcoincore
+            sudo apt-get -qq update
+            sudo apt-get install -yq bitcoind
             sudo apt install libsecp256k1-dev
+            pip install electrumx
             git clone https://github.com/MrNaif2018/bitcart ~/bitcart-daemon
             cd ~/bitcart-daemon
             pip install -r requirements/base.txt
@@ -32,14 +36,41 @@ jobs:
           command: |
             . ~/venv/bin/activate
             cd ~/bitcart-daemon
-            BTC_DEBUG=true BTC_LIGHTNING=true BTC_NETWORK=testnet python3 daemons/btc.py
+            make testnet
           background: true
 
       - run:
-          name: run tests
+          name: run fast tests
           command: |
             . ~/venv/bin/activate
             make ci
+
+      - run:
+          name: prepare bitcoind
+          command: |
+            make bitcoind
+          background: true
+      
+      - run:
+          name: prepare electrumx
+          command: |
+            make electrumx
+          background: true
+
+      - run:
+          name: prepare regtest daemon
+          command: |
+            . ~/venv/bin/activate
+            cd ~/bitcart-daemon
+            pkill -SIGINT -f "python3 daemons/btc.py"
+            make regtest
+          background: true
+
+      - run:
+          name: run regtest tests
+          command: |
+            . ~/venv/bin/activate
+            make regtest
             codecov
 
       - store_artifacts:

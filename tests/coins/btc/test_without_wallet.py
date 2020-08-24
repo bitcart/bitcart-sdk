@@ -7,6 +7,8 @@ import os
 
 import pytest
 
+from ...utils import data_check
+
 pytestmark = pytest.mark.asyncio
 
 
@@ -38,40 +40,35 @@ async def test_electrum_validate_address(btc, address, expected):
 
 async def test_get_tx(btc):
     info = await btc.get_tx("1d8a65ec103338bb51d125015fc736a3aa93eae1d7d534ec374f6517f665c5e2")
+    assert info.items() > {"partial": False, "version": 1, "segwit_ser": True, "lockTime": 0}.items()
+    data_check(info, "confirmations", int)
+    assert info["confirmations"] > 0
+    data_check(info, "inputs", list, 1)
     assert (
-        info.items()
+        info["inputs"][0].items()
         >= {
-            "partial": False,
-            "version": 1,
-            "segwit_ser": True,
-            "inputs": [
-                {
-                    "prevout_hash": "3d4131a9659c442706d00b387030931778040c1d431ea188b97b090781637de3",
-                    "prevout_n": 0,
-                    "scriptSig": "1600144784353af5633deb3711ea68596a4d02de7bbcd0",
-                    "sequence": 4294967295,
-                    "type": "unknown",
-                    "address": None,
-                    "num_sig": 0,
-                    "witness": (
-                        "02483045022100e6d2b31377269c43e2aad18d252f43ef2aa36ea0ab8a822dbb9b559e"
-                        "33cca42e02201a25f1cf2b97c35bdf510cce0138ca2ae2a2413dbb32fd7d6f5d9fa3b0"
-                        "29f19801210282b7d73ee29098c55e011e2624f5271d0723311c880bd1d63142037a3ec9ce32"
-                    ),
-                }
-            ],
-            "outputs": [
-                {
-                    "value": 73061,
-                    "type": 0,
-                    "address": "2MxtJ3iBTaEUvmiEshfW35jDzLHsY5kh9ZM",
-                    "scriptPubKey": "a9143ddb68695d7f35307c2f2e36c92cc19c06eeb31f87",
-                    "prevout_n": 0,
-                }
-            ],
-            "lockTime": 0,
+            "prevout_hash": "3d4131a9659c442706d00b387030931778040c1d431ea188b97b090781637de3",
+            "prevout_n": 0,
+            "scriptSig": "1600144784353af5633deb3711ea68596a4d02de7bbcd0",
+            "sequence": 4294967295,
+            "type": "unknown",
+            "address": None,
+            "num_sig": 0,
+            "witness": (
+                "02483045022100e6d2b31377269c43e2aad18d252f43ef2aa36ea0ab8a822dbb9b559e"
+                "33cca42e02201a25f1cf2b97c35bdf510cce0138ca2ae2a2413dbb32fd7d6f5d9fa3b0"
+                "29f19801210282b7d73ee29098c55e011e2624f5271d0723311c880bd1d63142037a3ec9ce32"
+            ),
         }.items()
     )
+    data_check(info, "outputs", list, 1)
+    assert info["outputs"][0] == {
+        "value": 73061,
+        "type": 0,
+        "address": "2MxtJ3iBTaEUvmiEshfW35jDzLHsY5kh9ZM",
+        "scriptPubKey": "a9143ddb68695d7f35307c2f2e36c92cc19c06eeb31f87",
+        "prevout_n": 0,
+    }
 
 
 async def test_config_methods(btc):

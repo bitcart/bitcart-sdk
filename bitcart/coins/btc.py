@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, Optional, Union
 
 from ..coin import Coin
 from ..errors import InvalidEventError, LightningDisabledError
-from ..utils import convert_amount_type
+from ..utils import bitcoins, convert_amount_type
 
 if TYPE_CHECKING:
     import requests
@@ -98,7 +98,9 @@ class BTC(Coin):
         data = await self.server.getbalance()
         return {attr: convert_amount_type(data.get(attr, 0)) for attr in self.BALANCE_ATTRS}
 
-    async def addrequest(self: "BTC", amount: Union[int, str], description: str = "", expire: Union[int, float] = 15,) -> dict:
+    async def addrequest(
+        self: "BTC", amount: Optional[Union[int, str]] = None, description: str = "", expire: Union[int, float] = 15,
+    ) -> dict:
         """Add invoice
 
         Create an invoice and request amount in BTC, it will expire by parameter provided.
@@ -111,7 +113,7 @@ class BTC(Coin):
 
         Args:
             self (BTC): self
-            amount (Union[int, str]): amount to open invoice
+            amount (Optional[Union[int, str]]): amount to open invoice. Defaults to None.
             description (str, optional): Description of invoice. Defaults to "".
             expire (Union[int, float], optional): The time invoice will expire in. Defaults to 15.
 
@@ -297,13 +299,14 @@ class BTC(Coin):
         """
         if fee and feerate:
             raise TypeError("Can't specify both fee and feerate at the same time")
-        fee_arg = fee if not callable(fee) else None
+        is_callable = callable(fee)
+        fee_arg = fee if not is_callable else None
         tx_data = await self.server.payto(address, amount, fee=fee_arg, feerate=feerate)
-        if not fee_arg:
+        if is_callable:
             tx_size = await self.server.get_tx_size(tx_data)
             default_fee = await self.server.get_default_fee(tx_size)
             try:
-                resulting_fee = fee(tx_size, default_fee)  # type: ignore
+                resulting_fee: Optional[str] = str(bitcoins(fee(tx_size, default_fee)))  # type: ignore
             except Exception:
                 resulting_fee = None
             if resulting_fee:
@@ -369,13 +372,14 @@ class BTC(Coin):
                 dict_outputs = True
                 new_outputs.append((output["address"], output["amount"]))
         outputs = new_outputs if dict_outputs else outputs
-        fee_arg = fee if not callable(fee) else None
+        is_callable = callable(fee)
+        fee_arg = fee if not is_callable else None
         tx_data = await self.server.paytomany(outputs, fee=fee_arg, feerate=feerate)
-        if not fee_arg:
+        if is_callable:
             tx_size = await self.server.get_tx_size(tx_data)
             default_fee = await self.server.get_default_fee(tx_size)
             try:
-                resulting_fee = fee(tx_size, default_fee)  # type: ignore
+                resulting_fee: Optional[str] = str(bitcoins(fee(tx_size, default_fee)))  # type: ignore
             except Exception:
                 resulting_fee = None
             if resulting_fee:

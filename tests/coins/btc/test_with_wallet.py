@@ -9,7 +9,7 @@ async def test_balance(btc_wallet):
     attrs = ["confirmed", "unconfirmed", "unmatured", "lightning"]
     balance = await btc_wallet.balance()
     for attr in attrs:
-        assert balance[attr] >= 0
+        assert balance[attr] >= 0  # NOTE: unconfirmed can be negative
         assert isinstance(balance[attr], Decimal)
 
 
@@ -38,38 +38,3 @@ async def test_payment_request(btc_wallet):
 async def test_insufficient_funds_pay(btc_wallet):
     with pytest.raises(ValueError):
         await btc_wallet.pay_to("2MzEqRRjMwECrZRH9fg5BDsa11SWsKSCE95", 0.1)
-
-
-@pytest.mark.skip(reason="TODO: need a way having a wallet with sufficient fund")
-@pytest.mark.parametrize(
-    "fee,feerate,broadcast",
-    [
-        (None, None, True),
-        (None, None, False),
-        (1e-06, None, True),
-        (1e-06, None, True),
-        (lambda size: size / 4, None, True),
-        (lambda size: size / 4, None, False),
-        (None, 1, False),
-        (None, 1, False),
-    ],
-)
-async def test_payment_to_single(btc_wallet, fee, feerate, broadcast):
-    await btc_wallet.pay_to(
-        "37NFX8KWAQbaodUG6pE1hNUH1dXgkpzbyZ", 0.1, fee=fee, feerate=feerate, broadcast=broadcast,
-    )
-
-
-@pytest.mark.skip(reason="TODO: need a way having a wallet with sufficient fund")
-@pytest.mark.parametrize(
-    "payload",
-    [
-        [("1A6jnc6xQwmhsChNLcyKAQNWPcWsVYqCqJ", 0.1), ("1A6jnc6xQwmhsChNLcyKAQNWPcWsVYqCqJ", 0.1)],
-        [
-            {"address": "1A6jnc6xQwmhsChNLcyKAQNWPcWsVYqCqJ", "amount": 0.1},
-            {"address": "1A6jnc6xQwmhsChNLcyKAQNWPcWsVYqCqJ", "amount": 0.1},
-        ],
-    ],
-)
-async def test_payment_to_many(btc_wallet, payload):
-    await btc_wallet.pay_to_many(payload)
