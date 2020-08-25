@@ -1,34 +1,14 @@
-import importlib
-from types import ModuleType
-from typing import Dict, Iterable, Union
-
-SYSTEM_PACKAGES = ["electrum"]
-
-
 class Coin:
     """Coins should reimplement some methods,
     and initialize coin-specific info.
     Required information is:
     coin_name str
     friendly_name str
-    providers list
     For more info see the docs.
     """
 
     coin_name = "Base"
     friendly_name = "Base"
-    providers: Union[Iterable[str], Dict[str, ModuleType]] = []
-
-    def __init__(self: "Coin") -> None:
-        # Initialize the providers.
-        self.providers_new: Dict[str, ModuleType] = {}
-        for i in self.providers:
-            if i not in SYSTEM_PACKAGES:
-                self.providers_new[i] = importlib.import_module(".providers." + i, "bitcart")
-            else:
-                self.providers_new[i] = importlib.import_module(i)
-        self.providers = self.providers_new
-        del self.providers_new
 
     async def help(self) -> list:
         """Get help

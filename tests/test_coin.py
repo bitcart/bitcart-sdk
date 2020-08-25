@@ -6,6 +6,7 @@ import pytest
 pytestmark = pytest.mark.asyncio
 
 
-async def test_help(coin):
+@pytest.mark.parametrize("method,args", [("help", []), ("get_tx", ["test"]), ("get_address", ["address"]), ("balance", [])])
+async def test_abstract(coin, method, args):
     with pytest.raises(NotImplementedError):
-        await coin.help()
+        await getattr(coin, method)(*args)

@@ -37,4 +37,13 @@ async def test_payment_request(btc_wallet):
 
 async def test_insufficient_funds_pay(btc_wallet):
     with pytest.raises(ValueError):
-        await btc_wallet.pay_to("2MzEqRRjMwECrZRH9fg5BDsa11SWsKSCE95", 0.1)
+        await btc_wallet.pay_to("1KQah89MJhmhxB9hRQN6DnMSkPH3RUjPev", 0.1)
+
+
+async def test_fee_and_feerate(btc_wallet):  # can't set both fee and feerate
+    with pytest.raises(TypeError):
+        await btc_wallet.pay_to("1KQah89MJhmhxB9hRQN6DnMSkPH3RUjPev", 0.1, fee=1, feerate=1)
+    with pytest.raises(TypeError):
+        await btc_wallet.pay_to_many(
+            [("1KQah89MJhmhxB9hRQN6DnMSkPH3RUjPev", 0.1), ("1KQah89MJhmhxB9hRQN6DnMSkPH3RUjPev", 0.1)], fee=1, feerate=1
+        )

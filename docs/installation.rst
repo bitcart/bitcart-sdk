@@ -61,7 +61,7 @@ Note, to run a few daemons, use
 ``python daemons/coin_name.py`` for each ``coin_name``.
 
 Default user is electrum and password is electrumz, it runs on http://localhost:5000.
-To run daemon in testnet, set ``COIN_NAME_TESTNET`` variable to true.
+To run daemon in other network than mainnet, set ``COIN_NAME_NETWORK`` variable to network name (testnet, regtest).
 By default, if coin supports it, lightning network is enabled.
 To disable it, set ``COIN_NAME_LIGHTNING`` to false.
 For each daemon port is different.

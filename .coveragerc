@@ -6,5 +6,4 @@ omit =
     env/*,
     setup.py,
     sync_generator.py,
-    
-    
+

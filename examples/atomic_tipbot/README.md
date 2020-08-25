@@ -58,7 +58,7 @@ If you also need to add lightning, add
 
 If you need to run BTC daemon(or others, just replace BTC with coin name) in testnet, also run:
 
-`export BTC_TESTNET=true`
+`export BTC_NETWORK=testnet`
 
 After that, run  `./setup.sh`
 
@@ -93,7 +93,7 @@ To run daemon, use:
 
 If you need to run daemon in testnet, use:
 
-`BTC_TESTNET=true python3 daemons/btc.py`
+`BTC_NETWORK=testnet python3 daemons/btc.py`
 
 
 After that, you can run the bot using python3 bot.py and enjoy it!

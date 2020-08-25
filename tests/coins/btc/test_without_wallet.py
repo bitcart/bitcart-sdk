@@ -33,13 +33,28 @@ async def test_fiat(btc):
     assert ["USD", "BTC", "RUB", "JPY", "EUR"] >= fiat_currencies
 
 
-@pytest.mark.parametrize("address,expected", [("x", False), ("2MxtJ3iBTaEUvmiEshfW35jDzLHsY5kh9ZM", True)])
+@pytest.mark.parametrize("address,expected", [("x", False), ("1KQah89MJhmhxB9hRQN6DnMSkPH3RUjPev", True)])
 async def test_electrum_validate_address(btc, address, expected):
     assert await btc.server.validateaddress(address) == expected
 
 
+@pytest.mark.parametrize(
+    "key,expected",
+    [
+        ("x", False),
+        ("gentle expire fatal fashion envelope cheap fury hunt inner copper boy relax", True),
+        (
+            "xprv9s21ZrQH143K2MFWUoJmzzhhi1SNUqCFeJjbjpWvpvx9T6yxJXUpfW7fPECCNmzHGHQ6qkZYvRGvKu6D2KunXJ2kNccxT6b266F92DbRu35",
+            True,
+        ),
+    ],
+)
+async def test_validate_key(btc, key, expected):
+    assert await btc.validate_key(key) == expected
+
+
 async def test_get_tx(btc):
-    info = await btc.get_tx("1d8a65ec103338bb51d125015fc736a3aa93eae1d7d534ec374f6517f665c5e2")
+    info = await btc.get_tx("0584c650e7b04cd0788832f8340ead4ce654e82127e283c8132a0bcbfabc7a01")
     assert info.items() > {"partial": False, "version": 1, "segwit_ser": True, "lockTime": 0}.items()
     data_check(info, "confirmations", int)
     assert info["confirmations"] > 0
@@ -47,26 +62,27 @@ async def test_get_tx(btc):
     assert (
         info["inputs"][0].items()
         >= {
-            "prevout_hash": "3d4131a9659c442706d00b387030931778040c1d431ea188b97b090781637de3",
+            "prevout_hash": "f5bec7770c30679bd7e91ecc3cf243d43c5a72b28ac8e037eb8c1b5bfe520e27",
             "prevout_n": 0,
-            "scriptSig": "1600144784353af5633deb3711ea68596a4d02de7bbcd0",
+            "scriptSig": "",
             "sequence": 4294967295,
             "type": "unknown",
             "address": None,
             "num_sig": 0,
             "witness": (
-                "02483045022100e6d2b31377269c43e2aad18d252f43ef2aa36ea0ab8a822dbb9b559e"
-                "33cca42e02201a25f1cf2b97c35bdf510cce0138ca2ae2a2413dbb32fd7d6f5d9fa3b0"
-                "29f19801210282b7d73ee29098c55e011e2624f5271d0723311c880bd1d63142037a3ec9ce32"
+                "02473044022030f19cf4b53b0c5d7a9d920240f6daab0cf8a40193f80a8"
+                "0d40635dc0ca213af0220487e8714a082f22dba14733f1149bd365767702"
+                "f69bc88375d1c47ba8d12138c012103765314d3e5ebb0af504c4993952d9"
+                "903648fa3cc645dbaedfd9c40484531836e"
             ),
         }.items()
     )
-    data_check(info, "outputs", list, 1)
+    data_check(info, "outputs", list, 2)
     assert info["outputs"][0] == {
-        "value": 73061,
+        "value": 490000,
         "type": 0,
-        "address": "2MxtJ3iBTaEUvmiEshfW35jDzLHsY5kh9ZM",
-        "scriptPubKey": "a9143ddb68695d7f35307c2f2e36c92cc19c06eeb31f87",
+        "address": "3NyLhw2jKrA8PF2SqgGQu4cigfCg1i6SqH",
+        "scriptPubKey": "a914e970f9ca2f7d99b208b455333b0a4ab2b9b7eb3a87",
         "prevout_n": 0,
     }
 
@@ -78,11 +94,11 @@ async def test_config_methods(btc):
 
 
 async def test_get_address(btc):
-    txes = await btc.get_address("2NGHDQcccX3EVehSRtSMXj8u5AhpGQ4nR6b")
+    txes = await btc.get_address("17ncZMaFQYZYNDycTJc5aydUKaw6oCEUSQ")
     assert isinstance(txes, list)
     tx = txes[0]
-    assert tx["tx_hash"] == "0eca272d77ab362e9fbcabd9a5803ba3a7fd4382a302ae9028cfacd015cc65b9"
-    assert tx["height"] == 1805666
+    assert tx["tx_hash"] == "74fb8886abb00e66b192172d5fca504337b11af3aac658979355cefe3d51818e"
+    assert tx["height"] == 645013
     assert tx["tx"] == await btc.get_tx(tx["tx_hash"])
 
 

@@ -50,7 +50,7 @@ jobs:
           command: |
             . ~/venv/bin/activate
             cd ~/bitcart-daemon
-            make testnet
+            make mainnet
           background: true
 
       - run:

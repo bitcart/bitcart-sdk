@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, Optional, Union
 
 from ..coin import Coin
 from ..errors import InvalidEventError, LightningDisabledError
+from ..providers.jsonrpcrequests import RPCProxy
 from ..utils import bitcoins, convert_amount_type
 
 if TYPE_CHECKING:
@@ -68,9 +69,7 @@ class BTC(Coin):
         self.xpub = xpub
         self.event_handlers: Dict[str, Callable] = {}
         self.amount_field = getattr(self, "AMOUNT_FIELD", f"amount_{self.coin_name}")
-        self.server = self.providers["jsonrpcrequests"].RPCProxy(  # type: ignore
-            self.rpc_url, self.rpc_user, self.rpc_pass, self.xpub, session=session, proxy=proxy,
-        )
+        self.server = RPCProxy(self.rpc_url, self.rpc_user, self.rpc_pass, self.xpub, session=session, proxy=proxy)
         if ASYNC:
             self._configure_webhook = self._configure_webhook_async
             self.handle_webhook = self.handle_webhook_async
@@ -313,6 +312,8 @@ class BTC(Coin):
                 resulting_fee = None
             if resulting_fee:
                 tx_data = await self.server.payto(address, amount, fee=resulting_fee, feerate=feerate, for_broadcast=broadcast)
+            elif broadcast:  # use existing tx_data
+                await self.server.addtransaction(tx_data)
         if broadcast:
             return await self.server.broadcast(tx_data)  # type: ignore
         else:
@@ -388,6 +389,8 @@ class BTC(Coin):
                 resulting_fee = None
             if resulting_fee:
                 tx_data = await self.server.paytomany(outputs, fee=resulting_fee, feerate=feerate, for_broadcast=broadcast)
+            elif broadcast:  # use existing tx_data
+                await self.server.addtransaction(tx_data)
         if broadcast:
             return await self.server.broadcast(tx_data)  # type: ignore
         else:

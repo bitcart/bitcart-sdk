@@ -17,3 +17,4 @@ async def test_lightning_disabled(btc_wallet):
     await btc_wallet.set_config("lightning", False)
     with pytest.raises(LightningDisabledError):
         await btc_wallet.node_id
+    await btc_wallet.set_config("lightning", True)  # reset back
