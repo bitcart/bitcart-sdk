@@ -68,6 +68,7 @@ jobs:
       - run:
           name: prepare electrumx
           command: |
+            . ~/venv/bin/activate
             make electrumx
           background: true
 
