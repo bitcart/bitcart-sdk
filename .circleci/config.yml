@@ -4,10 +4,17 @@ jobs:
     docker:
       - image: circleci/python:3.6.8
 
+    environment:
+      BITCOIND_VERSION: 0.20.0
+
     working_directory: ~/repo
 
     steps:
       - checkout
+
+      - restore_cache:
+          keys:
+            - v1-bitcoind-0.20.0
 
       - run:
           name: install library
@@ -21,7 +28,6 @@ jobs:
           name: install daemon and regtest utils
           command: |
             . ~/venv/bin/activate
-            export BITCOIND_VERSION=0.20.0
             mkdir -p ~/bitcoind && cd ~/bitcoind
             wget https://bitcoin.org/bin/bitcoin-core-$BITCOIND_VERSION/bitcoin-$BITCOIND_VERSION-x86_64-linux-gnu.tar.gz
             tar xzf bitcoin-$BITCOIND_VERSION-x86_64-linux-gnu.tar.gz
@@ -33,6 +39,11 @@ jobs:
             cd ~/bitcart-daemon
             pip install -r requirements/base.txt
             pip install -r requirements/daemons/btc.txt
+
+      - save_cache:
+          paths:
+            - ~/bitcoind
+          key: v1-bitcoind-0.20.0
 
       - run:
           name: prepare daemon

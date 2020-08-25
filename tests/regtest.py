@@ -8,6 +8,17 @@ pytestmark = pytest.mark.asyncio
 
 BTC_ADDRESS = "mjHXzpMTjhLePAdWgoesdhqEzCCRh6mwkJ"  # can be got by run_shell(["newaddress"]) or btc_wallet.addrequest()
 
+TEST_PARAMS = [
+    (None, None, True),
+    (None, None, False),
+    (0.01, None, True),
+    (0.01, None, False),
+    (lambda size, default_fee: default_fee, None, True),
+    (lambda size, default_fee: default_fee, None, False),
+    (None, 5, True),
+    (None, 5, False),
+]
+
 
 def setup_module(module):
     run_shell(["startup", "1", BTC_ADDRESS])  # make blockchain mature and add funds
@@ -36,19 +47,7 @@ def check_tx(tx, broadcast):
         assert isinstance(tx["final"], bool)
 
 
-@pytest.mark.parametrize(
-    "fee,feerate,broadcast",
-    [
-        (None, None, True),
-        (None, None, False),
-        (0.01, None, True),
-        (0.01, None, False),
-        (lambda size, default_fee: default_fee, None, True),
-        (lambda size, default_fee: default_fee, None, False),
-        (None, 5, True),
-        (None, 5, False),
-    ],
-)
+@pytest.mark.parametrize("fee,feerate,broadcast", TEST_PARAMS)
 async def test_payment_to_single(btc_wallet, fee, feerate, broadcast, wait_for_balance):
     check_tx(
         await btc_wallet.pay_to(
@@ -58,19 +57,7 @@ async def test_payment_to_single(btc_wallet, fee, feerate, broadcast, wait_for_b
     )
 
 
-@pytest.mark.parametrize(
-    "fee,feerate,broadcast",
-    [
-        (None, None, True),
-        (None, None, False),
-        (0.01, None, True),
-        (0.01, None, False),
-        (lambda size, default_fee: default_fee, None, True),
-        (lambda size, default_fee: default_fee, None, False),
-        (None, 5, True),
-        (None, 5, False),
-    ],
-)
+@pytest.mark.parametrize("fee,feerate,broadcast", TEST_PARAMS)
 async def test_payment_to_many(btc_wallet, fee, feerate, broadcast, wait_for_balance):
     check_tx(
         await btc_wallet.pay_to_many(
