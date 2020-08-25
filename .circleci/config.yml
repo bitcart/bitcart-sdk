@@ -21,11 +21,12 @@ jobs:
           name: install daemon and regtest utils
           command: |
             . ~/venv/bin/activate
-            sudo apt update
-            sudo apt install software-properties-common
-            sudo add-apt-repository -y ppa:luke-jr/bitcoincore
-            sudo apt update
-            sudo apt install -y bitcoind
+            export BITCOIND_VERSION=0.20.0
+            mkdir -p ~/bitcoind && cd ~/bitcoind
+            wget https://bitcoin.org/bin/bitcoin-core-$BITCOIND_VERSION/bitcoin-$BITCOIND_VERSION-x86_64-linux-gnu.tar.gz
+            tar xzf bitcoin-$BITCOIND_VERSION-x86_64-linux-gnu.tar.gz
+            install -m 0755 -o root -g root -t /usr/local/bin bitcoin-$BITCOIND_VERSION/bin/*
+            cd ~/repo
             sudo apt install libsecp256k1-dev
             pip install electrumx
             git clone https://github.com/MrNaif2018/bitcart ~/bitcart-daemon
