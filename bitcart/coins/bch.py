@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Optional, Union
 
 from ..utils import convert_amount_type
 from .btc import BTC
@@ -15,7 +15,9 @@ class BCH(BTC):
     async def history(self: "BCH") -> dict:
         return await self.server.history()  # type: ignore
 
-    async def addrequest(self: "BCH", amount: Union[int, str], description: str = "", expire: Union[int, float] = 15,) -> dict:
+    async def addrequest(
+        self: "BCH", amount: Optional[Union[int, str]] = None, description: str = "", expire: Union[int, float] = 15,
+    ) -> dict:
         expiration = 60 * expire if expire else None
         data = await self.server.addrequest(amount=amount, memo=description, expiration=expiration, force=True)
         data[self.amount_field] = convert_amount_type(data[self.amount_field])
