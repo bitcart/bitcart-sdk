@@ -301,7 +301,9 @@ class BTC(Coin):
             raise TypeError("Can't specify both fee and feerate at the same time")
         is_callable = callable(fee)
         fee_arg = fee if not is_callable else None
-        tx_data = await self.server.payto(address, amount, fee=fee_arg, feerate=feerate)
+        tx_data = await self.server.payto(
+            address, amount, fee=fee_arg, feerate=feerate, for_broadcast=broadcast and not is_callable
+        )
         if is_callable:
             tx_size = await self.server.get_tx_size(tx_data)
             default_fee = await self.server.get_default_fee(tx_size)
@@ -310,7 +312,7 @@ class BTC(Coin):
             except Exception:
                 resulting_fee = None
             if resulting_fee:
-                tx_data = await self.server.payto(address, amount, fee=resulting_fee, feerate=feerate)
+                tx_data = await self.server.payto(address, amount, fee=resulting_fee, feerate=feerate, for_broadcast=broadcast)
         if broadcast:
             return await self.server.broadcast(tx_data)  # type: ignore
         else:
@@ -374,7 +376,9 @@ class BTC(Coin):
         outputs = new_outputs if dict_outputs else outputs
         is_callable = callable(fee)
         fee_arg = fee if not is_callable else None
-        tx_data = await self.server.paytomany(outputs, fee=fee_arg, feerate=feerate)
+        tx_data = await self.server.paytomany(
+            outputs, fee=fee_arg, feerate=feerate, for_broadcast=broadcast and not is_callable
+        )
         if is_callable:
             tx_size = await self.server.get_tx_size(tx_data)
             default_fee = await self.server.get_default_fee(tx_size)
@@ -383,7 +387,7 @@ class BTC(Coin):
             except Exception:
                 resulting_fee = None
             if resulting_fee:
-                tx_data = await self.server.paytomany(outputs, fee=resulting_fee, feerate=feerate)
+                tx_data = await self.server.paytomany(outputs, fee=resulting_fee, feerate=feerate, for_broadcast=broadcast)
         if broadcast:
             return await self.server.broadcast(tx_data)  # type: ignore
         else:
