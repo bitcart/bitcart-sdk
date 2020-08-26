@@ -16,7 +16,10 @@ class BCH(BTC):
         return await self.server.history()  # type: ignore
 
     async def addrequest(
-        self: "BCH", amount: Optional[Union[int, str]] = None, description: str = "", expire: Union[int, float] = 15,
+        self: "BCH",
+        amount: Optional[Union[int, str]] = None,
+        description: str = "",
+        expire: Union[int, float] = 15,
     ) -> dict:  # pragma: no cover
         expiration = 60 * expire if expire else None
         data = await self.server.addrequest(amount=amount, memo=description, expiration=expiration, force=True)

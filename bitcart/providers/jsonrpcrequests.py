@@ -61,7 +61,12 @@ class RPCProxy:
             proxy_type, host, port, username, password = parse_proxy_url(self.proxy)
             self._connector_class = ProxyConnector
             self._connector_init.update(
-                proxy_type=proxy_type, host=host, port=port, username=username, password=password, rdns=True,
+                proxy_type=proxy_type,
+                host=host,
+                port=port,
+                username=username,
+                password=password,
+                rdns=True,
             )
 
     def create_session(self: "RPCProxy") -> None:
@@ -83,7 +88,13 @@ class RPCProxy:
         async def wrapper(*args: Any, **kwargs: Any) -> Any:
             try:
                 return (
-                    await self.rpc.request(method, validate_against_schema=False, xpub=self.xpub, *args, **kwargs,)
+                    await self.rpc.request(
+                        method,
+                        validate_against_schema=False,
+                        xpub=self.xpub,
+                        *args,
+                        **kwargs,
+                    )
                 ).data.result
             except jsonrpcclient.exceptions.ReceivedErrorResponseError as e:
                 raise ValueError("Error from server: {}".format(e.response.message))

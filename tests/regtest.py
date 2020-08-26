@@ -53,7 +53,11 @@ def check_tx(tx, broadcast):
 async def test_payment_to_single(regtest_wallet, fee, feerate, broadcast, wait_for_balance):
     check_tx(
         await regtest_wallet.pay_to(
-            "bcrt1qx4y7d5wt9cn585cqyxc7899khtz2dsl0qnufkz", 0.1, fee=fee, feerate=feerate, broadcast=broadcast,
+            "bcrt1qx4y7d5wt9cn585cqyxc7899khtz2dsl0qnufkz",
+            0.1,
+            fee=fee,
+            feerate=feerate,
+            broadcast=broadcast,
         ),
         broadcast,
     )

@@ -154,7 +154,12 @@ def payment_method_kb(amount):
 def paylink_kb(currency, amount):
     keyboard = [
         [InlineKeyboardButton("Bot link", callback_data=f"pl_bot_{currency}_{amount}")],
-        [InlineKeyboardButton("Payment request(for non-bot users)", callback_data=f"pl_pr_{currency}_{amount}",)],
+        [
+            InlineKeyboardButton(
+                "Payment request(for non-bot users)",
+                callback_data=f"pl_pr_{currency}_{amount}",
+            )
+        ],
     ]
     return InlineKeyboardMarkup(keyboard)
 
@@ -242,7 +247,8 @@ def start(client, message):
         send_welcome = True
     if send_welcome:
         message.reply(
-            "Welcome to the BitcartCC Atomic TipBot! /help for list of commands", quote=False,
+            "Welcome to the BitcartCC Atomic TipBot! /help for list of commands",
+            quote=False,
         )
 
 
@@ -270,7 +276,9 @@ def balance(client, message):
 @app.on_message(Filters.command("deposit") & Filters.private)
 def deposit(client, message):
     message.reply(
-        "Choose amount you want to deposit:", reply_markup=deposit_keyboard(), quote=False,
+        "Choose amount you want to deposit:",
+        reply_markup=deposit_keyboard(),
+        quote=False,
     )
 
 
@@ -330,7 +338,9 @@ def paylink(client, message):
     except ValueError:
         return message.reply("Invalid amount. Command format to request 1000 satoshi in BTC: /paylink btc 1000")
     message.reply(
-        "Which link would you like to get?", reply_markup=paylink_kb(currency, amount_sat), quote=False,
+        "Which link would you like to get?",
+        reply_markup=paylink_kb(currency, amount_sat),
+        quote=False,
     )
 
 
@@ -351,7 +361,8 @@ def paylink_query(client, message):
         message.edit_message_text(f"Invoice for {amount_sat} Satoshi [{amount:.8f} {currency.upper()}]\n\nMessage to forward:")
         time.sleep(1)
         app.send_message(
-            chat_id=user_id, text=f"Send me {currency_name.lower()} using this link: {invoice_link}",
+            chat_id=user_id,
+            text=f"Send me {currency_name.lower()} using this link: {invoice_link}",
         )
     except BadRequest:
         pass
@@ -375,7 +386,8 @@ def payment_handler(event, address, status, status_str):
             mongo.invoices.update_one({"address": address}, {"$set": {"status": "Paid"}})
             change_balance(inv["user_id"], amount, "deposit", address=address)
             app.send_message(
-                user["user_id"], f"{amount} Satoshis added to your balance. Your balance: {new_balance}",
+                user["user_id"],
+                f"{amount} Satoshis added to your balance. Your balance: {new_balance}",
             )
 
 
@@ -440,7 +452,9 @@ def tip(client, message):
     )
     try:
         app.send_animation(
-            reply_id, "https://i.imgur.com/U7VL2CV.gif", caption=f"You received {amount} satoshis",
+            reply_id,
+            "https://i.imgur.com/U7VL2CV.gif",
+            caption=f"You received {amount} satoshis",
         )
     except BadRequest:
         pass
@@ -636,18 +650,34 @@ def bet(client, message):
         _, currency, amount, trend, date = message.command
         amount = int(amount)
         make_bet(
-            message.from_user.id, currency, amount, trend, date, message.chat.id, message.message_id,
+            message.from_user.id,
+            currency,
+            amount,
+            trend,
+            date,
+            message.chat.id,
+            message.message_id,
         )
     except ValueError:
         message.reply(
-            "Bet 3000 satoshi that in a hour Bitcoin price will:", reply_markup=bet_menu_keyboard(), quote=False,
+            "Bet 3000 satoshi that in a hour Bitcoin price will:",
+            reply_markup=bet_menu_keyboard(),
+            quote=False,
         )
 
 
 @app.on_callback_query(bet_filter)
 def bet_menu(client, message):
     trend = message.data.split("_")[-1]
-    return make_bet(message.from_user.id, "btc", 3000, trend, "hour", message.message.chat.id, message.message.message_id,)
+    return make_bet(
+        message.from_user.id,
+        "btc",
+        3000,
+        trend,
+        "hour",
+        message.message.chat.id,
+        message.message.message_id,
+    )
 
 
 def genvoucher(user_id, amount, receiver):

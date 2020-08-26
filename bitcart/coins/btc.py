@@ -99,7 +99,10 @@ class BTC(Coin):
         return {attr: convert_amount_type(data.get(attr, 0)) for attr in self.BALANCE_ATTRS}
 
     async def addrequest(
-        self: "BTC", amount: Optional[Union[int, str]] = None, description: str = "", expire: Union[int, float] = 15,
+        self: "BTC",
+        amount: Optional[Union[int, str]] = None,
+        description: str = "",
+        expire: Union[int, float] = 15,
     ) -> dict:
         """Add invoice
 
