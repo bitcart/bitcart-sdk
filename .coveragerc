@@ -6,4 +6,9 @@ omit =
     env/*,
     setup.py,
     sync_generator.py,
-
+    bitcart/providers/jsonrpcrequests.py,
+[report]
+exclude_lines =
+    pragma: no cover
+    if not webhook_available:
+    def \w*_sync

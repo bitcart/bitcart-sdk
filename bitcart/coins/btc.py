@@ -6,6 +6,7 @@ import time  # noqa: F401: for sync generator
 import warnings
 from decimal import Decimal
 from functools import wraps
+from json import JSONDecodeError
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, Optional, Union
 
@@ -15,7 +16,7 @@ from ..providers.jsonrpcrequests import RPCProxy
 from ..utils import bitcoins, convert_amount_type
 
 if TYPE_CHECKING:
-    import requests
+    import requests  # pragma: no cover
 
 ASYNC = True
 
@@ -23,9 +24,9 @@ webhook_available = True
 try:
     if ASYNC:
         from aiohttp import web
-    else:
+    else:  # pragma: no cover
         from flask import Flask, request
-except (ModuleNotFoundError, ImportError):
+except (ModuleNotFoundError, ImportError):  # pragma: no cover
     webhook_available = False
 
 
@@ -74,7 +75,7 @@ class BTC(Coin):
             self._configure_webhook = self._configure_webhook_async
             self.handle_webhook = self.handle_webhook_async
             self._start_webhook = self._start_webhook_async
-        else:
+        else:  # pragma: no cover
             self._configure_webhook = self._configure_webhook_sync
             self.handle_webhook = self.handle_webhook_sync  # type: ignore
             self._start_webhook = self._start_webhook_sync
@@ -212,18 +213,24 @@ class BTC(Coin):
         return wrapper
 
     async def process_updates(self: "BTC", updates: Iterable[dict]) -> None:
+        if not isinstance(updates, list):
+            return
         for event_info in updates:
-            event = event_info.get("event")
-            event_info.pop("event")
+            if not isinstance(event_info, dict):
+                continue
+            event = event_info.pop("event", None)
             if not event or event not in self.ALLOWED_EVENTS:
                 raise InvalidEventError(f"Invalid event from server: {event}")
             handler = self.event_handlers.get(event)
             if handler:
-                handler = handler(event, **event_info)
-                if inspect.isawaitable(handler):
-                    await handler  # type: ignore
+                try:
+                    handler = handler(event, **event_info)
+                    if inspect.isawaitable(handler):
+                        await handler  # type: ignore
+                except Exception:
+                    pass
 
-    async def poll_updates(self: "BTC", timeout: Union[int, float] = 2) -> None:
+    async def poll_updates(self: "BTC", timeout: Union[int, float] = 2) -> None:  # pragma: no cover
         await self.server.subscribe(list(self.event_handlers.keys()))
         while True:
             try:
@@ -515,7 +522,11 @@ class BTC(Coin):
         return {}
 
     async def handle_webhook_async(self: "BTC", request: "web.Request") -> "web.Response":
-        await self.process_updates([await request.json()])
+        try:
+            json = await request.json()
+        except JSONDecodeError:
+            json = None
+        await self.process_updates([json])
         return web.json_response({})
 
     def _configure_webhook_async(self) -> None:
@@ -545,7 +556,7 @@ class BTC(Coin):
             raise ValueError("Webhook support not installed. Install it with pip install bitcart[webhook]")
         if ASYNC:
             self.server._loop.run_until_complete(self.configure_webhook())
-        else:
+        else:  # pragma: no cover
             self.configure_webhook()
         self._start_webhook(port=port, **kwargs)
 
