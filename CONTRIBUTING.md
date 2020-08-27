@@ -29,6 +29,47 @@ Make sure to follow [our coding guidelines](https://github.com/MrNaif2018/bitcar
 
 To run all checks before commiting, use `make` command.
 
+## Running extended test suite
+
+Some of the SDK tests require sending functionality. On bitcoin mainnet it is impossible to test it easily.
+
+We use regtest bitcoin network for some tests, which can be found at `tests/regtest.py` file.
+
+To run regtest test suite, you'll need to install bitcoind and electrumx.
+
+Installing electrumx is easy, while bitcoind isn't always easy.
+
+It is not required, but recommended to run extended test suite before submitting a PR.
+
+CI can run it for you if needed.
+
+To install electrumx, run:
+
+```bash
+pip3 install electrumx
+```
+
+Bitcoind installation instructions differ on different distros and OSes.
+
+Here are installation instructions for ubuntu:
+
+```bash
+sudo add-apt-repository -y ppa:luke-jr/bitcoincore
+sudo apt-get -qq update
+sudo apt-get install -yq bitcoind
+sudo apt-get -y install libsecp256k1-0
+```
+
+Before running extended test suite, start bitcoind and electrumx. Each time regtest network is recreated.
+
+Run `make bitcoind` to start bitcoind, `make electrumx` to start electrumx.
+
+After that, stop your mainnet BitcartCC daemon, and start regtest one from cloned `bitcart` repo by running `make regtest`.
+
+To run extended test suite, run `make regtest`.
+
+Coverage from extended test suite is appended to main test coverage.
+
 # Thank You!
 
 Your contributions to open source, large or small, make great projects like this possible. Thank you for taking the time to contribute.
