@@ -604,7 +604,9 @@ class BTC(Coin):
         return await self.server.add_lightning_request(amount, message)  # type: ignore
 
     @lightning
-    async def close_channel(self: "BTC", channel_id: str, force: bool = False) -> str:
+    async def close_channel(
+        self: "BTC", channel_id: str, force: bool = False
+    ) -> str:  # pragma: no cover # TODO: remove when electrum 4.0.2
         """Close lightning channel
 
         Close channel by channel_id got from open_channel, returns transaction id

@@ -14,7 +14,7 @@ function pay_to()
 }
 
 if [[ $# -eq 0 ]]; then
-    echo "syntax: startup|newblock|generate|newaddress|newtx"
+    echo "syntax: startup|newblock|newblocks|generate|newaddress|newtx"
     exit 1
 fi
 
@@ -23,8 +23,12 @@ if [[ $1 == "startup" ]]; then
     new_blocks 151
 fi
 
-if [[ $1 == "new_block" ]]; then
+if [[ $1 == "newblock" ]]; then
     new_blocks 1
+fi
+
+if [[ $1 == "newblocks" ]]; then
+    new_blocks $2
 fi
 
 if [[ $1 == "generate" ]]; then
