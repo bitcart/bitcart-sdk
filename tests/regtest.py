@@ -31,7 +31,7 @@ async def wait_for_balance(regtest_wallet):
     while True:
         balance = await regtest_wallet.balance()
         balance = balance["confirmed"] + balance["unconfirmed"]
-        if balance < 2:
+        if balance < 5:
             await asyncio.sleep(1)
         else:
             break
