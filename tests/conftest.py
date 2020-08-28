@@ -12,6 +12,11 @@ REGTEST_XPUB = (
 
 
 @pytest.fixture
+async def xpub():
+    return TEST_XPUB
+
+
+@pytest.fixture
 async def coin():
     return Coin()
 

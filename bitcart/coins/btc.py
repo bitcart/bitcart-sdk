@@ -1,33 +1,20 @@
-import asyncio
 import inspect
 import json
-import logging
-import time  # noqa: F401: for sync generator
 import warnings
 from decimal import Decimal
 from functools import wraps
-from json import JSONDecodeError
-from types import ModuleType
 from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, Optional, Union
 
 from ..coin import Coin
 from ..errors import InvalidEventError, LightningDisabledError
+from ..event_delivery import EventDelivery
 from ..providers.jsonrpcrequests import RPCProxy
 from ..utils import bitcoins, convert_amount_type
 
 if TYPE_CHECKING:
-    import requests  # pragma: no cover
+    import requests
 
 ASYNC = True
-
-webhook_available = True
-try:
-    if ASYNC:
-        from aiohttp import web
-    else:  # pragma: no cover
-        from flask import Flask, request
-except (ModuleNotFoundError, ImportError):  # pragma: no cover
-    webhook_available = False
 
 
 def lightning(f: Callable) -> Callable:
@@ -42,10 +29,9 @@ def lightning(f: Callable) -> Callable:
     return wrapper
 
 
-class BTC(Coin):
+class BTC(Coin, EventDelivery):
     coin_name = "BTC"
     friendly_name = "Bitcoin"
-    providers: Union[Iterable[str], Dict[str, ModuleType]] = ["jsonrpcrequests"]
     RPC_URL = "http://localhost:5000"
     RPC_USER = "electrum"
     RPC_PASS = "electrumz"
@@ -53,7 +39,7 @@ class BTC(Coin):
     BALANCE_ATTRS = ["confirmed", "unconfirmed", "unmatured", "lightning"]
 
     def __init__(
-        self: "BTC",
+        self,
         rpc_url: Optional[str] = None,
         rpc_user: Optional[str] = None,
         rpc_pass: Optional[str] = None,
@@ -71,14 +57,6 @@ class BTC(Coin):
         self.event_handlers: Dict[str, Callable] = {}
         self.amount_field = getattr(self, "AMOUNT_FIELD", f"amount_{self.coin_name}")
         self.server = RPCProxy(self.rpc_url, self.rpc_user, self.rpc_pass, self.xpub, session=session, proxy=proxy)
-        if ASYNC:
-            self._configure_webhook = self._configure_webhook_async
-            self.handle_webhook = self.handle_webhook_async
-            self._start_webhook = self._start_webhook_async
-        else:  # pragma: no cover
-            self._configure_webhook = self._configure_webhook_sync
-            self.handle_webhook = self.handle_webhook_sync  # type: ignore
-            self._start_webhook = self._start_webhook_sync
 
     ### High level interface ###
 
@@ -99,7 +77,7 @@ class BTC(Coin):
         return {attr: convert_amount_type(data.get(attr, 0)) for attr in self.BALANCE_ATTRS}
 
     async def addrequest(
-        self: "BTC",
+        self,
         amount: Optional[Union[int, str]] = None,
         description: str = "",
         expire: Union[int, float] = 15,
@@ -128,7 +106,7 @@ class BTC(Coin):
         data[self.amount_field] = convert_amount_type(data[self.amount_field])
         return data  # type: ignore
 
-    async def getrequest(self: "BTC", address: str) -> dict:
+    async def getrequest(self, address: str) -> dict:
         """Get invoice info
 
         Get invoice information by address got from addrequest
@@ -149,7 +127,7 @@ class BTC(Coin):
         data[self.amount_field] = convert_amount_type(data[self.amount_field])
         return data  # type: ignore
 
-    async def history(self: "BTC") -> dict:
+    async def history(self) -> dict:
         """Get transaction history of wallet
 
         Example:
@@ -165,57 +143,7 @@ class BTC(Coin):
         """
         return json.loads(await self.server.onchain_history())  # type: ignore
 
-    def add_event_handler(self: "BTC", events: Union[Iterable[str], str], func: Callable) -> None:
-        """Add event handler to handle event(s) provided
-
-        Args:
-            self (BTC): self
-            events (Union[Iterable[str], str]): event or events
-            func (Callable): function to handle those
-
-        Returns:
-            None: None
-        """
-        if isinstance(events, str):
-            events = [events]
-        for event in events:
-            self.event_handlers[event] = func
-
-    def on(self: "BTC", events: Union[Iterable[str], str]) -> Callable:
-        """Register on event
-
-        Register callback function to be run when event is emmited
-
-        All available events are accessable as:
-
-        >>> btc.ALLOWED_EVENTS
-        ['new_block', 'new_transaction']
-
-        Function signature must be
-
-        .. code-block:: python
-
-            def handler(event, **kwargs):
-
-        kwargs sent differ from event to event, as for now
-        new_block event sends height kwarg as new block height
-        new_transaction event sends tx kwarg as tx_hash of new transaction
-
-        Args:
-            self (BTC): self
-            events (Union[Iterable[str], str]): event name or list of events for function to be run on
-
-        Returns:
-            Callable: It is a decorator
-        """
-
-        def wrapper(f: Callable) -> Callable:
-            self.add_event_handler(events, f)
-            return f
-
-        return wrapper
-
-    async def process_updates(self: "BTC", updates: Iterable[dict]) -> None:
+    async def process_updates(self, updates: Iterable[dict], *args: Any, pass_instance: bool = False, **kwargs: Any) -> None:
         if not isinstance(updates, list):
             return
         for event_info in updates:
@@ -226,47 +154,18 @@ class BTC(Coin):
                 raise InvalidEventError(f"Invalid event from server: {event}")
             handler = self.event_handlers.get(event)
             if handler:
+                args = (event,)
+                if pass_instance:
+                    args = (self,) + args
                 try:
-                    handler = handler(event, **event_info)
+                    handler = handler(*args, **event_info)
                     if inspect.isawaitable(handler):
                         await handler  # type: ignore
                 except Exception:
                     pass
 
-    async def poll_updates(self: "BTC", timeout: Union[int, float] = 2) -> None:  # pragma: no cover
-        await self.server.subscribe(list(self.event_handlers.keys()))
-        while True:
-            try:
-                data = await self.server.get_updates()
-            except Exception as err:
-                logging.error(err)
-                await asyncio.sleep(timeout)
-                continue
-            await self.process_updates(data)
-            await asyncio.sleep(timeout)
-
-    def poll_updates_sync(self: "BTC", timeout: Union[int, float] = 2) -> None:
-        """Poll updates
-
-        Poll daemon for new transactions in wallet,
-        this will block forever in while True loop checking for new transactions
-
-        Example can be found on main page of docs
-
-        Args:
-            self (BTC): self
-            timeout (Union[int, float], optional): seconds to wait before requesting transactions again. Defaults to 2.
-
-        Raises:
-            InvalidEventError: If server sent invalid event name not matching ALLOWED_EVENTS
-
-        Returns:
-            None: This function runs forever
-        """
-        self.server._loop.run_until_complete(self.poll_updates(timeout))
-
     async def pay_to(
-        self: "BTC",
+        self,
         address: str,
         amount: float,
         fee: Optional[Union[float, Callable]] = None,
@@ -330,7 +229,7 @@ class BTC(Coin):
             return tx_data  # type: ignore
 
     async def pay_to_many(
-        self: "BTC",
+        self,
         outputs: Iterable[Union[dict, tuple]],
         fee: Optional[Union[float, Callable]] = None,
         feerate: Optional[float] = None,
@@ -406,7 +305,7 @@ class BTC(Coin):
         else:
             return tx_data  # type: ignore
 
-    async def rate(self: "BTC", currency: str = "USD") -> Decimal:
+    async def rate(self, currency: str = "USD") -> Decimal:
         """Get bitcoin price in selected fiat currency
 
         It uses the same method as electrum wallet gets exchange rate-via different payment providers
@@ -429,7 +328,7 @@ class BTC(Coin):
         rate_str = await self.server.exchange_rate(currency)
         return convert_amount_type(rate_str)
 
-    async def list_fiat(self: "BTC") -> Iterable[str]:
+    async def list_fiat(self) -> Iterable[str]:
         """List of all available fiat currencies to get price for
 
         This list is list of only valid currencies that could be passed to rate() function
@@ -447,7 +346,7 @@ class BTC(Coin):
         """
         return await self.server.list_currencies()  # type: ignore
 
-    async def set_config(self: "BTC", key: str, value: Any) -> bool:
+    async def set_config(self, key: str, value: Any) -> bool:
         """Set config key to specified value
 
         It sets the config value in electrum's config store, usually
@@ -471,7 +370,7 @@ class BTC(Coin):
         """
         return await self.server.setconfig(key, value)  # type: ignore
 
-    async def get_config(self: "BTC", key: str, default: Any = None) -> Any:
+    async def get_config(self, key: str, default: Any = None) -> Any:
         """Get config key
 
         If the key doesn't exist, default value is returned.
@@ -492,7 +391,7 @@ class BTC(Coin):
         """
         return await self.server.getconfig(key) or default
 
-    async def validate_key(self: "BTC", key: str) -> bool:
+    async def validate_key(self, key: str) -> bool:
         """Validate whether provided key is valid to restore a wallet
 
         If the key is x/y/z pub/prv or electrum seed at the network daemon is running
@@ -518,55 +417,10 @@ class BTC(Coin):
         """
         return await self.server.validatekey(key)  # type: ignore
 
-    ### Webhooks ###
-
-    def handle_webhook_sync(self: "BTC") -> dict:
-        self.process_updates([request.json])
-        return {}
-
-    async def handle_webhook_async(self: "BTC", request: "web.Request") -> "web.Response":
-        try:
-            json = await request.json()
-        except JSONDecodeError:
-            json = None
-        await self.process_updates([json])
-        return web.json_response({})
-
-    def _configure_webhook_async(self) -> None:
-        self.webhook_app = web.Application()
-        self.webhook_app.router.add_post("/", self.handle_webhook)
-
-    def _configure_webhook_sync(self) -> None:
-        self.webhook_app = Flask(__name__)  # type: ignore
-        self.webhook_app.add_url_rule("/", "handle_webhook", self.handle_webhook, methods=["POST"])  # type: ignore
-
-    async def configure_webhook(self: "BTC", autoconfigure: bool = True) -> None:
-        if not webhook_available:
-            raise ValueError("Webhook support not installed. Install it with pip install bitcart[webhook]")
-        self._configure_webhook()
-        await self.server.subscribe(list(self.event_handlers.keys()))
-        if autoconfigure:
-            await self.server.configure_notifications("http://localhost:6000")
-
-    def _start_webhook_sync(self: "BTC", port: int = 6000, **kwargs: Any) -> None:
-        self.webhook_app.run(port=port, **kwargs)  # type: ignore
-
-    def _start_webhook_async(self: "BTC", port: int = 6000, **kwargs: Any) -> None:
-        web.run_app(self.webhook_app, port=port, **kwargs)
-
-    def start_webhook(self: "BTC", port: int = 6000, **kwargs: Any) -> None:
-        if not webhook_available:
-            raise ValueError("Webhook support not installed. Install it with pip install bitcart[webhook]")
-        if ASYNC:
-            self.server._loop.run_until_complete(self.configure_webhook())
-        else:  # pragma: no cover
-            self.configure_webhook()
-        self._start_webhook(port=port, **kwargs)
-
     ### Lightning apis ###
 
     @lightning
-    async def open_channel(self: "BTC", node_id: str, amount: Union[int, str]) -> str:
+    async def open_channel(self, node_id: str, amount: Union[int, str]) -> str:
         """Open lightning channel
 
         Open channel with node, returns string of format
@@ -583,7 +437,7 @@ class BTC(Coin):
         return await self.server.open_channel(node_id, amount)  # type: ignore
 
     @lightning
-    async def addinvoice(self: "BTC", amount: Union[int, str], message: Optional[str] = "") -> str:
+    async def addinvoice(self, amount: Union[int, str], message: Optional[str] = "") -> str:
         """Create lightning invoice
 
         Create lightning invoice and return bolt invoice id
@@ -605,7 +459,7 @@ class BTC(Coin):
 
     @lightning
     async def close_channel(
-        self: "BTC", channel_id: str, force: bool = False
+        self, channel_id: str, force: bool = False
     ) -> str:  # pragma: no cover # TODO: remove when electrum 4.0.2
         """Close lightning channel
 

@@ -20,7 +20,7 @@ except (ModuleNotFoundError, ImportError):
 
 class RPCProxy:
     def __init__(
-        self: "RPCProxy",
+        self,
         url: str,
         username: Optional[str] = None,
         password: Optional[str] = None,
@@ -53,7 +53,7 @@ class RPCProxy:
             self.rpc = RPC(endpoint=self.url)
             self.rpc.session = self.session
 
-    def init_proxy(self: "RPCProxy") -> None:
+    def init_proxy(self) -> None:
         if self.proxy:
             from aiohttp_socks import ProxyConnector
             from aiohttp_socks.utils import parse_proxy_url
@@ -69,7 +69,7 @@ class RPCProxy:
                 rdns=True,
             )
 
-    def create_session(self: "RPCProxy") -> None:
+    def create_session(self) -> None:
         if ASYNC:
             self.init_proxy()
             self.session = aiohttp.ClientSession(
@@ -84,7 +84,7 @@ class RPCProxy:
             self.session.auth = (self.username, self.password)  # type: ignore
             self.session.timeout = 5 * 60  # type: ignore
 
-    def __getattr__(self: "RPCProxy", method: str, *args: Any, **kwargs: Any) -> Callable:
+    def __getattr__(self, method: str, *args: Any, **kwargs: Any) -> Callable:
         async def wrapper(*args: Any, **kwargs: Any) -> Any:
             try:
                 return (
@@ -101,9 +101,9 @@ class RPCProxy:
 
         return wrapper
 
-    async def _close(self: "RPCProxy") -> None:
+    async def _close(self) -> None:
         await self.session.close()  # type: ignore
 
-    def __del__(self: "RPCProxy") -> None:
+    def __del__(self) -> None:
         if ASYNC and self._loop.is_running():
             self._loop.create_task(self._close())

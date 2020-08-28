@@ -12,3 +12,5 @@ exclude_lines =
     pragma: no cover
     if not webhook_available:
     def \w*_sync
+    raise NotImplementedError()
+    if TYPE_CHECKING:

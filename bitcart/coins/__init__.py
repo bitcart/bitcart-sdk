@@ -4,4 +4,6 @@ from .btc import BTC
 from .gzro import GZRO
 from .ltc import LTC
 
-__all__ = ["BTC", "BCH", "LTC", "GZRO", "BSTY"]
+COINS = {"BTC": BTC, "BCH": BCH, "LTC": LTC, "GZRO": GZRO, "BSTY": BSTY}
+
+__all__ = list(COINS.keys()) + ["COINS"]

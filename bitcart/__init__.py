@@ -1,3 +1,4 @@
-from .coins import BCH, BSTY, BTC, GZRO, LTC
+from .coins import BCH, BSTY, BTC, COINS, GZRO, LTC  # noqa: F401
+from .manager import APIManager
 
-__all__ = ["BTC", "BCH", "LTC", "GZRO", "BSTY"]
+__all__ = list(COINS.keys()) + ["COINS", "APIManager"]
