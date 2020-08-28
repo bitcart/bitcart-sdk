@@ -12,11 +12,11 @@ class BCH(BTC):
     RPC_URL = "http://localhost:5004"
     AMOUNT_FIELD = "amount (BCH)"
 
-    async def history(self: "BCH") -> dict:  # pragma: no cover
+    async def history(self) -> dict:  # pragma: no cover
         return await self.server.history()  # type: ignore
 
     async def addrequest(
-        self: "BCH",
+        self,
         amount: Optional[Union[int, str]] = None,
         description: str = "",
         expire: Union[int, float] = 15,

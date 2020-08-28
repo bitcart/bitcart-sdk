@@ -7,9 +7,17 @@ import os
 
 import pytest
 
+from bitcart import BTC
+
 from ...utils import data_check
 
 pytestmark = pytest.mark.asyncio
+
+
+async def test_compare(btc, xpub):
+    with pytest.warns(UserWarning):
+        assert btc == BTC()
+    assert btc != 1
 
 
 async def test_help(btc):
