@@ -3,8 +3,6 @@ from typing import Optional, Union
 from ..utils import convert_amount_type
 from .btc import BTC
 
-ASYNC = True
-
 
 class BCH(BTC):
     coin_name = "BCH"

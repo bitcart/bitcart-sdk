@@ -14,8 +14,6 @@ from ..utils import bitcoins, convert_amount_type
 if TYPE_CHECKING:
     import requests
 
-ASYNC = True
-
 
 def lightning(f: Callable) -> Callable:
     @wraps(f)

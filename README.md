@@ -15,21 +15,25 @@ Coins support(⚡ means lightning is supported):
 
 Main focus is Bitcoin.
 
-This library supports both asynchronous and synchronous versions.
-Use `bitcart` as a sync version(better for beginners), and `bitcart-async` for async version.
+This library supports both asynchronous and synchronous usages.
 
-If you install from github, by default it is async.
-Use:
+You can call it's methods synchronously, like so:
+
+```python
+print(btc.help())
 ```
-ASYNC=false pip install .
+
+Or you can await it's methods when using from async functions:
+
+```python
+async def main():
+    print(await btc.help())
 ```
-For it to convert async version to sync and install that.
-That process is done via ``sync_generator.py``.
+
+Async callback functions for `@btc.on` are supported.
 
 For more information [Read the Docs](https://sdk.bitcartcc.com)
 
-Async version's APIs are the same as sync, just use async and await.
-Async callback functions for @btc.on now supported.
 
 ## Contributing
 
