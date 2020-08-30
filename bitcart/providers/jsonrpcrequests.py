@@ -80,7 +80,7 @@ class RPCProxy:
         return wrapper
 
     async def _close(self) -> None:
-        await self.session.close()  # type: ignore
+        await self.session.close()
 
     def __del__(self) -> None:
         if self._loop.is_running():

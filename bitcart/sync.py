@@ -3,18 +3,19 @@ import asyncio
 import functools
 import inspect
 import threading
+from typing import Any, AsyncGenerator, Callable, Coroutine, List, Union
 
 from .coins import COINS
 from .manager import APIManager
 from .providers.jsonrpcrequests import RPCProxy
 
 
-def async_to_sync_wraps(function):
-    async def consume_generator(coroutine):
+def async_to_sync_wraps(function: Callable) -> Callable:
+    async def consume_generator(coroutine: AsyncGenerator) -> List[Any]:
         return [i async for i in coroutine]
 
     @functools.wraps(function)
-    def async_to_sync_wrap(*args, **kwargs):
+    def async_to_sync_wrap(*args: Any, **kwargs: Any) -> Union[Coroutine, Any]:
         loop = asyncio.get_event_loop()
         coroutine = function(*args, **kwargs)
 
@@ -38,13 +39,13 @@ def async_to_sync_wraps(function):
     return async_to_sync_wrap
 
 
-def async_to_sync(obj, name):
+def async_to_sync(obj: object, name: str) -> None:
     function = getattr(obj, name)
 
     setattr(obj, name, async_to_sync_wraps(function))
 
 
-def wrap(source):
+def wrap(source: object) -> None:
     for name in dir(source):
         method = getattr(source, name)
 
