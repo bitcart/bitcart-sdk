@@ -7,15 +7,9 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, Optional, Union
 if TYPE_CHECKING:
     from providers.jsonrpcrequests import RPCProxy
 
-ASYNC = True
-
-
 webhook_available = True
 try:
-    if ASYNC:
-        from aiohttp import web
-    else:  # pragma: no cover
-        from flask import Flask, request
+    from aiohttp import web
 except (ModuleNotFoundError, ImportError):  # pragma: no cover
     webhook_available = False
 
@@ -26,23 +20,8 @@ class EventDelivery:
 
     def __init__(self) -> None:
         self.webhook_available = webhook_available
-        if ASYNC:
-            self._configure_webhook = self._configure_webhook_async
-            self.handle_webhook = self.handle_webhook_async
-            self._start_webhook = self._start_webhook_async
-            self._loop = asyncio.get_event_loop()
-            self._loop.set_exception_handler(lambda loop, context: None)
-        else:  # pragma: no cover
-            self._configure_webhook = self._configure_webhook_sync
-            self.handle_webhook = self.handle_webhook_sync  # type: ignore
-            self._start_webhook = self._start_webhook_sync
 
-    def handle_webhook_sync(self) -> dict:
-        json = request.json
-        self.process_updates(json.get("updates", []), json.get("currency", "BTC"), json.get("wallet"))
-        return {}
-
-    async def handle_webhook_async(self, request: "web.Request") -> "web.Response":
+    async def handle_webhook(self, request: "web.Request") -> "web.Response":
         try:
             json = await request.json()
         except JSONDecodeError:
@@ -55,13 +34,9 @@ class EventDelivery:
     ) -> None:
         raise NotImplementedError()
 
-    def _configure_webhook_async(self) -> None:
+    def _configure_webhook(self) -> None:
         self.webhook_app = web.Application()
         self.webhook_app.router.add_post("/", self.handle_webhook)
-
-    def _configure_webhook_sync(self) -> None:
-        self.webhook_app = Flask(__name__)  # type: ignore
-        self.webhook_app.add_url_rule("/", "handle_webhook", self.handle_webhook, methods=["POST"])  # type: ignore
 
     def check_webhook_support(self) -> None:
         if not webhook_available:
@@ -77,33 +52,15 @@ class EventDelivery:
         self._configure_webhook()
         await self._configure_notifications()
 
-    def _start_webhook_sync(self, port: int = 6000, **kwargs: Any) -> None:
-        self.webhook_app.run(port=port, **kwargs)  # type: ignore
-
-    def _start_webhook_async(self, port: int = 6000, **kwargs: Any) -> None:
+    def _start_webhook(self, port: int = 6000, **kwargs: Any) -> None:
         web.run_app(self.webhook_app, port=port, **kwargs)
 
     def start_webhook(self, port: int = 6000, **kwargs: Any) -> None:
         self.check_webhook_support()
-        if ASYNC:
-            self._loop.run_until_complete(self.configure_webhook())
-        else:  # pragma: no cover
-            self.configure_webhook()
+        self.configure_webhook()
         self._start_webhook(port=port, **kwargs)
 
     async def poll_updates(self, timeout: Union[int, float] = 2) -> None:  # pragma: no cover
-        await self.server.subscribe(list(self.event_handlers.keys()))
-        while True:
-            try:
-                data = await self.server.get_updates()
-            except Exception as err:
-                logging.error(err)
-                await asyncio.sleep(timeout)
-                continue
-            await self.process_updates(data)
-            await asyncio.sleep(timeout)
-
-    def poll_updates_sync(self, timeout: Union[int, float] = 2) -> None:
         """Poll updates
 
         Poll daemon for new transactions in wallet,
@@ -121,7 +78,16 @@ class EventDelivery:
         Returns:
             None: This function runs forever
         """
-        self._loop.run_until_complete(self.poll_updates(timeout))
+        await self.server.subscribe(list(self.event_handlers.keys()))
+        while True:
+            try:
+                data = await self.server.get_updates()
+            except Exception as err:
+                logging.error(err)
+                await asyncio.sleep(timeout)
+                continue
+            await self.process_updates(data)
+            await asyncio.sleep(timeout)
 
     def add_event_handler(self, events: Union[Iterable[str], str], func: Callable) -> None:
         """Add event handler to handle event(s) provided

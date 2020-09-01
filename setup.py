@@ -1,24 +1,11 @@
-import os
-
 from setuptools import find_packages, setup
-
-from sync_generator import main as generate
-
-SYNC_REQS = ["jsonrpcclient[requests]"]
-ASYNC_REQS = ["jsonrpcclient[aiohttp]", "aiohttp<4.0.0"]
-SYNC_EXTRAS = {"webhook": ["flask"], "proxy": ["requests[socks]"]}
-ASYNC_EXTRAS = {"proxy": ["aiohttp_socks"]}
 
 
 def main() -> None:
-    ASYNC = os.getenv("ASYNC", True) in ["true", "True", True]
-    if not ASYNC:
-        generate()
-
     setup(
-        name="bitcart" if not ASYNC else "bitcart-async",
+        name="bitcart",
         packages=find_packages(),
-        version="0.9.1",
+        version="1.0.0",
         license="MIT",
         description="BitcartCC coins support library",
         long_description=open("README.md").read(),
@@ -27,10 +14,10 @@ def main() -> None:
         author_email="chuff184@gmail.com",
         url="https://github.com/MrNaif2018/bitcart-sdk",
         keywords=["electrum", "daemon", "bitcart", "bitcartcc"],
-        install_requires=SYNC_REQS if not ASYNC else ASYNC_REQS,
-        extras_require=SYNC_EXTRAS if not ASYNC else ASYNC_EXTRAS,
+        install_requires=["jsonrpcclient[aiohttp]", "aiohttp<4.0.0"],
+        extras_require={"proxy": ["aiohttp_socks"]},
         classifiers=[
-            "Development Status :: 3 - Alpha",
+            "Development Status :: 4 - Beta",
             "Intended Audience :: Developers",
             "Topic :: Software Development :: Build Tools",
             "License :: OSI Approved :: MIT License",

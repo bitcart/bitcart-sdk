@@ -70,20 +70,20 @@ print(btc2.list_channels())  # List of lightning channels
 # Notification API(requires wallet)
 
 
-@btc.on("new_block")
+@btc2.on("new_block")
 def new_block(event, height):
     print(event)
     print(height)  # block height
 
 
-@btc.on("new_transaction")
+@btc2.on("new_transaction")
 def new_tx(event, tx):
     print(event)
     print(tx)  # tx hash
 
 
 ### Or register a function under multiple events ###
-# @btc.on(["new_block","new_transaction"])
+# @btc2.on(["new_block","new_transaction"])
 # def handler(event, tx=None, height=None):
 #    print(event)
 #    if event == "new_block":

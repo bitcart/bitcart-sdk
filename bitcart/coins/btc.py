@@ -12,9 +12,7 @@ from ..providers.jsonrpcrequests import RPCProxy
 from ..utils import bitcoins, convert_amount_type
 
 if TYPE_CHECKING:
-    import requests
-
-ASYNC = True
+    import aiohttp
 
 
 def lightning(f: Callable) -> Callable:
@@ -45,7 +43,7 @@ class BTC(Coin, EventDelivery):
         rpc_pass: Optional[str] = None,
         xpub: Optional[str] = None,
         proxy: Optional[str] = None,
-        session: Optional["requests.Session"] = None,
+        session: Optional["aiohttp.ClientSession"] = None,
     ):
         super().__init__()
         if not xpub:

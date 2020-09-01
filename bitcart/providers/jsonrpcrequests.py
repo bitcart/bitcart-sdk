@@ -1,31 +1,21 @@
-from typing import Any, Callable, Optional, Union
+import asyncio
+from typing import Any, Callable, Optional
 
-ASYNC = True
-
-
-try:
-    import jsonrpcclient
-
-    if ASYNC:
-        import asyncio
-
-        import aiohttp
-        from jsonrpcclient.clients.aiohttp_client import AiohttpClient as RPC
-    else:
-        import requests
-        from jsonrpcclient.clients.http_client import HTTPClient as RPC
-except (ModuleNotFoundError, ImportError):
-    pass  # probably during CI build
+import aiohttp
+import jsonrpcclient
+from jsonrpcclient.clients.aiohttp_client import AiohttpClient as RPC
 
 
 class RPCProxy:
+    session: aiohttp.ClientSession
+
     def __init__(
         self,
         url: str,
         username: Optional[str] = None,
         password: Optional[str] = None,
         xpub: Optional[str] = None,
-        session: Optional[Union["aiohttp.ClientSession", "requests.Session"]] = None,
+        session: Optional[aiohttp.ClientSession] = None,
         proxy: Optional[str] = None,
         verify: Optional[bool] = True,
     ):
@@ -34,24 +24,16 @@ class RPCProxy:
         self.password = password
         self.xpub = xpub
         self.proxy = proxy
-        if not ASYNC and self.proxy:
-            self.proxy = self.proxy.replace("socks5://", "socks5h://")  # replace protocol
         self.verify = verify
-        self.session: Union["aiohttp.ClientSession", "requests.Session"]
-        if ASYNC:
-            self._connector_class = aiohttp.TCPConnector
-            self._connector_init = dict(ssl=self.verify)
-            self._loop = asyncio.get_event_loop()
-            self._loop.set_exception_handler(lambda loop, context: None)
+        self._connector_class = aiohttp.TCPConnector
+        self._connector_init = dict(ssl=self.verify)
+        self._loop = asyncio.get_event_loop()
+        self._loop.set_exception_handler(lambda loop, context: None)
         if session:
             self.sesson = session
         else:
             self.create_session()
-        if ASYNC:
-            self.rpc = RPC(endpoint=self.url, session=self.session, timeout=5 * 60)
-        else:
-            self.rpc = RPC(endpoint=self.url)
-            self.rpc.session = self.session
+        self.rpc = RPC(endpoint=self.url, session=self.session, timeout=5 * 60)
 
     def init_proxy(self) -> None:
         if self.proxy:
@@ -70,21 +52,17 @@ class RPCProxy:
             )
 
     def create_session(self) -> None:
-        if ASYNC:
-            self.init_proxy()
-            self.session = aiohttp.ClientSession(
-                connector=self._connector_class(**self._connector_init),  # type: ignore
-                loop=self._loop,
-                auth=aiohttp.BasicAuth(self.username, self.password),  # type: ignore
-            )
-        else:
-            proxies = {"http": self.proxy, "https": self.proxy}
-            self.session = requests.Session()
-            self.session.proxies = proxies  # type: ignore
-            self.session.auth = (self.username, self.password)  # type: ignore
-            self.session.timeout = 5 * 60  # type: ignore
+        self.init_proxy()
+        self.session = aiohttp.ClientSession(
+            connector=self._connector_class(**self._connector_init),  # type: ignore
+            loop=self._loop,
+            auth=aiohttp.BasicAuth(self.username, self.password),  # type: ignore
+        )
 
     def __getattr__(self, method: str, *args: Any, **kwargs: Any) -> Callable:
+        from ..sync import async_to_sync_wraps
+
+        @async_to_sync_wraps
         async def wrapper(*args: Any, **kwargs: Any) -> Any:
             try:
                 return (
@@ -102,8 +80,8 @@ class RPCProxy:
         return wrapper
 
     async def _close(self) -> None:
-        await self.session.close()  # type: ignore
+        await self.session.close()
 
     def __del__(self) -> None:
-        if ASYNC and self._loop.is_running():
+        if self._loop.is_running():
             self._loop.create_task(self._close())
