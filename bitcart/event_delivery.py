@@ -1,8 +1,9 @@
 import asyncio
 import logging
-import time  # noqa: F401: for sync generator
 from json import JSONDecodeError
 from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, Optional, Union
+
+from .errors import WebhookUnsupportedError
 
 if TYPE_CHECKING:
     from providers.jsonrpcrequests import RPCProxy
@@ -40,7 +41,7 @@ class EventDelivery:
 
     def check_webhook_support(self) -> None:
         if not webhook_available:
-            raise ValueError("Webhook support not installed. Install it with pip install bitcart[webhook]")
+            raise WebhookUnsupportedError("Webhook support not installed. Install it with pip install bitcart[webhook]")
 
     async def _configure_notifications(self, autoconfigure: bool = True) -> None:
         await self.server.subscribe(list(self.event_handlers.keys()))

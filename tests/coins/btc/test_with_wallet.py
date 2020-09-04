@@ -2,6 +2,8 @@ from decimal import Decimal
 
 import pytest
 
+from bitcart import errors
+
 pytestmark = pytest.mark.asyncio
 
 
@@ -36,7 +38,7 @@ async def test_payment_request(btc_wallet):
 
 
 async def test_insufficient_funds_pay(btc_wallet):
-    with pytest.raises(ValueError):
+    with pytest.raises(errors.NotEnoughFundsError):
         await btc_wallet.pay_to("1KQah89MJhmhxB9hRQN6DnMSkPH3RUjPev", 0.1)
 
 

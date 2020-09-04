@@ -2,6 +2,8 @@ import asyncio
 
 import pytest
 
+from bitcart import errors
+
 from .utils import data_check, run_shell
 
 pytestmark = pytest.mark.asyncio
@@ -142,11 +144,10 @@ async def test_list_channels(regtest_wallet):
 
 
 async def test_lnpay(regtest_wallet):
-    with pytest.raises(ValueError):
+    with pytest.raises(errors.InvalidLightningInvoiceError):
         assert not await regtest_wallet.lnpay("")
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(errors.NoPathFoundError):
         assert await regtest_wallet.lnpay(await regtest_wallet.addinvoice(0.5))
-    assert "No path found" in str(e)
 
 
 @pytest.mark.skip("Fixed in next electrum version")

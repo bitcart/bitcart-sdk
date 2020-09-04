@@ -66,4 +66,6 @@ for source in COINS.values():
     wrap(source)
 
 async_to_sync(COINS["BTC"], "node_id", is_property=True)  # special case: property
+async_to_sync(COINS["BTC"], "spec", is_property=True)
+async_to_sync(RPCProxy, "spec", is_property=True)
 wrap(APIManager)

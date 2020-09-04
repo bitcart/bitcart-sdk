@@ -1,5 +1,6 @@
 import pytest
 
+from bitcart import errors
 from bitcart.errors import LightningDisabledError
 
 pytestmark = pytest.mark.asyncio
@@ -14,9 +15,9 @@ async def test_add_invoice(btc_wallet):
 
 
 async def test_connect(btc_wallet):
-    with pytest.raises(ValueError):
+    with pytest.raises(errors.InvalidNodeIDError):
         assert not await btc_wallet.connect("")
-    with pytest.raises(ValueError):
+    with pytest.raises(errors.InvalidNodeIDError):
         assert not await btc_wallet.connect("172.81.181.3")  # taken from electrum sources
     assert await btc_wallet.connect("0214382bdce7750dfcb8126df8e2b12de38536902dc36abcebdaeefdeca1df8284@172.81.181.3")
 
