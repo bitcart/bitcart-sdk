@@ -2,9 +2,8 @@
 # A command line utility to send to some address from your wallet
 import sys
 
-import requests
-
-from bitcart import BTC
+from bitcart import BTC, errors
+from bitcart.errors import ConnectionFailedError
 
 if len(sys.argv) != 4:
     print("Usage: ./donateto xpub address amount")
@@ -21,10 +20,9 @@ btc = BTC(xpub=xpub)
 try:
     tx_hash = btc.pay_to(address, amount)
     print(f"Success!\nTx hash: {tx_hash}")
-except ValueError as e:
-    if "Error loading wallet" in str(e):  # TODO: better exceptions
-        print("Bad wallet provided")
-    else:
-        print(e)
-except requests.exceptions.ConnectionError:  # TODO: add specific exception for it to be the same in bitcart and bitcart-async
+except errors.LoadingWalletError:
+    print("Bad wallet provided")
+except ConnectionFailedError:
     print("Daemon not running")
+except Exception as e:
+    print(e)

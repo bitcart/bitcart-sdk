@@ -56,6 +56,22 @@ class BTC(Coin, EventDelivery):
         self.amount_field = getattr(self, "AMOUNT_FIELD", f"amount_{self.coin_name}")
         self.server = RPCProxy(self.rpc_url, self.rpc_user, self.rpc_pass, self.xpub, session=session, proxy=proxy)
 
+    @property
+    async def spec(self) -> dict:
+        """Returns current daemon's spec
+
+        It contains documentation for all possible exceptions raised
+
+        Example:
+
+        >>> c.spec
+        {'version': '0.0.1', 'electrum_map': {...}, 'exceptions': {...}}
+
+        Returns:
+            dict: spec
+        """
+        return await self.server.spec  # type: ignore
+
     ### High level interface ###
 
     async def help(self) -> list:
@@ -197,7 +213,6 @@ class BTC(Coin, EventDelivery):
             broadcast (bool, optional): Whether to broadcast transaction to network. Defaults to True.
 
         Raises:
-            ValueError: If address or amount is invalid or in other cases
             TypeError: if you have provided both fee and feerate
 
         Returns:
@@ -267,7 +282,6 @@ class BTC(Coin, EventDelivery):
             broadcast (bool, optional): Whether to broadcast transaction to network. Defaults to True.
 
         Raises:
-            ValueError: If address or amount is invalid or in other cases
             TypeError: if you have provided both fee and feerate
 
         Returns:

@@ -1,9 +1,12 @@
 import asyncio
 from typing import Any, Callable, Optional
+from urllib.parse import urljoin
 
 import aiohttp
 import jsonrpcclient
 from jsonrpcclient.clients.aiohttp_client import AiohttpClient as RPC
+
+from ..errors import ConnectionFailedError, UnknownError, generate_exception
 
 
 class RPCProxy:
@@ -29,6 +32,8 @@ class RPCProxy:
         self._connector_init = dict(ssl=self.verify)
         self._loop = asyncio.get_event_loop()
         self._loop.set_exception_handler(lambda loop, context: None)
+        self._spec = {"exceptions": {"-32600": {"exc_name": "UnauthorizedError", "docstring": "Unauthorized"}}}
+        self._spec_valid = False
         if session:
             self.sesson = session
         else:
@@ -59,6 +64,38 @@ class RPCProxy:
             auth=aiohttp.BasicAuth(self.username, self.password),  # type: ignore
         )
 
+    def validate_spec(self, spec: Any) -> bool:
+        if not isinstance(spec, dict):
+            return False
+        if not spec.keys() >= {"version", "exceptions"}:
+            return False
+        if not isinstance(spec["version"], str) or not isinstance(spec["exceptions"], dict):
+            return False
+        if not all(
+            isinstance(code, str) and isinstance(exc, dict) and exc.keys() >= {"exc_name", "docstring"}
+            for code, exc in spec["exceptions"].items()
+        ):
+            return False
+        return True
+
+    async def fetch_spec(self) -> Any:
+        resp = await self.session.get(urljoin(self.url, "/spec"))
+        spec = await resp.json()
+        return spec
+
+    @property
+    async def spec(self) -> dict:
+        if self._spec_valid:
+            return self._spec
+        try:
+            spec = await self.fetch_spec()
+            self._spec_valid = self.validate_spec(spec)
+            if self._spec_valid:
+                self._spec = spec
+        except Exception:
+            pass
+        return self._spec
+
     def __getattr__(self, method: str, *args: Any, **kwargs: Any) -> Callable:
         from ..sync import async_to_sync_wraps
 
@@ -75,7 +112,15 @@ class RPCProxy:
                     )
                 ).data.result
             except jsonrpcclient.exceptions.ReceivedErrorResponseError as e:
-                raise ValueError("Error from server: {}".format(e.response.message))
+                message = e.response.message
+                error_code = str(e.response.code)
+                exceptions = (await self.spec)["exceptions"]
+                if error_code in exceptions:
+                    exc = exceptions[error_code]
+                    raise generate_exception(exc["exc_name"])(exc["docstring"]) from e
+                raise UnknownError("Unknown error from server: {}".format(message)) from e
+            except aiohttp.ClientConnectionError as e:
+                raise ConnectionFailedError() from e
 
         return wrapper
 

@@ -4,6 +4,7 @@ import sys
 import warnings
 
 from bitcart import BTC
+from bitcart.errors import ConnectionFailedError, RequestError
 
 if len(sys.argv) != 2:
     print("Usage: ./gettx txhash")
@@ -15,5 +16,5 @@ with warnings.catch_warnings():  # to ignore no xpub passed warning
     btc = BTC()
 try:
     print(btc.get_tx(tx))
-except ValueError:
+except (RequestError, ConnectionFailedError):
     print("Bad tx hash provided, or daemon not running.")

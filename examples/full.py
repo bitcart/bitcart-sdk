@@ -1,4 +1,4 @@
-from bitcart import BTC
+from bitcart import BTC, errors
 
 SHOW_UPDATES = True  # if you want this demo to run forever printing out updates
 DONATE_TO_AUTHOR = False  # if you really want to execute pay_to commands on your wallet
@@ -25,9 +25,8 @@ print(btc.get_config("x"))  # -> 1 Get config key
 print(btc.get_address("1MBbj9ENeEdSeJwJFReWNgrDJrSMMqWqH4"))  # Address history
 try:
     print(btc.server.create(wallet_path="tmp"))  # create new wallet
-except ValueError:
+except errors.WalletExistsError:
     pass  # already exists
-
 btc2 = BTC(xpub="paste your x/y/z pub/prv or electrum seed here for it to work")
 # Wallet methods #
 print(btc2.balance())
