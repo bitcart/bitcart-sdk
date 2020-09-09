@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # A command line utility to send to some address from your wallet
 import sys
+from decimal import Decimal, InvalidOperation
 
 from bitcart import BTC, errors
 from bitcart.errors import ConnectionFailedError
@@ -11,8 +12,8 @@ if len(sys.argv) != 4:
 xpub = sys.argv[1]
 address = sys.argv[2]
 try:
-    amount = float(sys.argv[3])
-except ValueError:
+    amount = Decimal(sys.argv[3])
+except InvalidOperation:
     print("Invalid amount passed")
     sys.exit(1)
 # bitcartcc-related code

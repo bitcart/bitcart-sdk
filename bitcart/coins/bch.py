@@ -1,6 +1,5 @@
-from typing import Optional, Union
+from typing import Any
 
-from ..utils import convert_amount_type
 from .btc import BTC
 
 
@@ -13,13 +12,5 @@ class BCH(BTC):
     async def history(self) -> dict:  # pragma: no cover
         return await self.server.history()  # type: ignore
 
-    async def addrequest(
-        self,
-        amount: Optional[Union[int, str]] = None,
-        description: str = "",
-        expire: Union[int, float] = 15,
-    ) -> dict:  # pragma: no cover
-        expiration = 60 * expire if expire else None
-        data = await self.server.addrequest(amount=amount, memo=description, expiration=expiration, force=True)
-        data[self.amount_field] = convert_amount_type(data[self.amount_field])
-        return data  # type: ignore
+    async def _addrequest(self, *args: Any, **kwargs: Any) -> dict:  # pragma: no cover
+        return await self.server.addrequest(*args, **kwargs)  # type: ignore

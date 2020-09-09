@@ -9,6 +9,7 @@ from ..coin import Coin
 from ..errors import InvalidEventError, LightningDisabledError
 from ..event_delivery import EventDelivery
 from ..providers.jsonrpcrequests import RPCProxy
+from ..types import AmountType
 from ..utils import bitcoins, convert_amount_type
 
 if TYPE_CHECKING:
@@ -90,9 +91,12 @@ class BTC(Coin, EventDelivery):
         data = await self.server.getbalance()
         return {attr: convert_amount_type(data.get(attr, 0)) for attr in self.BALANCE_ATTRS}
 
+    async def _addrequest(self, *args: Any, **kwargs: Any) -> dict:
+        return await self.server.add_request(*args, **kwargs)  # type: ignore
+
     async def addrequest(
         self,
-        amount: Optional[Union[int, str]] = None,
+        amount: Optional[AmountType] = None,
         description: str = "",
         expire: Union[int, float] = 15,
     ) -> dict:
@@ -108,7 +112,7 @@ class BTC(Coin, EventDelivery):
 
         Args:
             self (BTC): self
-            amount (Optional[Union[int, str]]): amount to open invoice. Defaults to None.
+            amount (Optional[AmountType]): amount to open invoice. Defaults to None.
             description (str, optional): Description of invoice. Defaults to "".
             expire (Union[int, float], optional): The time invoice will expire in. Defaults to 15.
 
@@ -116,9 +120,10 @@ class BTC(Coin, EventDelivery):
             dict: Invoice data
         """
         expiration = 60 * expire if expire else None
-        data = await self.server.add_request(amount=amount, memo=description, expiration=expiration, force=True)
-        data[self.amount_field] = convert_amount_type(data[self.amount_field])
-        return data  # type: ignore
+        data = await self._addrequest(amount=amount, memo=description, expiration=expiration, force=True)
+        if data[self.amount_field] != "unknown":
+            data[self.amount_field] = convert_amount_type(data[self.amount_field])
+        return data
 
     async def getrequest(self, address: str) -> dict:
         """Get invoice info
@@ -138,7 +143,8 @@ class BTC(Coin, EventDelivery):
             dict: Invoice data
         """
         data = await self.server.getrequest(address)
-        data[self.amount_field] = convert_amount_type(data[self.amount_field])
+        if data[self.amount_field] != "unknown":
+            data[self.amount_field] = convert_amount_type(data[self.amount_field])
         return data  # type: ignore
 
     async def history(self) -> dict:
@@ -181,9 +187,9 @@ class BTC(Coin, EventDelivery):
     async def pay_to(
         self,
         address: str,
-        amount: float,
-        fee: Optional[Union[float, Callable]] = None,
-        feerate: Optional[float] = None,
+        amount: AmountType,
+        fee: Optional[Union[AmountType, Callable]] = None,
+        feerate: Optional[AmountType] = None,
         broadcast: bool = True,
     ) -> Union[dict, str]:
         """Pay to address
@@ -205,10 +211,10 @@ class BTC(Coin, EventDelivery):
         Args:
             self (BTC): self
             address (str): address where to send BTC
-            amount (float): amount of bitcoins to send
-            fee (Optional[Union[float, Callable]], optional): Either a fixed fee, or a callable getting size and default fee
-                as argument and returning fee. Defaults to None.
-            feerate (Optional[float], optional): A sat/byte feerate, can't be passed together with fee argument.
+            amount (AmountType): amount of bitcoins to send
+            fee (Optional[Union[AmountType, Callable]], optional): Either a fixed fee, or a callable getting size and
+                default fee as argument and returning fee. Defaults to None.
+            feerate (Optional[AmountType], optional): A sat/byte feerate, can't be passed together with fee argument.
                 Defaults to None.
             broadcast (bool, optional): Whether to broadcast transaction to network. Defaults to True.
 
@@ -244,8 +250,8 @@ class BTC(Coin, EventDelivery):
     async def pay_to_many(
         self,
         outputs: Iterable[Union[dict, tuple]],
-        fee: Optional[Union[float, Callable]] = None,
-        feerate: Optional[float] = None,
+        fee: Optional[Union[AmountType, Callable]] = None,
+        feerate: Optional[AmountType] = None,
         broadcast: bool = True,
     ) -> Union[dict, str]:
         """Pay to multiple addresses(batch transaction)
@@ -275,9 +281,9 @@ class BTC(Coin, EventDelivery):
         Args:
             self (BTC): self
             outputs (Iterable[Union[dict, tuple]]): An iterable with dictionary or iterable as the item
-            fee (Optional[Union[float, Callable]], optional): Either a fixed fee, or a callable getting size and default fee
-                as argument and returning fee. Defaults to None.
-            feerate (Optional[float], optional): A sat/byte feerate, can't be passed together with fee argument.
+            fee (Optional[Union[AmountType, Callable]], optional): Either a fixed fee, or a callable getting size and
+                default fee as argument and returning fee. Defaults to None.
+            feerate (Optional[AmountType], optional): A sat/byte feerate, can't be passed together with fee argument.
                 Defaults to None.
             broadcast (bool, optional): Whether to broadcast transaction to network. Defaults to True.
 
@@ -432,7 +438,7 @@ class BTC(Coin, EventDelivery):
     ### Lightning apis ###
 
     @lightning
-    async def open_channel(self, node_id: str, amount: Union[int, str]) -> str:
+    async def open_channel(self, node_id: str, amount: AmountType) -> str:
         """Open lightning channel
 
         Open channel with node, returns string of format
@@ -441,7 +447,7 @@ class BTC(Coin, EventDelivery):
         Args:
             self (BTC): self
             node_id (str): id of node to open channel with
-            amount (Union[int, str]): amount to open channel
+            amount (AmountType): amount to open channel
 
         Returns:
             str: string of format txid:output_index
@@ -449,7 +455,7 @@ class BTC(Coin, EventDelivery):
         return await self.server.open_channel(node_id, amount)  # type: ignore
 
     @lightning
-    async def addinvoice(self, amount: Union[int, str], message: Optional[str] = "") -> str:
+    async def addinvoice(self, amount: AmountType, message: Optional[str] = "") -> str:
         """Create lightning invoice
 
         Create lightning invoice and return bolt invoice id
@@ -461,7 +467,7 @@ class BTC(Coin, EventDelivery):
 
         Args:
             self (BTC): self
-            amount (Union[int, str]): invoice amount
+            amount (AmountType): invoice amount
             message (Optional[str], optional): Invoice message. Defaults to "".
 
         Returns:
