@@ -12,7 +12,7 @@ def main() -> None:
         long_description_content_type="text/markdown",
         author="MrNaif2018",
         author_email="chuff184@gmail.com",
-        url="https://github.com/MrNaif2018/bitcart-sdk",
+        url="https://github.com/bitcartcc/bitcart-sdk",
         keywords=["electrum", "daemon", "bitcart", "bitcartcc"],
         install_requires=["jsonrpcclient[aiohttp]", "aiohttp<4.0.0"],
         extras_require={"proxy": ["aiohttp_socks"]},

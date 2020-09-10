@@ -29,7 +29,7 @@ For that you'll need BitcartCC daemon, so:
 
 .. code-block:: sh
 
-    git clone https://github.com/MrNaif2018/bitcart
+    git clone https://github.com/bitcartcc/bitcart
     cd bitcart
     pip install -r requirements/base.txt
     pip install -r requirements/daemons/btc.txt

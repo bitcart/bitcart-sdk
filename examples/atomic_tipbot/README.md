@@ -44,7 +44,7 @@ There are two ways to do it, automatic(via docker, recommended), or directly via
 Clone bitcart-docker repository:
 
 ```
-git clone https://github.com/MrNaif2018/bitcart-docker
+git clone https://github.com/bitcartcc/bitcart-docker
 cd bitcart-docker
 ```
 
@@ -74,7 +74,7 @@ As for this example, Python 3.6+ is required. Using virtualenv is recommended.
 Clone BitcartCC repository:
 
 ```
-git clone https://github.com/MrNaif2018/bitcart
+git clone https://github.com/bitcartcc/bitcart
 cd bitcart
 ```
 
@@ -136,7 +136,7 @@ BTC class accepts the following parameters:
 After intializing coin, you can start using it.
 BitcartCC SDK coins' main methods are fully documented(often with examples)
 Those are highlevel methods.
-If you see something missing, open issue at [BitcartCC SDK repository](https://github.com/MrNaif2018/bitcart-sdk)
+If you see something missing, open issue at [BitcartCC SDK repository](https://github.com/bitcartcc/bitcart-sdk)
 If you need to use electrum's RPC methods, call them via btc.server(a wrapper around it), like:
 
 `btc.server.validateaddress()`

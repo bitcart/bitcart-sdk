@@ -1,6 +1,6 @@
 # BitcartCC SDK
-[![CircleCI](https://circleci.com/gh/MrNaif2018/bitcart-sdk.svg?style=svg)](https://circleci.com/gh/MrNaif2018/bitcart-sdk)
-[![Codecov](https://img.shields.io/codecov/c/github/MrNaif2018/bitcart-sdk?style=flat-square)](https://codecov.io/gh/MrNaif2018/bitcart-sdk)
+[![CircleCI](https://circleci.com/gh/bitcartcc/bitcart-sdk.svg?style=svg)](https://circleci.com/gh/bitcartcc/bitcart-sdk)
+[![Codecov](https://img.shields.io/codecov/c/github/bitcartcc/bitcart-sdk?style=flat-square)](https://codecov.io/gh/bitcartcc/bitcart-sdk)
 [![PyPI version](https://img.shields.io/pypi/v/bitcart.svg?style=flat-square)](https://pypi.python.org/pypi/bitcart/)
 [![Read the Docs](https://img.shields.io/readthedocs/bitcart-sdk?style=flat-square)](https://sdk.bitcartcc.com)
 

@@ -35,7 +35,7 @@ jobs:
             cd ~/repo
             sudo apt install libsecp256k1-dev
             pip install electrumx
-            git clone https://github.com/MrNaif2018/bitcart ~/bitcart-daemon
+            git clone https://github.com/bitcartcc/bitcart ~/bitcart-daemon
             cd ~/bitcart-daemon
             pip install -r requirements/base.txt
             pip install -r requirements/daemons/btc.txt
