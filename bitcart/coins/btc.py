@@ -91,10 +91,10 @@ class BTC(Coin, EventDelivery):
         data = await self.server.getbalance()
         return {attr: convert_amount_type(data.get(attr, 0)) for attr in self.BALANCE_ATTRS}
 
-    async def _addrequest(self, *args: Any, **kwargs: Any) -> dict:
+    async def _add_request(self, *args: Any, **kwargs: Any) -> dict:
         return await self.server.add_request(*args, **kwargs)  # type: ignore
 
-    async def addrequest(
+    async def add_request(
         self,
         amount: Optional[AmountType] = None,
         description: str = "",
@@ -107,32 +107,32 @@ class BTC(Coin, EventDelivery):
 
         Example:
 
-        >>> c.addrequest(0.5, "My invoice", 20)
+        >>> c.add_request(0.5, "My invoice", 20)
         {'time': 1562762334, 'amount': 50000000, 'exp': 1200, 'address': 'xxx',...
 
         Args:
             self (BTC): self
             amount (Optional[AmountType]): amount to open invoice. Defaults to None.
             description (str, optional): Description of invoice. Defaults to "".
-            expire (Union[int, float], optional): The time invoice will expire in. Defaults to 15.
+            expire (Union[int, float], optional): The time invoice will expire in. In minutes. Defaults to 15.
 
         Returns:
             dict: Invoice data
         """
         expiration = 60 * expire if expire else None
-        data = await self._addrequest(amount=amount, memo=description, expiration=expiration, force=True)
+        data = await self._add_request(amount=amount, memo=description, expiration=expiration, force=True)
         if data[self.amount_field] != "unknown":
             data[self.amount_field] = convert_amount_type(data[self.amount_field])
         return data
 
-    async def getrequest(self, address: str) -> dict:
+    async def get_request(self, address: str) -> dict:
         """Get invoice info
 
-        Get invoice information by address got from addrequest
+        Get invoice information by address got from add_request
 
         Example:
 
-        >>> c.getrequest("1A6jnc6xQwmhsChNLcyKAQNWPcWsVYqCqJ")
+        >>> c.get_request("1A6jnc6xQwmhsChNLcyKAQNWPcWsVYqCqJ")
         {'time': 1562762334, 'amount': 50000000, 'exp': 1200, 'address': '1A6jnc6xQwmhsChNLcyKAQNWPcWsVYqCqJ',...
 
         Args:

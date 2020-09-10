@@ -12,5 +12,5 @@ class BCH(BTC):
     async def history(self) -> dict:  # pragma: no cover
         return await self.server.history()  # type: ignore
 
-    async def _addrequest(self, *args: Any, **kwargs: Any) -> dict:  # pragma: no cover
+    async def _add_request(self, *args: Any, **kwargs: Any) -> dict:  # pragma: no cover
         return await self.server.addrequest(*args, **kwargs)  # type: ignore

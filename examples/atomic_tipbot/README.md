@@ -151,13 +151,13 @@ RPC methods accessible via btc.server can't have intellisence in your IDE becaus
 
 Now, about using BitcartCC in this bot's code.
 To get price of 1 bitcoin in USD, simply call `btc.rate()`
-Use `btc.addrequest(amount, description="", expire=15)` to create BTC invoice
+Use `btc.add_request(amount, description="", expire=15)` to create BTC invoice
 Amount is amount in BTC, description is optional and is description of invoice, expire is the time invoice will expire in, 
 default 15 minutes, but if you pass None, invoice will never expire.
 This method returns data about newly created invoice:
 
 ```
->>> btc.addrequest(0.5, "My invoice description", 20)
+>>> btc.add_request(0.5, "My invoice description", 20)
 
 {'time': 1564678098, 'amount': 1000000, 'exp': 1200, 'address': 'msS5WjurQ6AeKyAM3xHrsB4r1ACiLimoDx', 'memo': 'My invoice description', 'id': 'd46f26f3a8', 'URI': 'bitcoin:msS5WjurQ6AeKyAM3xHrsB4r1ACiLimoDx?amount=0.01', 'status': 'Pending', 'amount (BTC)': Decimal('0.01')}
 ```
@@ -176,12 +176,12 @@ Status can be one of the following:
 
 It is provided by electrum and statuses may change, as for now those statuses can be got from commands.py of electrum source, in definition of pr_str dictionary. For now it is [here](https://github.com/spesmilo/electrum/blob/master/electrum/commands.py#L604)
 
-To get status of request, we use `btc.getrequest(address)` method.
+To get status of request, we use `btc.get_request(address)` method.
 Note that we use address, not id.
 Example(when transaction is paid):
 
 ```
-btc.getrequest("msS5WjurQ6AeKyAM3xHrsB4r1ACiLimoDx")
+btc.get_request("msS5WjurQ6AeKyAM3xHrsB4r1ACiLimoDx")
 {'time': 1564678098, 'amount': 1000000, 'exp': 1200, 'address': 'msS5WjurQ6AeKyAM3xHrsB4r1ACiLimoDx', 'memo': 'My invoice description', 'id': 'd46f26f3a8', 'URI': 'bitcoin:msS5WjurQ6AeKyAM3xHrsB4r1ACiLimoDx?amount=0.01', 'status': 'Paid', 'confirmations': 0, 'amount (BTC)': Decimal('0.01')}
 ```
 

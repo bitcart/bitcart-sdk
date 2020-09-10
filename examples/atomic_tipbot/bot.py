@@ -318,7 +318,7 @@ def convert_amounts(currency, amount):
 def generate_invoice(user_id, currency, amount, amount_sat, description=""):
     amount, friendly_name = convert_amounts(currency, amount)
     # bitcart: create invoice
-    invoice = instances[currency].addrequest(amount, description, expire=20160)  # 14 days
+    invoice = instances[currency].add_request(amount, description, expire=20160)  # 14 days
     amount_field = instances[currency].amount_field  # bitcart: each coin object provides amount_field
     invoice[amount_field] = str(invoice[amount_field])  # convert to str for mongodb
     invoice.update({"user_id": user_id, "currency": currency, "original_amount": amount_sat})
@@ -386,7 +386,7 @@ async def payment_handler(instance, event, address, status, status_str):  # asyn
     inv = mongo.invoices.find({"address": address}).limit(1).sort([("$natural", -1)])[0]  # to get latest result
     if inv and inv["status"] != "Paid":
         # bitcart: get invoice info, not neccesary here
-        # btc.getrequest(address)
+        # btc.get_request(address)
         if status_str == "Paid":
             user = mongo.users.find_one({"user_id": inv["user_id"]})
             amount = inv["original_amount"]

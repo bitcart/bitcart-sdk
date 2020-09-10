@@ -8,7 +8,7 @@ from .utils import data_check, run_shell
 
 pytestmark = pytest.mark.asyncio
 
-BTC_ADDRESS = "mjHXzpMTjhLePAdWgoesdhqEzCCRh6mwkJ"  # can be got by run_shell(["newaddress"]) or regtest_wallet.addrequest()
+BTC_ADDRESS = "mjHXzpMTjhLePAdWgoesdhqEzCCRh6mwkJ"  # can be got by run_shell(["newaddress"]) or regtest_wallet.add_request()
 
 TEST_PARAMS = [
     (None, None, True),
