@@ -3,20 +3,34 @@ import asyncio
 import functools
 import inspect
 import threading
-from typing import Any, AsyncGenerator, Callable, Coroutine, List, Union
+from typing import Any, AsyncGenerator, Callable, List
 
 from .coins import COINS
 from .manager import APIManager
 from .providers.jsonrpcrequests import RPCProxy
 
 
+async def consume_generator(coroutine: AsyncGenerator) -> List[Any]:
+    return [i async for i in coroutine]
+
+
+def run_sync_ctx(coroutine: Any, loop: asyncio.AbstractEventLoop) -> Any:
+    if inspect.iscoroutine(coroutine):
+        return loop.run_until_complete(coroutine)
+
+    if inspect.isasyncgen(coroutine):
+        return loop.run_until_complete(consume_generator(coroutine))
+
+
 def async_to_sync_wraps(function: Callable, is_property: bool = False) -> Callable:
-    async def consume_generator(coroutine: AsyncGenerator) -> List[Any]:
-        return [i async for i in coroutine]
+    main_loop = asyncio.get_event_loop()
 
     @functools.wraps(function)
-    def async_to_sync_wrap(*args: Any, **kwargs: Any) -> Union[Coroutine, Any]:
-        loop = asyncio.get_event_loop()
+    def async_to_sync_wrap(*args: Any, **kwargs: Any) -> Any:
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            loop = main_loop
         if is_property:
             coroutine = function.__get__(*args, **kwargs)  # type: ignore
         else:
@@ -32,12 +46,7 @@ def async_to_sync_wraps(function: Callable, is_property: bool = False) -> Callab
                 if inspect.isasyncgen(coroutine):
                     return asyncio.run_coroutine_threadsafe(consume_generator(coroutine), loop).result()
 
-        if inspect.iscoroutine(coroutine):
-            return loop.run_until_complete(coroutine)
-
-        if inspect.isasyncgen(coroutine):
-            return loop.run_until_complete(consume_generator(coroutine))
-        return coroutine
+        return run_sync_ctx(coroutine, loop) or coroutine
 
     result = async_to_sync_wrap
     if is_property:

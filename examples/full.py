@@ -32,10 +32,10 @@ btc2 = BTC(xpub="paste your x/y/z pub/prv or electrum seed here for it to work")
 print(btc2.balance())
 print(btc2.history())  # history of all transactions and summary
 ### Payment requests ###
-data = btc2.addrequest(0.5)
+data = btc2.add_request(0.5)
 print(data)
-print(btc2.addrequest(0.5, "Any description"))  # Request specified amount in BTC
-print(btc2.getrequest(data["address"]))  # Check request status
+print(btc2.add_request(0.5, "Any description"))  # Request specified amount in BTC
+print(btc2.get_request(data["address"]))  # Check request status
 ### Sending ###
 if DONATE_TO_AUTHOR:
     print(btc2.pay_to("1A6jnc6xQwmhsChNLcyKAQNWPcWsVYqCqJ", 0.1))  # tx hash returned

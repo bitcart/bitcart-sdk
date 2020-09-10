@@ -3,10 +3,12 @@ from typing import Any, Callable, Optional
 from urllib.parse import urljoin
 
 import aiohttp
-import jsonrpcclient
 from jsonrpcclient.clients.aiohttp_client import AiohttpClient as RPC
+from jsonrpcclient.exceptions import ReceivedErrorResponseError
+from jsonrpcclient.requests import Request
 
 from ..errors import ConnectionFailedError, UnknownError, generate_exception
+from ..utils import json_encode
 
 
 class RPCProxy:
@@ -103,15 +105,12 @@ class RPCProxy:
         async def wrapper(*args: Any, **kwargs: Any) -> Any:
             try:
                 return (
-                    await self.rpc.request(
-                        method,
+                    await self.rpc.send(
+                        json_encode(Request(method, xpub=self.xpub, *args, **kwargs)),
                         validate_against_schema=False,
-                        xpub=self.xpub,
-                        *args,
-                        **kwargs,
                     )
                 ).data.result
-            except jsonrpcclient.exceptions.ReceivedErrorResponseError as e:
+            except ReceivedErrorResponseError as e:
                 message = e.response.message
                 error_code = str(e.response.code)
                 exceptions = (await self.spec)["exceptions"]

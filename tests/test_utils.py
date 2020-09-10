@@ -25,3 +25,10 @@ def test_convertability():
 
 def test_convert_amount_type():
     assert convert_amount_type("1") == Decimal("1")
+
+
+@pytest.mark.asyncio
+async def test_decimal_sending(btc_wallet):
+    amount = Decimal("0.5")
+    req = await btc_wallet.add_request(amount)  # ensures that it is possible to pass decimal
+    assert req[btc_wallet.amount_field] == amount

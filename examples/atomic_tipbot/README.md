@@ -43,8 +43,10 @@ There are two ways to do it, automatic(via docker, recommended), or directly via
 
 Clone bitcart-docker repository:
 
+```
 git clone https://github.com/MrNaif2018/bitcart-docker
 cd bitcart-docker
+```
 
 Now you need to configure BitcartCC, but if you need only BTC daemon, run those
 
@@ -52,17 +54,16 @@ Now you need to configure BitcartCC, but if you need only BTC daemon, run those
 export BITCART_INSTALL=none
 export BITCART_REVERSEPROXY=none
 ```
-If you also need to add lightning, add
 
-`export BITCART_CRYPTO2=ln`
+If you also need to add lightning, run
+
+`export BTC_LIGHTNING=true`
 
 If you need to run BTC daemon(or others, just replace BTC with coin name) in testnet, also run:
 
 `export BTC_NETWORK=testnet`
 
-After that, run  `./setup.sh`
-
-To start daemon(s), run `./start.sh`
+After that, run `./setup.sh` to configure and start daemons.
 
 If you will later need to stop them, run `./stop.sh`
 
@@ -96,7 +97,7 @@ If you need to run daemon in testnet, use:
 `BTC_NETWORK=testnet python3 daemons/btc.py`
 
 
-After that, you can run the bot using python3 bot.py and enjoy it!
+After that, you can run the bot using `python3 bot.py` and enjoy it!
 If you have come here to see how it works, read the next part.
 
 ## Reading code
@@ -129,7 +130,7 @@ BTC class accepts the following parameters:
  - rpc_user - user to login into your BitcartCC daemon
  - rpc_pass - password to login into your BitcartCC daemon
  - xpub - actually it is not just xpub, it can be x/y/z pub/prv, almost anything. Electrum seed can be used too.
- - session - completely optional, pass your precreated requests.Session(only if you need to customize something in default session)
+ - session - completely optional, pass your precreated aiohttp.ClientSession(only if you need to customize something in default session)
 
 
 After intializing coin, you can start using it.
@@ -142,23 +143,23 @@ If you need to use electrum's RPC methods, call them via btc.server(a wrapper ar
 
 Pass parameters if any, passing via keyword arguments is possible, but it is **NOT** possible to mix both keyword and
 positional arguments.
-To see a list of all RPC methods, call 
+To see a list of all RPC methods, call
 
 `btc.help()` (internally it calls `btc.server.help()`)
 
 RPC methods accessible via btc.server can't have intellisence in your IDE because they are completely dynamic(via `__getattr__`).
 
 Now, about using BitcartCC in this bot's code.
-To get price of 1 bitcoin in USD, simply call btc.rate()
-Use btc.addrequest(amount, description="", expire=15) to create BTC invoice
+To get price of 1 bitcoin in USD, simply call `btc.rate()`
+Use `btc.add_request(amount, description="", expire=15)` to create BTC invoice
 Amount is amount in BTC, description is optional and is description of invoice, expire is the time invoice will expire in, 
 default 15 minutes, but if you pass None, invoice will never expire.
 This method returns data about newly created invoice:
 
 ```
->>> btc.addrequest(0.5, "My invoice description", 20)
+>>> btc.add_request(0.5, "My invoice description", 20)
 
-{'time': 1564678098, 'amount': 1000000, 'exp': 1200, 'address': 'msS5WjurQ6AeKyAM3xHrsB4r1ACiLimoDx', 'memo': 'My invoice description', 'id': 'd46f26f3a8', 'URI': 'bitcoin:msS5WjurQ6AeKyAM3xHrsB4r1ACiLimoDx?amount=0.01', 'status': 'Pending', 'amount (BTC)': '0.01'}
+{'time': 1564678098, 'amount': 1000000, 'exp': 1200, 'address': 'msS5WjurQ6AeKyAM3xHrsB4r1ACiLimoDx', 'memo': 'My invoice description', 'id': 'd46f26f3a8', 'URI': 'bitcoin:msS5WjurQ6AeKyAM3xHrsB4r1ACiLimoDx?amount=0.01', 'status': 'Pending', 'amount (BTC)': Decimal('0.01')}
 ```
 
 time is UNIX timespamp of invoice, amount is amount in satoshis, exp is how much does invoice long(in seconds, value doesn't change),
@@ -175,73 +176,70 @@ Status can be one of the following:
 
 It is provided by electrum and statuses may change, as for now those statuses can be got from commands.py of electrum source, in definition of pr_str dictionary. For now it is [here](https://github.com/spesmilo/electrum/blob/master/electrum/commands.py#L604)
 
-To get status of request, we use btc.getrequest(address) method.
+To get status of request, we use `btc.get_request(address)` method.
 Note that we use address, not id.
 Example(when transaction is paid):
 
 ```
-btc.getrequest("msS5WjurQ6AeKyAM3xHrsB4r1ACiLimoDx")
-{'time': 1564678098, 'amount': 1000000, 'exp': 1200, 'address': 'msS5WjurQ6AeKyAM3xHrsB4r1ACiLimoDx', 'memo': 'My invoice description', 'id': 'd46f26f3a8', 'URI': 'bitcoin:msS5WjurQ6AeKyAM3xHrsB4r1ACiLimoDx?amount=0.01', 'status': 'Paid', 'confirmations': 0, 'amount (BTC)': '0.01'}
+btc.get_request("msS5WjurQ6AeKyAM3xHrsB4r1ACiLimoDx")
+{'time': 1564678098, 'amount': 1000000, 'exp': 1200, 'address': 'msS5WjurQ6AeKyAM3xHrsB4r1ACiLimoDx', 'memo': 'My invoice description', 'id': 'd46f26f3a8', 'URI': 'bitcoin:msS5WjurQ6AeKyAM3xHrsB4r1ACiLimoDx?amount=0.01', 'status': 'Paid', 'confirmations': 0, 'amount (BTC)': Decimal('0.01')}
 ```
 
-If you want to keep track of invoices, you can, for now, either call getrequest in infinite loop, or use built-in method.
+If you want to keep track of invoices, you can use event system. 
 
-You can keep track of all changes to addresses on your account(all changes, not always related to invoices),
-you can use notify decorator, mark your function which you want to be capable of handling all those changes.
+You can keep track of all changes to addresses on your account, or payment request status changes.
+For that, on decorator, mark your function which you want to be capable of handling the updates with `on` decorator.
 
 ```
-@btc.notify
-def payment_handler(updates):
+@btc.on("event")
+def payment_handler(event, arg):
     # process it here
 ```
 
-By default all previous transactions on wallet are skipped(those which are below current block height).
-If you need to process every transactions always, even if was processed before(all history+new transactions), 
-pass optional skip parameter(by default it is True to skip old transactions)
+or handler for multiple events:
 
 ```
-@btc.notify(skip=False)
-def payment_handler(updates):
-    # process every address change on your wallet from it's creation
+@btc.on(["event1", "event2"])
+def payment_handler(event, arg):
+    # process it here
 ```
 
-updates is a list of updates, each element of it is a dictionary, containing two keys:
- - address - address the change(s) is related to
- - txes - list of transactions
-
-Txes is a list of dictionaries, they contain two keys:
- - tx_hash - tx_hash of transaction
- - height - block height of transaction
-
-Process it the way you need it, for example, call getrequest() on it as in our example, or use get_tx, or anything else.
+Possible events can be found at [SDK docs](https://sdk.bitcartcc.com/en/latest/events.html).
 
 To start listening for those updates, you need to start polling, for that, use:
 
 `btc.poll_updates()`
 
-But note that it is run forever(while True loop), and it blocks your code.
-In near future we will add another way of handling it(webhooks).
+Or use webhooks (starts a http server at port 6000 by default):
+
+`btc.start_webhook()`
+
+But note that it is run forever and it blocks your code.
 
 To pay to some address, use
-btc.pay_to(address, amount)
+`btc.pay_to(address, amount)`
 
-To get transaction, use btc.get_tx(tx_hash)
+To get transaction, use `btc.get_tx(tx_hash)`
+
+To accept updates for multiple coins, even in different currencies, you can use APIManager.
+
+You can read about APIManager in [SDK docs](https://sdk.bitcartcc.com/en/latest/apimanager.html).
 
 For more information, read [BitcartCC SDK docs](https://sdk.bitcartcc.com) and [Main BitcartCC docs](https://docs.bitcartcc.com)
 
 ### Telegram bot 
 
 ```
-@app.on_message(Filters.command("command_name"))
+@app.on_message(filters.command("command_name"))
 def some_func_name(client, message):
     # code here
 ```
 
 Those samples are functions corresponding to telegram commands, like /command_name in this case.
 
-If you see Filters.regex(r'pattern') it means that it is executed when it matches regex expression, and inside function
+If you see filters.regex(r'pattern') it means that it is executed when it matches regex expression, and inside function
 message.matches is available to get matches as by re.search
-Filters.private means that command works only in private chat
+filters.private means that command works only in private chat
 
 withdraw function is responsible for handling messages like this:
 **181AUpDVRQ3JVcb9wYLzKz2C8Rdb5mDeH7 500**
