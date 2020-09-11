@@ -11,6 +11,8 @@ Welcome to BitcartCC SDK's documentation!
    :caption: Contents:
 
    installation
+   events
+   apimanager
    api
 
 BitcartCC is a platform to simplify cryptocurrencies adaptation.

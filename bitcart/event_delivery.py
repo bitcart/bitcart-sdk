@@ -51,7 +51,7 @@ class EventDelivery:
     async def configure_webhook(self, autoconfigure: bool = True) -> None:
         self.check_webhook_support()
         self._configure_webhook()
-        await self._configure_notifications()
+        await self._configure_notifications(autoconfigure=autoconfigure)
 
     def _start_webhook(self, port: int = 6000, **kwargs: Any) -> None:
         web.run_app(self.webhook_app, port=port, **kwargs)
