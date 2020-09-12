@@ -48,6 +48,6 @@ async def test_lightning_disabled(btc_wallet):
     await btc_wallet.set_config("lightning", True)  # reset back
 
 
-async def test_wallet_methods_on_non_segwit(btc_wallet):
+async def test_wallet_methods_on_non_segwit(lightning_unsupported_wallet):
     with pytest.raises(errors.LightningUnsupportedError):
-        await btc_wallet.list_channels()  # unsupported on non-segwit wallets
+        await lightning_unsupported_wallet.list_channels()  # unsupported on non-segwit wallets
