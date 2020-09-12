@@ -59,7 +59,7 @@ if DONATE_TO_AUTHOR:
 
 # Lightning(requires wallet) #
 print(btc2.node_id)  # your lightning node id(lightning daemon is bitcart daemon itself)
-print(btc2.addinvoice(0.5, "Description"))  # create lightning invoice
+print(btc2.add_invoice(0.5, "Description"))  # create lightning invoice
 # print(btc2.connect("some connection string"))  # add new lightning peer, connect
 # print(btc2.open_channel("some node id", 0.5))  # open lightning channel with node
 print(btc2.list_channels())  # List of lightning channels

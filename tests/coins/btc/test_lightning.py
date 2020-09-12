@@ -3,6 +3,8 @@ import pytest
 from bitcart import errors
 from bitcart.errors import LightningDisabledError
 
+from ...utils import data_check
+
 pytestmark = pytest.mark.asyncio
 
 
@@ -11,7 +13,24 @@ async def test_node_id(btc_wallet):
 
 
 async def test_add_invoice(btc_wallet):
-    assert isinstance(await btc_wallet.addinvoice(0.5, "test description"), str)
+    invoice = await btc_wallet.add_invoice(0.5, "test description")
+    assert isinstance(invoice, dict)
+    assert (
+        invoice.items()
+        > {
+            "is_lightning": True,
+            "amount_BTC": "0.5",
+            "message": "test description",
+            "expiration": 3600,
+            "status": 0,
+            "status_str": "Expires in about 1 hour",
+            "amount_msat": 50000000000,
+            "can_receive": False,
+        }.items()
+    )
+    data_check(invoice, "timestamp", int)
+    data_check(invoice, "rhash", str)
+    data_check(invoice, "invoice", str)
 
 
 async def test_connect(btc_wallet):
@@ -27,3 +46,8 @@ async def test_lightning_disabled(btc_wallet):
     with pytest.raises(LightningDisabledError):
         await btc_wallet.node_id
     await btc_wallet.set_config("lightning", True)  # reset back
+
+
+async def test_wallet_methods_on_non_segwit(btc_wallet):
+    with pytest.raises(errors.LightningUnsupportedError):
+        await btc_wallet.list_channels()  # unsupported on non-segwit wallets

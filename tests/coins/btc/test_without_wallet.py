@@ -63,7 +63,7 @@ async def test_validate_key(btc, key, expected):
 
 async def test_get_tx(btc):
     info = await btc.get_tx("0584c650e7b04cd0788832f8340ead4ce654e82127e283c8132a0bcbfabc7a01")
-    assert info.items() > {"partial": False, "version": 1, "segwit_ser": True, "lockTime": 0}.items()
+    assert info.items() > {"version": 1, "locktime": 0}.items()
     data_check(info, "confirmations", int)
     assert info["confirmations"] > 0
     data_check(info, "inputs", list, 1)
@@ -72,11 +72,9 @@ async def test_get_tx(btc):
         >= {
             "prevout_hash": "f5bec7770c30679bd7e91ecc3cf243d43c5a72b28ac8e037eb8c1b5bfe520e27",
             "prevout_n": 0,
+            "coinbase": False,
             "scriptSig": "",
-            "sequence": 4294967295,
-            "type": "unknown",
-            "address": None,
-            "num_sig": 0,
+            "nsequence": 4294967295,
             "witness": (
                 "02473044022030f19cf4b53b0c5d7a9d920240f6daab0cf8a40193f80a8"
                 "0d40635dc0ca213af0220487e8714a082f22dba14733f1149bd365767702"
@@ -87,11 +85,9 @@ async def test_get_tx(btc):
     )
     data_check(info, "outputs", list, 2)
     assert info["outputs"][0] == {
-        "value": 490000,
-        "type": 0,
+        "value_sats": 490000,
         "address": "3NyLhw2jKrA8PF2SqgGQu4cigfCg1i6SqH",
-        "scriptPubKey": "a914e970f9ca2f7d99b208b455333b0a4ab2b9b7eb3a87",
-        "prevout_n": 0,
+        "scriptpubkey": "a914e970f9ca2f7d99b208b455333b0a4ab2b9b7eb3a87",
     }
 
 

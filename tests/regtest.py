@@ -8,7 +8,9 @@ from .utils import data_check, run_shell
 
 pytestmark = pytest.mark.asyncio
 
-BTC_ADDRESS = "mjHXzpMTjhLePAdWgoesdhqEzCCRh6mwkJ"  # can be got by run_shell(["newaddress"]) or regtest_wallet.add_request()
+BTC_ADDRESS = (
+    "bcrt1qe0ppfnuz6wjw3vn8jefn8p4fxmyn7tqxkjt557"  # can be got by run_shell(["newaddress"]) or regtest_wallet.add_request()
+)
 
 TEST_PARAMS = [
     (None, None, True),
@@ -40,15 +42,10 @@ async def wait_for_balance(regtest_wallet):
 
 
 def check_tx(tx, broadcast):
+    assert isinstance(tx, str)
     if broadcast:
-        assert isinstance(tx, str)
         assert len(tx) == 64
-    else:
-        assert isinstance(tx, dict)
-        assert set(tx.keys()) == {"hex", "complete", "final"}
-        assert isinstance(tx["hex"], str)
-        assert isinstance(tx["complete"], bool)
-        assert isinstance(tx["final"], bool)
+    # if it is not broadcast, it returns raw transaction
 
 
 @pytest.mark.parametrize("fee,feerate,broadcast", TEST_PARAMS)
@@ -91,9 +88,7 @@ async def test_payment_to_many(regtest_wallet, fee, feerate, broadcast, wait_for
 
 
 async def test_open_channel(regtest_wallet, wait_for_balance):
-    await asyncio.sleep(
-        5
-    )  # works only at times at current electrum commit, sometimes helps # TODO: electrum 4.0.2 will fix this
+    await asyncio.sleep(10)  # works only at times at current electrum commit, sometimes helps # TODO: remove (electrum issue)
     result = await regtest_wallet.open_channel(await regtest_wallet.node_id, 0.002)
     assert isinstance(result, str)
     assert len(result) == 66
@@ -110,48 +105,44 @@ async def test_list_channels(regtest_wallet):
     result = await regtest_wallet.list_channels()
     assert isinstance(result, list)
     assert len(result) > 0
-    channel = result[0]
-    assert "channel_id" in channel
-    assert isinstance(channel["channel_id"], str) or channel["channel_id"] is None
-    data_check(channel, "full_channel_id", str, 64)
+    channel = result[-1]  # last channel is last in the list
+    assert "short_channel_id" in channel
+    assert isinstance(channel["short_channel_id"], str) or channel["short_channel_id"] is None
+    data_check(channel, "channel_id", str, 64)
     data_check(channel, "channel_point", str, 66)
+    data_check(channel, "peer_state", str)
+    assert channel["peer_state"] == "GOOD"
     data_check(channel, "state", str)
     assert channel["remote_pubkey"] == pubkey
     assert channel["local_balance"] == 200000
     assert channel["remote_balance"] == 0
-    data_check(channel, "local_htlcs", dict)
-    assert channel["local_htlcs"] == {
-        "adds": {},
-        "locked_in": {},
-        "settles": {},
-        "fails": {},
-        "fee_updates": [[45000, {"1": 0, "-1": 0}]],
-        "revack_pending": False,
-        "next_htlc_id": 0,
-        "ctn": 0,
-    }
-    data_check(channel, "remote_htlcs", dict)
-    assert channel["remote_htlcs"] == {
-        "adds": {},
-        "locked_in": {},
-        "settles": {},
-        "fails": {},
-        "fee_updates": [[45000, {"1": 0, "-1": 0}]],
-        "revack_pending": False,
-        "next_htlc_id": 0,
-        "ctn": 0,
-    }
+    data_check(channel, "local_reserve", int)
+    data_check(channel, "remote_reserve", int)
+    data_check(channel, "local_unsettled_sent", int)
+    data_check(channel, "remote_unsettled_sent", int)
+    assert channel["local_reserve"] == channel["remote_reserve"] == 2000
+    assert channel["local_unsettled_sent"] == channel["remote_unsettled_sent"] == 0
 
 
 async def test_lnpay(regtest_wallet):
     with pytest.raises(errors.InvalidLightningInvoiceError):
         assert not await regtest_wallet.lnpay("")
-    with pytest.raises(errors.NoPathFoundError):
-        assert await regtest_wallet.lnpay(await regtest_wallet.addinvoice(0.5))
+    response = await regtest_wallet.lnpay((await regtest_wallet.add_invoice(0.1))["invoice"])
+    assert isinstance(response, dict)
+    assert (
+        response.items()
+        > {
+            "success": False,
+            "preimage": None,
+            "log": [["None", "N/A", "No path found"]],
+        }.items()
+    )
+    data_check(response, "payment_hash", str)
 
 
-@pytest.mark.skip("Fixed in next electrum version")
 async def test_close_channel(regtest_wallet):
     channels = await regtest_wallet.list_channels()
-    channel_id = channels[0]["channel_point"]
-    assert isinstance(await regtest_wallet.close_channel(channel_id), str)
+    channel_id = channels[-1]["channel_point"]  # last channel is last in the list
+    assert isinstance(
+        await regtest_wallet.close_channel(channel_id, force=True), str
+    )  # TODO: remove force-close (electrum issue)

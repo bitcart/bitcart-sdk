@@ -7,7 +7,7 @@ from bitcart.coin import Coin
 
 TEST_XPUB = "xprv9s21ZrQH143K3tZPHG8CbfZ7uUY5stdHmaEXeSqawGrZuAoBdHPgKHjdkfmHSdxDJSbo29JiU1PcWhzEsgFryqMHQfr2T5TWBPK8EqFjscZ"
 REGTEST_XPUB = (
-    "tprv8ZgxMBicQKsPepFfedsYPCgWioGqkbnRbMmprdTq3jFmRf7JQwe3Yo8DMBwttKFNLpp3xVx6Rfv7ChxZbkLXgnmb8hcq4uN2hVKLmCNcTpB"
+    "vprv9DMUxX4ShgxMMQduKMSnoNsX4jZjdqmRRapGRRFbok1XXrjkvFyAnvSVPbs4t8ZDA73fTT9DLzdCyHBh39AZHG8nsP1gEj11EwSdYP8zhKF"
 )
 
 
