@@ -47,6 +47,11 @@ async def regtest_wallet():
 
 
 @pytest.fixture
+async def regtest_node_id():
+    return await BTC(xpub=REGTEST_XPUB, rpc_url="http://localhost:5110").node_id
+
+
+@pytest.fixture
 async def btc():
     with warnings.catch_warnings():  # to ignore no xpub passed warning
         warnings.simplefilter("ignore")

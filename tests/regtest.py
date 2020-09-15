@@ -41,6 +41,17 @@ async def wait_for_balance(regtest_wallet):
             break
 
 
+@pytest.fixture
+async def wait_for_utxos(regtest_wallet):
+    while True:
+        utxos = [utxo for utxo in await regtest_wallet.server.listunspent() if utxo["height"] != -2]
+        # ensure we have nonlocal utxos to use to open channel
+        if len(utxos) == 0:
+            await asyncio.sleep(1)
+        else:
+            break
+
+
 def check_tx(tx, broadcast):
     assert isinstance(tx, str)
     if broadcast:
@@ -87,9 +98,9 @@ async def test_payment_to_many(regtest_wallet, fee, feerate, broadcast, wait_for
     )
 
 
-async def test_open_channel(regtest_wallet, wait_for_balance):
-    await asyncio.sleep(10)  # works only at times at current electrum commit, sometimes helps # TODO: remove (electrum issue)
-    result = await regtest_wallet.open_channel(await regtest_wallet.node_id, 0.002)
+async def test_open_channel(regtest_wallet, regtest_node_id, wait_for_utxos):
+    # works only with nonlocal balances
+    result = await regtest_wallet.open_channel(regtest_node_id, 0.002)
     assert isinstance(result, str)
     assert len(result) == 66
     assert ":" in result
@@ -143,6 +154,4 @@ async def test_lnpay(regtest_wallet):
 async def test_close_channel(regtest_wallet):
     channels = await regtest_wallet.list_channels()
     channel_id = channels[-1]["channel_point"]  # last channel is last in the list
-    assert isinstance(
-        await regtest_wallet.close_channel(channel_id, force=True), str
-    )  # TODO: remove force-close (electrum issue)
+    assert isinstance(await regtest_wallet.close_channel(channel_id), str)

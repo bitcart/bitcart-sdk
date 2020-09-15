@@ -82,6 +82,14 @@ jobs:
           background: true
 
       - run:
+          name: prepare regtest lightning node
+          command: |
+            . ~/venv/bin/activate
+            cd ~/bitcart-daemon
+            make regtestln
+          background: true
+
+      - run:
           name: run regtest tests
           command: |
             . ~/venv/bin/activate
