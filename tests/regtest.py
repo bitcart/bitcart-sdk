@@ -110,9 +110,8 @@ async def test_open_channel(regtest_wallet, regtest_node_id, wait_for_utxos):
     run_shell(["newblocks", "3"])
 
 
-async def test_list_channels(regtest_wallet):
-    node_id = await regtest_wallet.node_id
-    pubkey = node_id.split("@")[0]
+async def test_list_channels(regtest_wallet, regtest_node_id):
+    pubkey = regtest_node_id.split("@")[0]
     result = await regtest_wallet.list_channels()
     assert isinstance(result, list)
     assert len(result) > 0
