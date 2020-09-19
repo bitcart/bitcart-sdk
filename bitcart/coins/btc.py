@@ -120,7 +120,7 @@ class BTC(Coin, EventDelivery):
         """
         expiration = 60 * expire if expire else None
         data = await self._add_request(amount=amount, memo=description, expiration=expiration, force=True)
-        if data[self.amount_field] != "unknown":
+        if data[self.amount_field].lower() != "unknown":
             data[self.amount_field] = convert_amount_type(data[self.amount_field])
         return data
 
@@ -142,7 +142,7 @@ class BTC(Coin, EventDelivery):
             dict: Invoice data
         """
         data = await self.server.getrequest(address)
-        if data[self.amount_field] != "unknown":
+        if data[self.amount_field].lower() != "unknown":
             data[self.amount_field] = convert_amount_type(data[self.amount_field])
         return data  # type: ignore
 
