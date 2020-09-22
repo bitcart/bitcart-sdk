@@ -8,7 +8,7 @@ Below are the instructions for setting up development environment with BitcartCC
 
 ## Setting up development environment
 
-Some general advice can be found in our [central contributing guidelines](https://github.com/bitcartcc/bitcart/wiki/How-to-Contribute#setting-up-development-environment).
+Some general advice can be found in our [central contributing guidelines](https://github.com/bitcartcc/bitcart/blob/master/CONTRIBUTING.md#setting-up-development-environment).
 
 Instructions:
 
@@ -25,7 +25,7 @@ Development version is async only, sync version is achieved by running sync_gene
 
 From now on, development environment is ready.
 
-Make sure to follow [our coding guidelines](https://github.com/bitcartcc/bitcart/wiki/Coding-Guidelines) when developing.
+Make sure to follow [our coding guidelines](https://github.com/bitcartcc/bitcart/blob/master/CODING_STANDARDS.md) when developing.
 
 To run all checks before commiting, use `make` command.
 
