@@ -41,6 +41,23 @@ async def test_connect(btc_wallet):
     assert await btc_wallet.connect("0214382bdce7750dfcb8126df8e2b12de38536902dc36abcebdaeefdeca1df8284@172.81.181.3")
 
 
+async def test_list_peers(btc_wallet):
+    res1 = await btc_wallet.list_peers()
+    res2 = await btc_wallet.list_peers(True)
+    assert isinstance(res1, list)
+    assert isinstance(res2, list)
+    assert len(res1) > 0
+    assert len(res2) > 0
+    peer = res1[0]
+    assert peer.keys() == {"node_id", "address", "initialized", "features", "channels"}
+    assert peer["initialized"]
+    data_check(peer, "node_id", str, 66)
+    data_check(peer, "address", str)
+    data_check(peer, "features", str)
+    assert "LnFeatures." in peer["features"]
+    data_check(peer, "channels", list, 0)
+
+
 async def test_lightning_disabled(btc_wallet):
     await btc_wallet.set_config("lightning", False)
     with pytest.raises(LightningDisabledError):

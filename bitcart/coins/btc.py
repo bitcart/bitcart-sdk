@@ -539,6 +539,18 @@ class BTC(Coin, EventDelivery):
         return await self.server.add_peer(connection_string)  # type: ignore
 
     @lightning
+    async def list_peers(self, gossip: bool = False) -> list:
+        """Get a list of lightning peers
+
+        Args:
+            gossip (bool, optional): Whether to return peers of a gossip (one per node) or of a wallet. Defaults to False.
+
+        Returns:
+            list: list of lightning peers
+        """
+        return await self.server.list_peers(gossip=gossip)  # type: ignore
+
+    @lightning
     async def list_channels(self) -> list:
         """List all channels ever opened
 
