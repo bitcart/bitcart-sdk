@@ -58,7 +58,7 @@ Supported coins list(⚡ means lightning is supported):
 
 To use proxy, install optional dependencies:
 
-``pip install bitcart[proxy]`` for sync version, ``pip install bitcart-async[proxy]`` for async version.
+``pip install bitcart[proxy]``
 HTTP, SOCKS4 and SOCKS5 proxies supported.
 
 To use, pass proxy url to coin constructor:

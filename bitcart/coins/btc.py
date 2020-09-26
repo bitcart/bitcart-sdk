@@ -344,8 +344,7 @@ class BTC(Coin, EventDelivery):
         Returns:
             Decimal: price of 1 bitcoin in selected fiat currency
         """
-        rate_str = await self.server.exchange_rate(currency)
-        return convert_amount_type(rate_str)
+        return convert_amount_type(await self.server.exchange_rate(currency))
 
     async def list_fiat(self) -> Iterable[str]:
         """List of all available fiat currencies to get price for
