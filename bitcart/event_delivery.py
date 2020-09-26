@@ -61,7 +61,7 @@ class EventDelivery:
         self.configure_webhook()
         self._start_webhook(port=port, **kwargs)
 
-    async def poll_updates(self, timeout: Union[int, float] = 2) -> None:  # pragma: no cover
+    async def poll_updates(self, timeout: Union[int, float] = 1) -> None:  # pragma: no cover
         """Poll updates
 
         Poll daemon for new transactions in wallet,
@@ -71,7 +71,7 @@ class EventDelivery:
 
         Args:
             self (BTC): self
-            timeout (Union[int, float], optional): seconds to wait before requesting transactions again. Defaults to 2.
+            timeout (Union[int, float], optional): seconds to wait before requesting transactions again. Defaults to 1.
 
         Raises:
             InvalidEventError: If server sent invalid event name not matching ALLOWED_EVENTS
