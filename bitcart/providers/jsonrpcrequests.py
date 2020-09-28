@@ -129,3 +129,5 @@ class RPCProxy:
     def __del__(self) -> None:
         if self._loop.is_running():
             self._loop.create_task(self._close())
+        else:
+            self.session._connector._closed = True  # type: ignore

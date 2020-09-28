@@ -2,6 +2,10 @@
 
 ## Latest changes
 
+## 1.0.1
+
+Fixed issues with aiohttp warning and async functions in threads
+
 ## 1.0.0
 
 All the SDK is now tested via our extensive test suite, we now gurantee to find all changes in electrum if they happen.
