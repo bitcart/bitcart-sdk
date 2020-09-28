@@ -1,5 +1,4 @@
 import inspect
-import json
 import warnings
 from decimal import Decimal
 from functools import wraps
@@ -121,7 +120,7 @@ class BTC(Coin, EventDelivery):
         """
         expiration = 60 * expire if expire else None
         data = await self._add_request(amount=amount, memo=description, expiration=expiration, force=True)
-        if data[self.amount_field] != "unknown":
+        if data[self.amount_field].lower() != "unknown":
             data[self.amount_field] = convert_amount_type(data[self.amount_field])
         return data
 
@@ -143,7 +142,7 @@ class BTC(Coin, EventDelivery):
             dict: Invoice data
         """
         data = await self.server.getrequest(address)
-        if data[self.amount_field] != "unknown":
+        if data[self.amount_field].lower() != "unknown":
             data[self.amount_field] = convert_amount_type(data[self.amount_field])
         return data  # type: ignore
 
@@ -161,7 +160,7 @@ class BTC(Coin, EventDelivery):
         Returns:
             dict: dictionary with some data, where key transactions is list of transactions
         """
-        return json.loads(await self.server.onchain_history())  # type: ignore
+        return await self.server.onchain_history()  # type: ignore
 
     async def process_updates(self, updates: Iterable[dict], *args: Any, pass_instance: bool = False, **kwargs: Any) -> None:
         if not isinstance(updates, list):
@@ -229,7 +228,7 @@ class BTC(Coin, EventDelivery):
         is_callable = callable(fee)
         fee_arg = fee if not is_callable else None
         tx_data = await self.server.payto(
-            address, amount, fee=fee_arg, feerate=feerate, for_broadcast=broadcast and not is_callable
+            address, amount, fee=fee_arg, feerate=feerate, addtransaction=broadcast and not is_callable
         )
         if is_callable:
             tx_size = await self.server.get_tx_size(tx_data)
@@ -239,7 +238,9 @@ class BTC(Coin, EventDelivery):
             except Exception:
                 resulting_fee = None
             if resulting_fee:
-                tx_data = await self.server.payto(address, amount, fee=resulting_fee, feerate=feerate, for_broadcast=broadcast)
+                tx_data = await self.server.payto(
+                    address, amount, fee=resulting_fee, feerate=feerate, addtransaction=broadcast
+                )
             elif broadcast:  # use existing tx_data
                 await self.server.addtransaction(tx_data)
         if broadcast:
@@ -305,7 +306,7 @@ class BTC(Coin, EventDelivery):
         is_callable = callable(fee)
         fee_arg = fee if not is_callable else None
         tx_data = await self.server.paytomany(
-            outputs, fee=fee_arg, feerate=feerate, for_broadcast=broadcast and not is_callable
+            outputs, fee=fee_arg, feerate=feerate, addtransaction=broadcast and not is_callable
         )
         if is_callable:
             tx_size = await self.server.get_tx_size(tx_data)
@@ -315,7 +316,7 @@ class BTC(Coin, EventDelivery):
             except Exception:
                 resulting_fee = None
             if resulting_fee:
-                tx_data = await self.server.paytomany(outputs, fee=resulting_fee, feerate=feerate, for_broadcast=broadcast)
+                tx_data = await self.server.paytomany(outputs, fee=resulting_fee, feerate=feerate, addtransaction=broadcast)
             elif broadcast:  # use existing tx_data
                 await self.server.addtransaction(tx_data)
         if broadcast:
@@ -343,8 +344,7 @@ class BTC(Coin, EventDelivery):
         Returns:
             Decimal: price of 1 bitcoin in selected fiat currency
         """
-        rate_str = await self.server.exchange_rate(currency)
-        return convert_amount_type(rate_str)
+        return convert_amount_type(await self.server.exchange_rate(currency))
 
     async def list_fiat(self) -> Iterable[str]:
         """List of all available fiat currencies to get price for
@@ -455,14 +455,14 @@ class BTC(Coin, EventDelivery):
         return await self.server.open_channel(node_id, amount)  # type: ignore
 
     @lightning
-    async def addinvoice(self, amount: AmountType, message: Optional[str] = "") -> str:
+    async def add_invoice(self, amount: AmountType, message: Optional[str] = "") -> str:
         """Create lightning invoice
 
         Create lightning invoice and return bolt invoice id
 
         Example:
 
-        >>> a.addinvoice(0.5)
+        >>> a.add_invoice(0.5)
         'lnbc500m1pwnt87fpp5d60sykcjd2swk72t3g0njwmdytfe4fu65fz5v...'
 
         Args:
@@ -476,9 +476,7 @@ class BTC(Coin, EventDelivery):
         return await self.server.add_lightning_request(amount, message)  # type: ignore
 
     @lightning
-    async def close_channel(
-        self, channel_id: str, force: bool = False
-    ) -> str:  # pragma: no cover # TODO: remove when electrum 4.0.2
+    async def close_channel(self, channel_id: str, force: bool = False) -> str:
         """Close lightning channel
 
         Close channel by channel_id got from open_channel, returns transaction id
@@ -538,6 +536,18 @@ class BTC(Coin, EventDelivery):
             bool: True on success, False otherwise
         """
         return await self.server.add_peer(connection_string)  # type: ignore
+
+    @lightning
+    async def list_peers(self, gossip: bool = False) -> list:
+        """Get a list of lightning peers
+
+        Args:
+            gossip (bool, optional): Whether to return peers of a gossip (one per node) or of a wallet. Defaults to False.
+
+        Returns:
+            list: list of lightning peers
+        """
+        return await self.server.list_peers(gossip=gossip)  # type: ignore
 
     @lightning
     async def list_channels(self) -> list:

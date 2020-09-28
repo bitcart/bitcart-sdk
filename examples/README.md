@@ -10,5 +10,7 @@ Examples:
 - Get transaction by tx hash(CLI): gettx.py
 - Get wallet onchain and offchain(lightning) balance: getbalance.py
 - Pay to some address(CLI): donateto.py
+- Webhook example: webhook.py
+- APIManager example: manager.py
 
 Full example(telegram bot) is available at atomic_tipbot directory

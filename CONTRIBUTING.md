@@ -66,6 +66,8 @@ Run `make bitcoind` to start bitcoind, `make electrumx` to start electrumx.
 
 After that, stop your mainnet BitcartCC daemon, and start regtest one from cloned `bitcart` repo by running `make regtest`.
 
+You should also start an lightning node for testing, run `make regtestln` in another terminal.
+
 To run extended test suite, run `make regtest`.
 
 Coverage from extended test suite is appended to main test coverage.

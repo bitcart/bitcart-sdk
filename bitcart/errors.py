@@ -13,10 +13,6 @@ class LightningDisabledError(BaseError):
     """Lightning is disabled in daemon"""
 
 
-class WebhookUnsupportedError(BaseError):
-    """Webhook support not installed"""
-
-
 class ConnectionFailedError(BaseError):
     """Error connecting to the daemon"""
 

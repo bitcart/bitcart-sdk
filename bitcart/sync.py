@@ -21,6 +21,8 @@ def run_sync_ctx(coroutine: Any, loop: asyncio.AbstractEventLoop) -> Any:
     if inspect.isasyncgen(coroutine):
         return loop.run_until_complete(consume_generator(coroutine))
 
+    return coroutine
+
 
 def async_to_sync_wraps(function: Callable, is_property: bool = False) -> Callable:
     main_loop = asyncio.get_event_loop()
@@ -46,7 +48,7 @@ def async_to_sync_wraps(function: Callable, is_property: bool = False) -> Callab
                 if inspect.isasyncgen(coroutine):
                     return asyncio.run_coroutine_threadsafe(consume_generator(coroutine), loop).result()
 
-        return run_sync_ctx(coroutine, loop) or coroutine
+        return run_sync_ctx(coroutine, loop)
 
     result = async_to_sync_wrap
     if is_property:

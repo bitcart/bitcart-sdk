@@ -77,3 +77,12 @@ calling lightning methods.
     :members:
     :show-inheritance:
     :undoc-members:
+
+Utilities
+*****************
+
+.. automodule:: bitcart.utils
+    :members:
+    :show-inheritance:
+    :undoc-members:
+    :exclude-members: CustomJSONEncoder

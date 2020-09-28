@@ -9,19 +9,6 @@ Simply run
 
 to install the library.
 
-Or, run
-
-.. code-block:: sh
-
-    pip install bitcart-async
-
-To install async version of the library.
-
-You can't install both.
-
-Async version of the library has the same API, but is intended to be used in asyncio application.
-All is the same, just use async/await.
-
 But to initialize bitcoin instance you will need
 ``rpc_url``, ``rpc_login`` and ``rpc_password`` (not required, defaults
 work with default ports and authentification).
@@ -42,7 +29,7 @@ Run ``pip install -r requirements/daemons/coin_name.txt`` to install
 requirements for daemon of ``coin_name``.
 
 This will clone main BitcartCC repo and install dependencies,
-we recommend using virtualenv for consistency.(some daemons conflict one
+we recommend using virtualenv for consistency(some daemons conflict one
 with another, so using one virtualenv per daemon is fine).
 
 To run daemon, just start it:
