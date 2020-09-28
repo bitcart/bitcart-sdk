@@ -3,24 +3,15 @@ import logging
 from json import JSONDecodeError
 from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, Optional, Union
 
-from .errors import WebhookUnsupportedError
+from aiohttp import web
 
 if TYPE_CHECKING:
     from providers.jsonrpcrequests import RPCProxy
-
-webhook_available = True
-try:
-    from aiohttp import web
-except (ModuleNotFoundError, ImportError):  # pragma: no cover
-    webhook_available = False
 
 
 class EventDelivery:
     server: "RPCProxy"
     event_handlers: Dict[str, Callable]
-
-    def __init__(self) -> None:
-        self.webhook_available = webhook_available
 
     async def handle_webhook(self, request: "web.Request") -> "web.Response":
         try:
@@ -39,17 +30,12 @@ class EventDelivery:
         self.webhook_app = web.Application()
         self.webhook_app.router.add_post("/", self.handle_webhook)
 
-    def check_webhook_support(self) -> None:
-        if not webhook_available:
-            raise WebhookUnsupportedError("Webhook support not installed. Install it with pip install bitcart[webhook]")
-
     async def _configure_notifications(self, autoconfigure: bool = True) -> None:
         await self.server.subscribe(list(self.event_handlers.keys()))
         if autoconfigure:
             await self.server.configure_notifications("http://localhost:6000")
 
     async def configure_webhook(self, autoconfigure: bool = True) -> None:
-        self.check_webhook_support()
         self._configure_webhook()
         await self._configure_notifications(autoconfigure=autoconfigure)
 
@@ -57,7 +43,6 @@ class EventDelivery:
         web.run_app(self.webhook_app, port=port, **kwargs)
 
     def start_webhook(self, port: int = 6000, **kwargs: Any) -> None:
-        self.check_webhook_support()
         self.configure_webhook()
         self._start_webhook(port=port, **kwargs)
 

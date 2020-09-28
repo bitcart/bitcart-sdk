@@ -2,6 +2,196 @@
 
 ## Latest changes
 
+## 1.0.0
+
+All the SDK is now tested via our extensive test suite, we now gurantee to find all changes in electrum if they happen.
+
+All the code is now following our code style.
+
+### Features
+
+#### Async/sync support in one library
+
+Before, `bitcart` and `bitcart-async` packages existed, one providing sync API, another one async API.
+
+Now both use cases are supported in a single `bitcart` package.
+
+You can use either:
+
+```python
+btc.help()
+```
+
+Or
+
+```python
+async def main():
+    await btc.help()
+```
+
+#### Better exceptions
+
+It is now possible to catch specific exceptions in commands, not just a general one.
+
+```python
+from bitcart import errors
+from bitcart.errors import generate_exception, ConnectionFailedError
+
+try:
+    coin.help()
+except ConnectionFailedError:
+    print("Failed connecting to daemon")
+except errors.LoadingWalletError:
+    print("Error loading wallet")
+except RequestError as e:
+    print(e)
+```
+
+New `ConnectionFailedError` is raised when SDK failed to connect to daemon.
+
+`UnknownError` is raised when server returned an error code not from the spec, or spec failed loading.
+
+`RequestError` is a base error from all errors returned from server.
+
+generate_exception function creates a new dynamic exception by passing it's name to it, used for except.
+
+`generate_exception("test") == errors.test`
+
+errors object is just a convenience wrapper around `generate_exception`.
+
+All other errors are raised and created dynamically, by the spec.
+
+You can find your version of the spec at daemon's `/spec` endpoint.
+
+[Most recent spec url](https://github.com/bitcartcc/bitcart/blob/master/daemons/spec/btc.json)
+
+#### APIManager
+
+APIManager provides an easy-to-use interface to manage multiple wallets/currencies.
+
+It is useful for tracking payments on many wallets at once, for example.
+
+[APIManager documentation](https://sdk.bitcartcc.com/en/latest/apimanager.html)
+
+#### New utilities
+
+New module `bitcart.utils` was added.
+
+It has the following functions:
+
+- `satoshis(amount: Decimal) -> int` converts btc amount to satoshis
+
+- `bitcoins(amount: int) -> Decimal` converts satoshis amount to btc
+
+- `json_encode(obj: Any) -> Any` `json.dumps` supporting decimals
+
+#### New list_peers method
+
+`list_peers(gossip=False)` method will list all the lightning peers.
+
+#### COINS variable
+
+Now `COINS` variable is available, it's a dict, where keys are strings, values are coins of respective types.
+
+It allows introspection of available coins.
+
+```python
+from bitcart import COINS
+COINS["BTC"] # bitcart.BTC class
+```
+
+#### Coins instances now can be compared
+
+You can now check if two coin instances are the same like so:
+
+```python
+if coin1 == coin2:
+    print("equal")
+```
+
+Two coin objects are equal, if their xpubs are equal, and their `coin_name` is equal.
+
+#### All methods now support passing Decimals to it
+
+It is needed to work with latest breaking changes, see below.
+
+#### Electrum 4.0.3
+
+SDK 1.0 is based on the latest daemon, which is using Electrum 4.0.3 for btc and other currencies, and Electron Cash 4.1.1
+
+#### New spec property
+
+`spec` property on coin objects and `RPCProxy` objects return exceptions spec returned from daemon.
+
+#### add_request function now can work without arguments
+
+`add_request` amount argument now defaults to `None`, so it can be used to just query a new address, for example.
+
+#### Misc changes and fixes
+
+- `poll_updates` default `timeout` argument changed from 2 to 1 second
+- Many refactorings in the code
+- `pay_to` and `pay_to_many` functions now work without issues in concurrent environments
+
+### Breaking changes
+
+This update is a major version change, it means that there will be lots of breaking changes between 0.x.y -> 1.x.y series, but between 1.x.y series there should be no breaking changes. We are following semver.
+
+#### All fields which were float before or required float now require Decimal
+
+It is added to prevent loss of precision with floats. You should use Decimals everywhere, and SDK methods now return Decimals. See related breaking changes below:
+
+#### rate function no longer accepts accurate parameter
+
+Rate function now returns Decimals always, so there is no accurate parameter anymore (this behaviour was achieved before by `rate(accurate=True)`)
+
+#### Balance function dict's keys are now always Decimals
+
+Before, if some balance didn't exist in a wallet, it returned `0` (int), but if it existed it returned amount as string.
+This inconsistent behaviour is now fixed, but now every amount is Decimal.
+
+#### add_request/get_request amount_COIN fields now return Decimals
+
+`amount_BTC`, `amount_LTC`, `amount (BCH)`, etc. fields are now Decimals.
+
+For convenience, `amount_field` attribute was added on coin objects:
+
+```python
+btc.amount_field # "amount_BTC"
+```
+
+#### Renamed some methods
+
+`getrequest` was renamed to `get_request`
+`addrequest` to `add_request`
+`addinvoice` to `add_invoice`
+
+To follow PEP8.
+
+#### Changed callback function in pay_to/pay_to_many
+
+Before fee callback function passed tx size and default fee (in satoshis) and expected to return btc amount.
+
+Now it is expecting to return amount in satoshis for ease of use.
+
+#### All errors are no longer based on ValueError
+
+By adding a better exception system, and a major version change, we remove ValueError. `bitcart.errors.BaseError` is now a base error for all exceptions. `bitcart.errors.RequestError` is a base error for all errors returned from server. `bitcart.errors.UnknownError`, if spec is unavailable works the same as `ValueError` before
+
+#### Flask app setup will no longer work
+
+As internally all SDK code is now async, it is based on aiohttp server for webhooks. You should use aiohttp methods to set up custom servers if needed, flask is no longer a dependency.
+
+#### webhook extra deleted
+
+As aiohttp is now used for webhooks, there is no need to install extra dependencies. SDK 1.0 doesn't have webhook extra.
+
+#### bitcart-async package deprecated
+
+As async and sync versions are now part of one library, it will be in `bitcart` Pypi package. `bitcart-async` package's last version will be 0.9.1.
+
+All future updates will be made in `bitcart` package.
+
 ## 0.9.1
 
 Fixed async timeouts

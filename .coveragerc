@@ -10,6 +10,5 @@ omit =
 [report]
 exclude_lines =
     pragma: no cover
-    if not webhook_available:
     raise NotImplementedError()
     if TYPE_CHECKING:
