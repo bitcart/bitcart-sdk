@@ -192,6 +192,10 @@ As async and sync versions are now part of one library, it will be in `bitcart` 
 
 All future updates will be made in `bitcart` package.
 
+#### Breaking changes in electrum format
+
+They can be found in this PR [comment](https://github.com/bitcartcc/bitcart-sdk/pull/17#issuecomment-700143843)
+
 ## 0.9.1
 
 Fixed async timeouts
