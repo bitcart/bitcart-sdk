@@ -1,5 +1,7 @@
+import asyncio
 from collections import UserDict, defaultdict
 from typing import TYPE_CHECKING, Any, Dict, Iterable, Optional
+from urllib.parse import urljoin
 
 from .coins import COINS
 from .event_delivery import EventDelivery
@@ -28,11 +30,19 @@ class APIManager(EventDelivery):
             lambda: ExtendedDict(),
             {currency: self.load_wallets(currency, wallets) for currency, wallets in wallets.items()},
         )
+        self.sessions = {}
+        self.session_url = {}
+        for currency in self.wallets:
+            coin = next(iter(self.wallets[currency].values()))
+            self.sessions[currency] = coin.server.session
+            self.session_url[currency] = coin.server.url
         self.event_handlers = {}
 
     @classmethod
     def load_wallets(cls, currency: str, wallets: Iterable[str]) -> ExtendedDict:
-        return ExtendedDict({wallet: cls.load_wallet(currency, wallet) for wallet in wallets})
+        return ExtendedDict(
+            {wallet: cls.load_wallet(currency, wallet) for wallet in wallets} or {"": cls.load_wallet(currency, None)}
+        )
 
     @classmethod
     def load_wallet(cls, currency: str, wallet: str) -> "Coin":
@@ -53,19 +63,27 @@ class APIManager(EventDelivery):
     def _merge_event_handlers(self, wallet: "Coin") -> None:
         wallet.event_handlers.update(self.event_handlers)
 
-    def _get_event_handlers(self, wallet: "Coin") -> Iterable[str]:
-        self._merge_event_handlers(wallet)
-        return list(wallet.event_handlers.keys())
-
     async def _configure_notifications(self, autoconfigure: bool = True) -> None:
         for currency in self.wallets:
             for wallet in self.wallets[currency].values():
                 try:
-                    await wallet.server.subscribe(self._get_event_handlers(wallet))
                     if autoconfigure:
                         await wallet.server.configure_notifications("http://localhost:6000")
                 except Exception:
                     pass
+
+    async def register_wallets(self, ws):
+        pass  # listen on all wallets
+
+    async def start_websocket_for_currency(self, currency):
+        async with self.sessions[currency].ws_connect(urljoin(self.session_url[currency], "/ws")) as ws:
+            await self.start_websocket_processing(ws)
+
+    async def start_websocket(self):
+        tasks = []
+        for currency in self.wallets:
+            tasks.append(self.start_websocket_for_currency(currency))
+        await asyncio.gather(*tasks)
 
     async def process_updates(
         self, updates: Iterable[dict], currency: Optional[str] = None, wallet: Optional[str] = None

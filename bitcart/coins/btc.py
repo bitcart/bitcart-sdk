@@ -162,6 +162,9 @@ class BTC(Coin, EventDelivery):
         """
         return await self.server.onchain_history()  # type: ignore
 
+    async def register_wallets(self, ws):
+        await ws.send_json({"xpub": self.xpub})
+
     async def process_updates(self, updates: Iterable[dict], *args: Any, pass_instance: bool = False, **kwargs: Any) -> None:
         if not isinstance(updates, list):
             return

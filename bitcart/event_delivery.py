@@ -2,8 +2,9 @@ import asyncio
 import logging
 from json import JSONDecodeError
 from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, Optional, Union
+from urllib.parse import urljoin
 
-from aiohttp import web
+from aiohttp import WSMsgType, web
 
 if TYPE_CHECKING:
     from providers.jsonrpcrequests import RPCProxy
@@ -31,7 +32,6 @@ class EventDelivery:
         self.webhook_app.router.add_post("/", self.handle_webhook)
 
     async def _configure_notifications(self, autoconfigure: bool = True) -> None:
-        await self.server.subscribe(list(self.event_handlers.keys()))
         if autoconfigure:
             await self.server.configure_notifications("http://localhost:6000")
 
@@ -45,6 +45,25 @@ class EventDelivery:
     def start_webhook(self, port: int = 6000, **kwargs: Any) -> None:
         self.configure_webhook()
         self._start_webhook(port=port, **kwargs)
+
+    async def register_wallets(self, ws):
+        raise NotImplementedError()
+
+    async def start_websocket_processing(self, ws):
+        await self.register_wallets(ws)
+        async for msg in ws:
+            if msg.type == WSMsgType.TEXT:
+                try:
+                    data = msg.json()
+                    await self.process_updates(data.get("updates", []), data.get("currency", "BTC"), data.get("wallet"))
+                except JSONDecodeError:
+                    pass
+            elif msg.type == WSMsgType.CLOSED or msg.type == WSMsgType.ERROR:
+                break
+
+    async def start_websocket(self):
+        async with self.server.session.ws_connect(urljoin(self.server.url, "/ws")) as ws:
+            await self.start_websocket_processing(ws)
 
     async def poll_updates(self, timeout: Union[int, float] = 1) -> None:  # pragma: no cover
         """Poll updates
@@ -64,7 +83,6 @@ class EventDelivery:
         Returns:
             None: This function runs forever
         """
-        await self.server.subscribe(list(self.event_handlers.keys()))
         while True:
             try:
                 data = await self.server.get_updates()
