@@ -3,6 +3,7 @@ import multiprocessing
 import pytest
 
 from bitcart import BTC, GZRO, LTC
+from bitcart.errors import NoCurrenciesRegisteredError
 from bitcart.manager import APIManager
 
 pytestmark = pytest.mark.asyncio
@@ -48,3 +49,8 @@ async def test_manager_start_websocket(patched_session, websocket_manager, mocke
     await websocket_manager.start_websocket(auto_reconnect=False)
     assert test_queue.qsize() == 1
     assert test_queue.get() is True
+
+
+async def test_manager_no_currencies():
+    with pytest.raises(NoCurrenciesRegisteredError):
+        await APIManager().start_websocket(auto_reconnect=False)

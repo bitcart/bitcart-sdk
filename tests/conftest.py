@@ -108,18 +108,36 @@ class FakeDaemon:
     async def handle_websocket(self, request):
         ws = web.WebSocketResponse()
         await ws.prepare(request)
-        await ws.send_json({"wallet": TEST_XPUB, "updates": [{"event": "new_transaction", "tx": "test"}]})
+        await self.reply_to_websocket(ws)
         await ws.close()
 
+    async def reply_to_websocket(self, ws):
+        await ws.send_json({"wallet": TEST_XPUB, "updates": [{"event": "new_transaction", "tx": "test"}]})
 
-@pytest.yield_fixture
+
+class FakeBadJSONDaemon(FakeDaemon):
+    async def reply_to_websocket(self, ws):
+        await ws.send_str("")
+
+
+async def patched_session_maker(daemon_class):
+    fake_daemon = daemon_class()
+    info = await fake_daemon.start()
+    resolver = FakeResolver(info)
+    connector = TCPConnector(resolver=resolver)
+    fake_session = ClientSession(connector=connector)
+    return fake_session, fake_daemon
+
+
+@pytest.fixture
 async def patched_session():
-    try:
-        fake_daemon = FakeDaemon()
-        info = await fake_daemon.start()
-        resolver = FakeResolver(info)
-        connector = TCPConnector(resolver=resolver)
-        fake_session = ClientSession(connector=connector)
-        yield fake_session
-    finally:
-        await fake_daemon.stop()
+    session, daemon = await patched_session_maker(FakeDaemon)
+    yield session
+    await daemon.stop()
+
+
+@pytest.fixture
+async def patched_session_bad_json():
+    session, daemon = await patched_session_maker(FakeBadJSONDaemon)
+    yield session
+    await daemon.stop()

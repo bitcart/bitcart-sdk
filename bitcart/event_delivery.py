@@ -6,6 +6,7 @@ from urllib.parse import urljoin
 
 from aiohttp import ClientConnectionError, WSMsgType
 
+from .errors import ConnectionFailedError
 from .utils import call_universal
 
 if TYPE_CHECKING:
@@ -39,7 +40,7 @@ class EventDelivery:
                     await self.process_updates(data.get("updates", []), data.get("currency", "BTC"), data.get("wallet"))
                 except JSONDecodeError:
                     pass
-            elif msg.type == WSMsgType.CLOSED or msg.type == WSMsgType.ERROR:
+            elif msg.type == WSMsgType.CLOSED or msg.type == WSMsgType.ERROR:  # pragma: no cover
                 break
 
     async def _start_websocket_inner(self, reconnect_callback: Optional[Callable] = None) -> None:
@@ -62,13 +63,13 @@ class EventDelivery:
         while True:
             try:
                 await self._start_websocket_inner(reconnect_callback=reconnect_callback)
-            except ClientConnectionError:
+            except ClientConnectionError as e:
                 if first and not force_connect:
-                    raise
+                    raise ConnectionFailedError() from e
             first = False
             if not auto_reconnect:
                 break
-            await asyncio.sleep(5)  # wait a bit before re-estabilishing a connection
+            await asyncio.sleep(5)  # wait a bit before re-estabilishing a connection # pragma: no cover
 
     async def poll_updates(self, timeout: Union[int, float] = 1) -> None:  # pragma: no cover
         """Poll updates
