@@ -3,11 +3,12 @@
 The bot is available in telegram at @bitcart_atomic_tipbot
 
 Used tools:
- - Python 3.6+
- - Mongo DB
- - Pyrogram(for bot)
- - qrcode library for generating qr codes
- - BitcartCC to do all the bitcoin and lightning job.
+
+- Python 3.6+
+- Mongo DB
+- Pyrogram(for bot)
+- qrcode library for generating qr codes
+- BitcartCC to do all the bitcoin and lightning job.
 
 Special thanks to @reablaz, for his original [Atomic tips bot](https://github.com/reablaz/atomic_tipbot)
 This bot is rewritten in my style, using modern python 3.6+ f-strings, and of course, BitcartCC. (and made this example reproducible)
@@ -96,7 +97,6 @@ If you need to run daemon in testnet, use:
 
 `BTC_NETWORK=testnet python3 daemons/btc.py`
 
-
 After that, you can run the bot using `python3 bot.py` and enjoy it!
 If you have come here to see how it works, read the next part.
 
@@ -126,12 +126,11 @@ You can initialize it without any parameters, too, but it will be limited(wallet
 
 BTC class accepts the following parameters:
 
- - rpc_url - url of BitcartCC daemon to connect to
- - rpc_user - user to login into your BitcartCC daemon
- - rpc_pass - password to login into your BitcartCC daemon
- - xpub - actually it is not just xpub, it can be x/y/z pub/prv, almost anything. Electrum seed can be used too.
- - session - completely optional, pass your precreated aiohttp.ClientSession(only if you need to customize something in default session)
-
+- rpc_url - url of BitcartCC daemon to connect to
+- rpc_user - user to login into your BitcartCC daemon
+- rpc_pass - password to login into your BitcartCC daemon
+- xpub - actually it is not just xpub, it can be x/y/z pub/prv, almost anything. Electrum seed can be used too.
+- session - completely optional, pass your precreated aiohttp.ClientSession(only if you need to customize something in default session)
 
 After intializing coin, you can start using it.
 BitcartCC SDK coins' main methods are fully documented(often with examples)
@@ -152,7 +151,7 @@ RPC methods accessible via btc.server can't have intellisence in your IDE becaus
 Now, about using BitcartCC in this bot's code.
 To get price of 1 bitcoin in USD, simply call `btc.rate()`
 Use `btc.add_request(amount, description="", expire=15)` to create BTC invoice
-Amount is amount in BTC, description is optional and is description of invoice, expire is the time invoice will expire in, 
+Amount is amount in BTC, description is optional and is description of invoice, expire is the time invoice will expire in,
 default 15 minutes, but if you pass None, invoice will never expire.
 This method returns data about newly created invoice:
 
@@ -169,10 +168,11 @@ URI is full bitcoin url for wallets to open it,
 status is status of invoice, amount (BTC) is of course amount in btc.
 Only status changes there, and if invoice is paid, there is additional field confirmations showing confirmations of transaction.
 Status can be one of the following:
- - Unknown
- - Pending
- - Expired
- - Paid
+
+- Unknown
+- Pending
+- Expired
+- Paid
 
 It is provided by electrum and statuses may change, as for now those statuses can be got from commands.py of electrum source, in definition of pr_str dictionary. For now it is [here](https://github.com/spesmilo/electrum/blob/master/electrum/commands.py#L604)
 
@@ -185,7 +185,7 @@ btc.get_request("msS5WjurQ6AeKyAM3xHrsB4r1ACiLimoDx")
 {'time': 1564678098, 'amount': 1000000, 'exp': 1200, 'address': 'msS5WjurQ6AeKyAM3xHrsB4r1ACiLimoDx', 'memo': 'My invoice description', 'id': 'd46f26f3a8', 'URI': 'bitcoin:msS5WjurQ6AeKyAM3xHrsB4r1ACiLimoDx?amount=0.01', 'status': 'Paid', 'confirmations': 0, 'amount (BTC)': Decimal('0.01')}
 ```
 
-If you want to keep track of invoices, you can use event system. 
+If you want to keep track of invoices, you can use event system.
 
 You can keep track of all changes to addresses on your account, or payment request status changes.
 For that, on decorator, mark your function which you want to be capable of handling the updates with `on` decorator.
@@ -210,9 +210,9 @@ To start listening for those updates, you need to start polling, for that, use:
 
 `btc.poll_updates()`
 
-Or use webhooks (starts a http server at port 6000 by default):
+Or use websocket (connects to your daemon's `/ws` endpoint):
 
-`btc.start_webhook()`
+`btc.start_websocket()`
 
 But note that it is run forever and it blocks your code.
 
@@ -227,7 +227,7 @@ You can read about APIManager in [SDK docs](https://sdk.bitcartcc.com/en/latest/
 
 For more information, read [BitcartCC SDK docs](https://sdk.bitcartcc.com) and [Main BitcartCC docs](https://docs.bitcartcc.com)
 
-### Telegram bot 
+### Telegram bot
 
 ```
 @app.on_message(filters.command("command_name"))
@@ -254,7 +254,6 @@ We save qr codes to files directory, because right now pyrogram doesn't support 
 
 For more information read [Pyrogram](https://docs.pyrogram.org) docs
 
-
 ### Mongo DB
 
 In this example mongo db is used to store all data.
@@ -266,7 +265,7 @@ To execute some action, we simply call collection.method
 
 get_user_data returns user data by user_id and it user doesn't exist, inserts him into collection
 
-`user = mongo.users.find_one({"user_id": user_id})` 
+`user = mongo.users.find_one({"user_id": user_id})`
 
 finds user by id, if user wasn't found, it returns None
 We can use insert_one to insert into collection
@@ -278,12 +277,11 @@ $set sets a new value
 
 For more information, read [Mongo DB](https://docs.mongodb.com) and [PyMongo](https://api.mongodb.com/python/current) docs.
 
-
 ### QrCode
 
 To generate qrcodes, I used qrcode library, it internally uses Pillow to save it into png format.
 The api is simple:
-`qrcode.make("text")` returns qrcode object, 
+`qrcode.make("text")` returns qrcode object,
 and `save()` method of qrcode object saves object to path specified
 
 For more information, read [Qrcode python library](https://github.com/lincolnloop/python-qrcode/blob/master/README.rst) docs.

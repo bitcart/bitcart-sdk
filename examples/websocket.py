@@ -10,5 +10,5 @@ def handler(event, height=None, tx=None):
     print(tx)
 
 
-btc.start_webhook()  # for webhook
+btc.start_websocket()  # for websocket
 # btc.poll_updates() for polling

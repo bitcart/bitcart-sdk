@@ -1,10 +1,9 @@
 import multiprocessing
-import time
 
 import pytest
-from aiohttp import ClientSession
 
 from bitcart import BTC, GZRO, LTC
+from bitcart.errors import NoCurrenciesRegisteredError
 from bitcart.manager import APIManager
 
 pytestmark = pytest.mark.asyncio
@@ -23,19 +22,8 @@ async def manager(xpub):
 
 
 @pytest.fixture
-async def webhook_manager(xpub):
+async def websocket_manager(xpub):
     return APIManager({"BTC": [xpub, "test"]})
-
-
-@pytest.yield_fixture
-def setup_webhook(webhook_manager):
-    webhook_manager.add_event_handler("new_transaction", new_tx_handler)
-    process = multiprocessing.Process(target=webhook_manager.start_webhook)
-    process.start()
-    time.sleep(2)
-    yield
-    process.terminate()
-    process.join()
 
 
 async def test_manager_storage(manager, xpub):
@@ -55,11 +43,14 @@ async def test_manager_add_wallets(manager, xpub):
     assert manager.wallets == {"BTC": {xpub: BTC(xpub=xpub)}, "LTC": {xpub: LTC(xpub=xpub)}, "GZRO": {xpub: GZRO(xpub=xpub)}}
 
 
-async def test_manager_start_webhook(setup_webhook, xpub):
-    async with ClientSession() as session:
-        async with session.post(
-            "http://localhost:6000", json={"wallet": xpub, "updates": [{"event": "new_transaction", "tx": "test"}]}
-        ) as resp:
-            assert await resp.json() == {}
-        assert test_queue.qsize() == 1
-        assert test_queue.get() is True
+async def test_manager_start_websocket(patched_session, websocket_manager, mocker):
+    websocket_manager.add_event_handler("new_transaction", new_tx_handler)
+    mocker.patch.dict(websocket_manager.sessions, {"BTC": patched_session})
+    await websocket_manager.start_websocket(auto_reconnect=False)
+    assert test_queue.qsize() == 1
+    assert test_queue.get() is True
+
+
+async def test_manager_no_currencies():
+    with pytest.raises(NoCurrenciesRegisteredError):
+        await APIManager().start_websocket(auto_reconnect=False)

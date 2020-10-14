@@ -1,6 +1,7 @@
+import inspect
 import json
 from decimal import Decimal
-from typing import Any
+from typing import Any, Callable
 
 CONVERT_RATE = 100000000
 
@@ -58,3 +59,18 @@ def json_encode(obj: Any) -> Any:
         Any: return value of json.dumps
     """
     return json.dumps(obj, cls=CustomJSONEncoder)
+
+
+async def call_universal(func: Callable, *args: Any, **kwargs: Any) -> Any:
+    """Call a function: async or sync one. All passed arguments are passed to the function too
+
+    Args:
+        func (Callable): a function to call: either sync or async one
+
+    Returns:
+        Any: function execution result
+    """
+    result = func(*args, **kwargs)
+    if inspect.isawaitable(result):
+        await result
+    return result

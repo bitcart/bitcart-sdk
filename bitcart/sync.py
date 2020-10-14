@@ -2,6 +2,7 @@
 import asyncio
 import functools
 import inspect
+import threading
 from typing import Any, AsyncGenerator, Callable, List
 
 from .coins import COINS
@@ -38,7 +39,14 @@ def async_to_sync_wraps(function: Callable, is_property: bool = False) -> Callab
             coroutine = function(*args, **kwargs)
 
         if loop.is_running():
-            return coroutine
+            if threading.current_thread() is threading.main_thread():
+                return coroutine
+            else:
+                if inspect.iscoroutine(coroutine):
+                    return asyncio.run_coroutine_threadsafe(coroutine, loop).result()
+
+                if inspect.isasyncgen(coroutine):
+                    return asyncio.run_coroutine_threadsafe(consume_generator(coroutine), loop).result()
 
         return run_sync_ctx(coroutine, loop)
 

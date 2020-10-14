@@ -29,4 +29,4 @@ def handler(instance, event, height):
     print(instance, event, height)
 
 
-manager.start_webhook()
+manager.start_websocket()
