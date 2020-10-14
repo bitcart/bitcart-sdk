@@ -9,6 +9,10 @@ class InvalidEventError(BaseError):
     """Daemon returned unsupported event"""
 
 
+class NoCurrenciesRegisteredError(BaseError):
+    """APIManager has no currencies enabled"""
+
+
 class LightningDisabledError(BaseError):
     """Lightning is disabled in daemon"""
 

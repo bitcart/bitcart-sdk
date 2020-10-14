@@ -30,7 +30,7 @@ async def webhook_manager(xpub):
 @pytest.yield_fixture
 def setup_webhook(webhook_manager):
     webhook_manager.add_event_handler("new_transaction", new_tx_handler)
-    process = multiprocessing.Process(target=webhook_manager.start_webhook)
+    process = multiprocessing.Process(target=webhook_manager.start_websocket)
     process.start()
     time.sleep(2)
     yield

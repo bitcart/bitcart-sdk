@@ -1,56 +1,37 @@
 import asyncio
 import logging
 from json import JSONDecodeError
-from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, Optional, Union
+from typing import TYPE_CHECKING, Callable, Dict, Iterable, Optional, Union
 from urllib.parse import urljoin
 
-from aiohttp import WSMsgType, web
+from aiohttp import ClientConnectionError, WSMsgType
+
+from .utils import call_universal
 
 if TYPE_CHECKING:
-    from providers.jsonrpcrequests import RPCProxy
+    from aiohttp import ClientWebSocketResponse
+
+    from .providers.jsonrpcrequests import RPCProxy
 
 
 class EventDelivery:
     server: "RPCProxy"
     event_handlers: Dict[str, Callable]
 
-    async def handle_webhook(self, request: "web.Request") -> "web.Response":
-        try:
-            json = await request.json()
-        except JSONDecodeError:
-            return web.json_response({})
-        await self.process_updates(json.get("updates", []), json.get("currency", "BTC"), json.get("wallet"))
-        return web.json_response({})
-
     async def process_updates(
         self, updates: Iterable[dict], currency: Optional[str] = None, wallet: Optional[str] = None
     ) -> None:
         raise NotImplementedError()
 
-    def _configure_webhook(self) -> None:
-        self.webhook_app = web.Application()
-        self.webhook_app.router.add_post("/", self.handle_webhook)
-
-    async def _configure_notifications(self, autoconfigure: bool = True) -> None:
-        if autoconfigure:
-            await self.server.configure_notifications("http://localhost:6000")
-
-    async def configure_webhook(self, autoconfigure: bool = True) -> None:
-        self._configure_webhook()
-        await self._configure_notifications(autoconfigure=autoconfigure)
-
-    def _start_webhook(self, port: int = 6000, **kwargs: Any) -> None:
-        web.run_app(self.webhook_app, port=port, **kwargs)
-
-    def start_webhook(self, port: int = 6000, **kwargs: Any) -> None:
-        self.configure_webhook()
-        self._start_webhook(port=port, **kwargs)
-
-    async def register_wallets(self, ws):
+    async def _register_wallets(self, ws: "ClientWebSocketResponse") -> None:
         raise NotImplementedError()
 
-    async def start_websocket_processing(self, ws):
-        await self.register_wallets(ws)
+    async def _start_websocket_processing(
+        self, ws: "ClientWebSocketResponse", reconnect_callback: Optional[Callable] = None
+    ) -> None:
+        await self._register_wallets(ws)
+        if reconnect_callback:
+            await call_universal(reconnect_callback)
         async for msg in ws:
             if msg.type == WSMsgType.TEXT:
                 try:
@@ -61,9 +42,29 @@ class EventDelivery:
             elif msg.type == WSMsgType.CLOSED or msg.type == WSMsgType.ERROR:
                 break
 
-    async def start_websocket(self):
+    async def _start_websocket_inner(self, reconnect_callback: Optional[Callable] = None) -> None:
         async with self.server.session.ws_connect(urljoin(self.server.url, "/ws")) as ws:
-            await self.start_websocket_processing(ws)
+            await self._start_websocket_processing(ws, reconnect_callback=reconnect_callback)
+
+    def start_websocket(self, reconnect_callback: Optional[Callable] = None, force_connect: bool = False) -> None:
+        """Start a websocket connection to daemon
+
+        Args:
+            reconnect_callback (Optional[Callable], optional): Callback to be called right after
+                each succesful connection. Defaults to None.
+            force_connect (bool, optional): Whether to try reconnecting even on first failure (handshake)
+                to daemon. Defaults to False.
+        """
+        first = True
+        loop = asyncio.get_event_loop()  # because of weird bugs calling callback only once
+        while True:
+            try:
+                loop.run_until_complete(self._start_websocket_inner(reconnect_callback=reconnect_callback))
+            except ClientConnectionError:
+                if first and not force_connect:
+                    raise
+            first = False
+            loop.run_until_complete(asyncio.sleep(5))  # wait a bit before re-estabilishing a connection
 
     async def poll_updates(self, timeout: Union[int, float] = 1) -> None:  # pragma: no cover
         """Poll updates

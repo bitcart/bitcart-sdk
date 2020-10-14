@@ -10,7 +10,7 @@ test_queue = multiprocessing.Queue()
 @pytest.yield_fixture
 def setup_webhook(btc_wallet):
     btc_wallet.add_event_handler("new_transaction", new_tx_handler)
-    process = multiprocessing.Process(target=btc_wallet.start_webhook)  # wallet required
+    process = multiprocessing.Process(target=btc_wallet.start_websocket)  # wallet required
     process.start()
     time.sleep(2)
     yield

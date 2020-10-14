@@ -1,4 +1,3 @@
-import inspect
 import warnings
 from decimal import Decimal
 from functools import wraps
@@ -9,10 +8,10 @@ from ..errors import InvalidEventError, LightningDisabledError
 from ..event_delivery import EventDelivery
 from ..providers.jsonrpcrequests import RPCProxy
 from ..types import AmountType
-from ..utils import bitcoins, convert_amount_type
+from ..utils import bitcoins, call_universal, convert_amount_type
 
 if TYPE_CHECKING:
-    import aiohttp
+    from aiohttp import ClientSession, ClientWebSocketResponse
 
 
 def lightning(f: Callable) -> Callable:
@@ -43,7 +42,7 @@ class BTC(Coin, EventDelivery):
         rpc_pass: Optional[str] = None,
         xpub: Optional[str] = None,
         proxy: Optional[str] = None,
-        session: Optional["aiohttp.ClientSession"] = None,
+        session: Optional["ClientSession"] = None,
     ):
         super().__init__()
         if not xpub:
@@ -70,7 +69,7 @@ class BTC(Coin, EventDelivery):
         Returns:
             dict: spec
         """
-        return await self.server.spec  # type: ignore
+        return await self.server.spec
 
     ### High level interface ###
 
@@ -162,7 +161,7 @@ class BTC(Coin, EventDelivery):
         """
         return await self.server.onchain_history()  # type: ignore
 
-    async def register_wallets(self, ws):
+    async def _register_wallets(self, ws: "ClientWebSocketResponse") -> None:
         await ws.send_json({"xpub": self.xpub})
 
     async def process_updates(self, updates: Iterable[dict], *args: Any, pass_instance: bool = False, **kwargs: Any) -> None:
@@ -180,9 +179,7 @@ class BTC(Coin, EventDelivery):
                 if pass_instance:
                     args = (self,) + args
                 try:
-                    handler = handler(*args, **event_info)
-                    if inspect.isawaitable(handler):
-                        await handler  # type: ignore
+                    await call_universal(handler, *args, **event_info)
                 except Exception:
                     pass
 
