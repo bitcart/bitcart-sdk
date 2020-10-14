@@ -103,7 +103,7 @@ Additional data:
 Listening for updates
 *********************
 
-To receive updates, you should use one of the available event delivery methods: polling or webhook
+To receive updates, you should use one of the available event delivery methods: polling or websocket
 
 Polling
 =======
@@ -120,40 +120,28 @@ To use it, run:
 
 It will start an infinite loop.
 
-Webhook
+Websocket
 =======
 
-Webhook is a bit harder to set up sometimes, but works better.
+Websocket is a bit harder to set up sometimes, but works better.
 
-Instead of constantly calling daemon method to get updates, daemon will send updates when they are available.
+Instead of constantly calling daemon method to get updates, daemon will send updates when they are available via an estabilished connection.
+
+That way, you don't need to know your URL, you should only know daemon URL, and a channel between SDK and daemon will be set up.
 
 To use it, run:
 
 .. code-block:: python
 
-    coin.start_webhook()
+    coin.start_websocket()
 
-It will start an aiohttp server, by default at port 6000.
+It will connect to your daemon's ``/ws`` endpoint, with auto-reconnecting in case of unexpected websocket close.
 
-With default configuration daemon will be notified of the webhook automatically.
+There may be unlimited number of websockets per wallet or not.
 
-Currently only one webhook per wallet is supported.
+Under the hood, if using APIManager, daemon will send all it's updates to SDK, and SDK will filter only the one you need.
 
-If you have some existing routes in aiohttp, you can integrate your aiohttp server and webhooks.
-
-.. code-block:: python
-
-    coin.configure_webhook()
-    coin.webhook_app.add_post(...) # coin.webhook_app is a configured aiohttp app instance
-
-That way you can configure the app the needed way.
-
-If you are running webhook at a different port or host, you will need to notify daemon of it manually:
-
-.. code-block:: python
-
-    coin.configure_webhook(autoconfigure=False)
-    coin.server.configure_notifications("http://some.host:port")
+If using coin object, daemon will only send updates about this wallet.
 
 
 Manual updates processing

@@ -1,12 +1,13 @@
 # BitcartCC SDK
+
 [![CircleCI](https://circleci.com/gh/bitcartcc/bitcart-sdk.svg?style=svg)](https://circleci.com/gh/bitcartcc/bitcart-sdk)
 [![Codecov](https://img.shields.io/codecov/c/github/bitcartcc/bitcart-sdk?style=flat-square)](https://codecov.io/gh/bitcartcc/bitcart-sdk)
 [![PyPI version](https://img.shields.io/pypi/v/bitcart.svg?style=flat-square)](https://pypi.python.org/pypi/bitcart/)
 [![Read the Docs](https://img.shields.io/readthedocs/bitcart-sdk?style=flat-square)](https://sdk.bitcartcc.com)
 
-
 This is a client library(wrapper) around BitcartCC daemon. It is used to simplify common commands.
 Coins support(⚡ means lightning is supported):
+
 - Bitcoin(⚡)
 - Bitcoin Cash
 - Litecoin(⚡)
@@ -34,6 +35,19 @@ Async callback functions for `@btc.on` are supported.
 
 For more information [Read the Docs](https://sdk.bitcartcc.com)
 
+## Release versioning
+
+We follow a custom variant of semver:
+
+`major.minor.feature.bugfix`
+
+Where `major` is changed not frequently, and means significant changes to the SDK
+
+`minor` means breaking changes
+
+`feature` means adding new features without breaking existing APIs
+
+`bugfix` means fixing bugs without breaking existing APIs
 
 ## Contributing
 

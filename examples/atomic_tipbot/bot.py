@@ -12,7 +12,6 @@ from decimal import ROUND_UP, Decimal
 import pymongo
 import qrcode
 import qrcode.image.svg
-from aiohttp import web
 from pyrogram import Client, filters
 from pyrogram.errors import BadRequest
 from pyrogram.session import Session
@@ -384,7 +383,7 @@ def paylink_query(client, message):
 @manager.on("new_payment")
 async def payment_handler(instance, event, address, status, status_str):  # async to make pyrogram sending work
     inv = mongo.invoices.find({"address": address}).limit(1).sort([("$natural", -1)])[0]  # to get latest result
-    if inv and inv["status"] != "Paid":
+    if inv and inv["status_str"] != "Paid":
         # bitcart: get invoice info, not neccesary here
         # btc.get_request(address)
         if status_str == "Paid":
@@ -796,19 +795,14 @@ async def betcheck():
         await asyncio.sleep(1)
 
 
-async def start_webhook():
-    await manager.configure_webhook()  # bitcart: setup aiohttp app and notify daemon of it
-    # aiohttp app setup in async context
-    runner = web.AppRunner(manager.webhook_app)
-    await runner.setup()
-    site = web.TCPSite(runner, "localhost", 6000)
-    await site.start()
+async def start_websocket():
+    await manager.start_websocket()  # bitcart: start websocket
 
 
 # NOTE: never use threading with asyncio, .create_task should be used instead!
 
 loop = asyncio.get_event_loop()
 loop.create_task(betcheck_schedule())
-loop.create_task(start_webhook())  # bitcart: start webhook to listen for new payments on all coins
+loop.create_task(start_websocket())  # bitcart: start websocket to listen for new payments on all coins
 
 app.run()

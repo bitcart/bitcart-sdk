@@ -55,10 +55,8 @@ You can register event handlers like you did before, on individual coin instance
     def handler(instance, event, tx):
         pass # instance is coin instance currently processing the event
 
-To start a webhook, run:
+To start connection to websocket, run:
 
 .. code-block:: python
 
-    manager.start_webhook()
-
-Note: all webhook customization functions, as in regular coin instances, are available.
+    manager.start_websocket()

@@ -2,6 +2,43 @@
 
 ## Latest changes
 
+## 1.1.0.0
+
+### Features
+
+New event delivery method: websockets!
+
+Websockets should be a better way of receiving updates than webhooks.
+
+They are better because SDK doesn't need to know it's own address, and daemon doesn't need to be notified of webhook.
+
+That way, with less complexity, any amount of listeners per wallet are possible now.
+
+To use it, run:
+
+```python
+btc.start_websocket()
+```
+
+It will connect to websocket with auto-reconnect feature.
+
+You can disable it by setting `auto_reconnect` parameter to `False`.
+
+If `force_connect` is set to `True`, first time connection errors will be ignored.
+By default, if connecting to websocket failed first time (might mean invalid URL), then `ConnectionFailedError` is raised.
+
+On successful connection to websocket, `reconnect_callback` function is called.
+
+### Breaking changes
+
+As webhook method is not very easy to use, it is removed in favor of websockets.
+
+So, `start_webhook`, `configure_webhook` and similar related methods are removed.
+
+Also, daemon-side all event subscription methods are removed. Now all events are sent, and are filtered by SDK.
+
+`start_websocket` in APIManager with no currencies set will now raise `NoCurrenciesRegisteredError`
+
 ## 1.0.1
 
 Fixed issues with aiohttp warning and async functions in threads
@@ -219,8 +256,6 @@ To use, pass proxy url to coin constructor:
 btc = BTC(proxy="socks5://localhost:9050")
 ```
 
-
-
 ## 0.8.5
 
 Version 0.8.5: completely remove aiohttp warnings
@@ -337,7 +372,6 @@ This release adds ability to create batch transactions, some examples:
 {'hex': '0200000...', 'complete': True, 'final': False}
 ```
 
-
 ## 0.6.1
 
 Fix for latest daemon
@@ -393,7 +427,6 @@ Lightning is enabled in your daemon by default, disable it with BTC_LIGTNING=fal
 
 If lightning is disabled, `bitcart.errors.LightningDisabledError` is raised.
 
-
 ## 0.3.0
 
 This version adds new events-based API to get updates.
@@ -437,7 +470,6 @@ There are two kinds of events for now:
 
 Old `@btc.notify` api is removed.
 
-
 ## 0.2.5
 
 Fix warning raising(no stacklevel)
@@ -479,7 +511,6 @@ rpc_url="http://localhost:5000" for bitcoin daemon and "http://localhost:5001" f
 ```
 
 When xpub is not provided, a warning is created.
-
 
 ## 0.1.4
 
