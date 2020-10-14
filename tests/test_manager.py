@@ -9,11 +9,16 @@ from bitcart.manager import APIManager
 pytestmark = pytest.mark.asyncio
 
 test_queue = multiprocessing.Queue()
+test_queue2 = multiprocessing.Queue()
 
 
 def new_tx_handler(instance, event, tx):
     if isinstance(instance, BTC):
         test_queue.put(True)
+
+
+def reconnect_callback(currency):
+    test_queue2.put(currency)
 
 
 @pytest.fixture
@@ -49,6 +54,13 @@ async def test_manager_start_websocket(patched_session, websocket_manager, mocke
     await websocket_manager.start_websocket(auto_reconnect=False)
     assert test_queue.qsize() == 1
     assert test_queue.get() is True
+
+
+async def test_manager_reconnect_callback(patched_session, websocket_manager, mocker):
+    mocker.patch.dict(websocket_manager.sessions, {"BTC": patched_session})
+    await websocket_manager.start_websocket(auto_reconnect=False, reconnect_callback=reconnect_callback)
+    assert test_queue2.qsize() == 1
+    assert test_queue2.get() == "BTC"
 
 
 async def test_manager_no_currencies():

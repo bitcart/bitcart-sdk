@@ -1,5 +1,6 @@
 import asyncio
 from collections import UserDict, defaultdict
+from functools import partial
 from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, Optional
 from urllib.parse import urljoin
 
@@ -71,6 +72,8 @@ class APIManager(EventDelivery):
         pass  # listen on all wallets
 
     async def start_websocket_for_currency(self, currency: str, reconnect_callback: Optional[Callable] = None) -> None:
+        if reconnect_callback:
+            reconnect_callback = partial(reconnect_callback, currency)
         async with self.sessions[currency].ws_connect(urljoin(self.session_url[currency], "/ws")) as ws:
             await self._start_websocket_processing(ws, reconnect_callback=reconnect_callback)
 

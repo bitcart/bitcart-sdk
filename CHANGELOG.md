@@ -2,6 +2,10 @@
 
 ## Latest changes
 
+## 1.1.0.1
+
+Fixed APIManager's `reconnect_callback`: now currency parameter is passed to it to differentiate between calls.
+
 ## 1.1.0.0
 
 ### Features
@@ -28,6 +32,8 @@ If `force_connect` is set to `True`, first time connection errors will be ignore
 By default, if connecting to websocket failed first time (might mean invalid URL), then `ConnectionFailedError` is raised.
 
 On successful connection to websocket, `reconnect_callback` function is called.
+
+If called from APIManager, `currency` parameter is passed.
 
 ### Breaking changes
 
