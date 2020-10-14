@@ -46,7 +46,9 @@ class EventDelivery:
         async with self.server.session.ws_connect(urljoin(self.server.url, "/ws")) as ws:
             await self._start_websocket_processing(ws, reconnect_callback=reconnect_callback)
 
-    def start_websocket(self, reconnect_callback: Optional[Callable] = None, force_connect: bool = False) -> None:
+    async def start_websocket(
+        self, reconnect_callback: Optional[Callable] = None, force_connect: bool = False, auto_reconnect: bool = True
+    ) -> None:
         """Start a websocket connection to daemon
 
         Args:
@@ -54,17 +56,19 @@ class EventDelivery:
                 each succesful connection. Defaults to None.
             force_connect (bool, optional): Whether to try reconnecting even on first failure (handshake)
                 to daemon. Defaults to False.
+            auto_reconnect (bool, optional): Whether to enable auto-reconnecting on websocket closing. Defaults to True.
         """
         first = True
-        loop = asyncio.get_event_loop()  # because of weird bugs calling callback only once
         while True:
             try:
-                loop.run_until_complete(self._start_websocket_inner(reconnect_callback=reconnect_callback))
+                await self._start_websocket_inner(reconnect_callback=reconnect_callback)
             except ClientConnectionError:
                 if first and not force_connect:
                     raise
             first = False
-            loop.run_until_complete(asyncio.sleep(5))  # wait a bit before re-estabilishing a connection
+            if not auto_reconnect:
+                break
+            await asyncio.sleep(5)  # wait a bit before re-estabilishing a connection
 
     async def poll_updates(self, timeout: Union[int, float] = 1) -> None:  # pragma: no cover
         """Poll updates
