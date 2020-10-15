@@ -74,16 +74,36 @@ class APIManager(EventDelivery):
     async def _register_wallets(self, ws: "ClientWebSocketResponse") -> None:
         pass  # listen on all wallets
 
-    async def start_websocket_for_currency(self, currency: str, reconnect_callback: Optional[Callable] = None) -> None:
+    async def _start_websocket_for_currency(self, currency: str, reconnect_callback: Optional[Callable] = None) -> None:
         if reconnect_callback:
             reconnect_callback = partial(reconnect_callback, currency)
         async with self.sessions[currency].ws_connect(urljoin(self.session_url[currency], "/ws")) as ws:
             await self._start_websocket_processing(ws, reconnect_callback=reconnect_callback)
 
-    async def _start_websocket_inner(self, reconnect_callback: Optional[Callable] = None) -> None:
+    async def start_websocket_for_currency(
+        self,
+        currency: str,
+        reconnect_callback: Optional[Callable] = None,
+        force_connect: bool = False,
+        auto_reconnect: bool = True,
+    ) -> None:
+        await self._websocket_base_loop(
+            partial(self._start_websocket_for_currency, currency=currency),
+            reconnect_callback=reconnect_callback,
+            force_connect=force_connect,
+            auto_reconnect=auto_reconnect,
+        )
+
+    async def start_websocket(
+        self, reconnect_callback: Optional[Callable] = None, force_connect: bool = False, auto_reconnect: bool = True
+    ) -> None:
         tasks = []
         for currency in self.wallets:
-            tasks.append(self.start_websocket_for_currency(currency, reconnect_callback=reconnect_callback))
+            tasks.append(
+                self.start_websocket_for_currency(
+                    currency, reconnect_callback=reconnect_callback, force_connect=force_connect, auto_reconnect=auto_reconnect
+                )
+            )
         await asyncio.gather(*tasks)
         if not tasks:
             raise NoCurrenciesRegisteredError(NoCurrenciesRegisteredError.__doc__)

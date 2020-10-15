@@ -2,6 +2,10 @@
 
 ## Latest changes
 
+## 1.1.0.3
+
+APIManager now auto-reconnects properly when using multiple currencies
+
 ## 1.1.0.2
 
 APIManager now calls it's handlers even when no wallet was matched

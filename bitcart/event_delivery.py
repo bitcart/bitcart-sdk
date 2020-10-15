@@ -47,6 +47,25 @@ class EventDelivery:
         async with self.server.session.ws_connect(urljoin(self.server.url, "/ws")) as ws:
             await self._start_websocket_processing(ws, reconnect_callback=reconnect_callback)
 
+    async def _websocket_base_loop(
+        self,
+        func: Callable,
+        reconnect_callback: Optional[Callable] = None,
+        force_connect: bool = False,
+        auto_reconnect: bool = True,
+    ) -> None:
+        first = True
+        while True:
+            try:
+                await func(reconnect_callback=reconnect_callback)
+            except ClientConnectionError as e:
+                if first and not force_connect:
+                    raise ConnectionFailedError() from e
+            first = False
+            if not auto_reconnect:
+                break
+            await asyncio.sleep(5)  # wait a bit before re-estabilishing a connection # pragma: no cover
+
     async def start_websocket(
         self, reconnect_callback: Optional[Callable] = None, force_connect: bool = False, auto_reconnect: bool = True
     ) -> None:
@@ -59,17 +78,12 @@ class EventDelivery:
                 to daemon. Defaults to False.
             auto_reconnect (bool, optional): Whether to enable auto-reconnecting on websocket closing. Defaults to True.
         """
-        first = True
-        while True:
-            try:
-                await self._start_websocket_inner(reconnect_callback=reconnect_callback)
-            except ClientConnectionError as e:
-                if first and not force_connect:
-                    raise ConnectionFailedError() from e
-            first = False
-            if not auto_reconnect:
-                break
-            await asyncio.sleep(5)  # wait a bit before re-estabilishing a connection # pragma: no cover
+        await self._websocket_base_loop(
+            self._start_websocket_inner,
+            reconnect_callback=reconnect_callback,
+            force_connect=force_connect,
+            auto_reconnect=auto_reconnect,
+        )
 
     async def poll_updates(self, timeout: Union[int, float] = 1) -> None:  # pragma: no cover
         """Poll updates
