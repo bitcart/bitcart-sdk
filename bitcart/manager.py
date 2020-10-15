@@ -1,4 +1,5 @@
 import asyncio
+import warnings
 from collections import UserDict, defaultdict
 from functools import partial
 from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, Optional
@@ -45,9 +46,11 @@ class APIManager(EventDelivery):
 
     @classmethod
     def load_wallets(cls, currency: str, wallets: Iterable[str]) -> ExtendedDict:
-        return ExtendedDict(
-            {wallet: cls.load_wallet(currency, wallet) for wallet in wallets} or {"": cls.load_wallet(currency, None)}
-        )
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            return ExtendedDict(
+                {wallet: cls.load_wallet(currency, wallet) for wallet in wallets} or {"": cls.load_wallet(currency, None)}
+            )
 
     @classmethod
     def load_wallet(cls, currency: str, wallet: Optional[str]) -> "Coin":
@@ -90,6 +93,8 @@ class APIManager(EventDelivery):
     ) -> None:
         wallet_obj = self.wallets[currency].get(wallet)
         if not wallet_obj:
-            wallet_obj = self.load_wallet(currency, wallet)  # type: ignore
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                wallet_obj = self.load_wallet(currency, wallet)  # type: ignore
         self._merge_event_handlers(wallet_obj)
         await wallet_obj.process_updates(updates, pass_instance=True)
