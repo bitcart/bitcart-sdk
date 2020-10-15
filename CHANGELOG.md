@@ -2,6 +2,10 @@
 
 ## Latest changes
 
+## 1.1.0.2
+
+APIManager now calls it's handlers even when no wallet was matched
+
 ## 1.1.0.1
 
 Fixed APIManager's `reconnect_callback`: now currency parameter is passed to it to differentiate between calls.

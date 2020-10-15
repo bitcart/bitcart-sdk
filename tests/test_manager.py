@@ -31,6 +31,11 @@ async def websocket_manager(xpub):
     return APIManager({"BTC": [xpub, "test"]})
 
 
+@pytest.fixture
+async def websocket_manager_no_wallets():
+    return APIManager({"BTC": []})
+
+
 async def test_manager_storage(manager, xpub):
     assert manager.wallets == {"BTC": {xpub: BTC(xpub=xpub)}}
     assert manager.wallets.BTC == manager.wallets["BTC"] == manager.BTC == manager["BTC"]
@@ -61,6 +66,14 @@ async def test_manager_reconnect_callback(patched_session, websocket_manager, mo
     await websocket_manager.start_websocket(auto_reconnect=False, reconnect_callback=reconnect_callback)
     assert test_queue2.qsize() == 1
     assert test_queue2.get() == "BTC"
+
+
+async def test_manager_no_wallets(patched_session, websocket_manager_no_wallets, mocker):
+    websocket_manager_no_wallets.add_event_handler("new_transaction", new_tx_handler)
+    mocker.patch.dict(websocket_manager_no_wallets.sessions, {"BTC": patched_session})
+    await websocket_manager_no_wallets.start_websocket(auto_reconnect=False)
+    assert test_queue.qsize() == 1
+    assert test_queue.get() is True
 
 
 async def test_manager_no_currencies():

@@ -89,6 +89,7 @@ class APIManager(EventDelivery):
         self, updates: Iterable[dict], currency: Optional[str] = None, wallet: Optional[str] = None
     ) -> None:
         wallet_obj = self.wallets[currency].get(wallet)
-        if wallet_obj:
-            self._merge_event_handlers(wallet_obj)
-            await wallet_obj.process_updates(updates, pass_instance=True)
+        if not wallet_obj:
+            wallet_obj = self.load_wallet(currency, wallet)  # type: ignore
+        self._merge_event_handlers(wallet_obj)
+        await wallet_obj.process_updates(updates, pass_instance=True)
