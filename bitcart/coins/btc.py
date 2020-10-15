@@ -1,4 +1,3 @@
-import warnings
 from decimal import Decimal
 from functools import wraps
 from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, Optional, Union
@@ -45,8 +44,6 @@ class BTC(Coin, EventDelivery):
         session: Optional["ClientSession"] = None,
     ):
         super().__init__()
-        if not xpub:
-            warnings.warn("Xpub not provided. Not all functions will be available.")
         self.rpc_url = rpc_url or self.RPC_URL
         self.rpc_user = rpc_user or self.RPC_USER
         self.rpc_pass = rpc_pass or self.RPC_PASS

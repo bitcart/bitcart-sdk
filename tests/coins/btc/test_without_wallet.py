@@ -14,9 +14,8 @@ from ...utils import data_check
 pytestmark = pytest.mark.asyncio
 
 
-async def test_compare(btc, xpub):
-    with pytest.warns(UserWarning):
-        assert btc == BTC()
+async def test_compare(btc):
+    assert btc == BTC()
     assert btc != 1
 
 

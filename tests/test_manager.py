@@ -12,6 +12,11 @@ test_queue = multiprocessing.Queue()
 test_queue2 = multiprocessing.Queue()
 
 
+class DummyServer:
+    url = "http://localhost:5000"
+    session = None
+
+
 def new_tx_handler(instance, event, tx):
     if isinstance(instance, BTC):
         test_queue.put(True)
@@ -53,16 +58,16 @@ async def test_manager_add_wallets(manager, xpub):
     assert manager.wallets == {"BTC": {xpub: BTC(xpub=xpub)}, "LTC": {xpub: LTC(xpub=xpub)}, "GZRO": {xpub: GZRO(xpub=xpub)}}
 
 
-async def test_manager_start_websocket(patched_session, websocket_manager, mocker):
+async def test_manager_start_websocket(patched_session, websocket_manager, xpub, mocker):
     websocket_manager.add_event_handler("new_transaction", new_tx_handler)
-    mocker.patch.dict(websocket_manager.sessions, {"BTC": patched_session})
+    mocker.patch.object(websocket_manager.BTC[xpub].server, "session", patched_session)
     await websocket_manager.start_websocket(auto_reconnect=False)
     assert test_queue.qsize() == 1
     assert test_queue.get() is True
 
 
-async def test_manager_reconnect_callback(patched_session, websocket_manager, mocker):
-    mocker.patch.dict(websocket_manager.sessions, {"BTC": patched_session})
+async def test_manager_reconnect_callback(patched_session, websocket_manager, xpub, mocker):
+    mocker.patch.object(websocket_manager.BTC[xpub].server, "session", patched_session)
     await websocket_manager.start_websocket(auto_reconnect=False, reconnect_callback=reconnect_callback)
     assert test_queue2.qsize() == 1
     assert test_queue2.get() == "BTC"
@@ -70,7 +75,9 @@ async def test_manager_reconnect_callback(patched_session, websocket_manager, mo
 
 async def test_manager_no_wallets(patched_session, websocket_manager_no_wallets, mocker):
     websocket_manager_no_wallets.add_event_handler("new_transaction", new_tx_handler)
-    mocker.patch.dict(websocket_manager_no_wallets.sessions, {"BTC": patched_session})
+    server = DummyServer()
+    server.session = patched_session
+    mocker.patch("bitcart.APIManager._get_websocket_server", return_value=server)
     await websocket_manager_no_wallets.start_websocket(auto_reconnect=False)
     assert test_queue.qsize() == 1
     assert test_queue.get() is True

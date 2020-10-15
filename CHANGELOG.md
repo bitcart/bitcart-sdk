@@ -2,6 +2,12 @@
 
 ## Latest changes
 
+## 1.1.0.4
+
+APIManager now supports more customization of connection options by not overriding them.
+
+No more "no xpub provided" warnings.
+
 ## 1.1.0.3
 
 APIManager now auto-reconnects properly when using multiple currencies

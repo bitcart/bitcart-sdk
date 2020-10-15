@@ -1,5 +1,4 @@
 import socket
-import warnings
 
 import pytest
 from aiohttp import ClientSession, TCPConnector, web
@@ -30,9 +29,7 @@ async def coin():
 
 @pytest.fixture
 async def btc_nowallet():
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        return BTC()
+    return BTC()
 
 
 @pytest.fixture
@@ -57,10 +54,7 @@ async def regtest_node_id():
 
 @pytest.fixture
 async def btc():
-    with warnings.catch_warnings():  # to ignore no xpub passed warning
-        warnings.simplefilter("ignore")
-        btc_obj = BTC()
-    return btc_obj
+    return BTC()
 
 
 class FakeResolver:

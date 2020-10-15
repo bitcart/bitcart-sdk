@@ -1,5 +1,4 @@
 import asyncio
-import warnings
 from collections import UserDict, defaultdict
 from functools import partial
 from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, Optional
@@ -14,6 +13,7 @@ if TYPE_CHECKING:
     from aiohttp import ClientWebSocketResponse
 
     from .coin import Coin
+    from .providers.jsonrpcrequests import RPCProxy
 
 
 class CustomDict:
@@ -36,21 +36,11 @@ class APIManager(EventDelivery):
             lambda: ExtendedDict(),
             {currency: self.load_wallets(currency, wallets) for currency, wallets in wallets.items()},
         )
-        self.sessions = {}
-        self.session_url = {}
-        for currency in self.wallets:
-            coin = next(iter(self.wallets[currency].values()))
-            self.sessions[currency] = coin.server.session
-            self.session_url[currency] = coin.server.url
         self.event_handlers = {}
 
     @classmethod
     def load_wallets(cls, currency: str, wallets: Iterable[str]) -> ExtendedDict:
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            return ExtendedDict(
-                {wallet: cls.load_wallet(currency, wallet) for wallet in wallets} or {"": cls.load_wallet(currency, None)}
-            )
+        return ExtendedDict({wallet: cls.load_wallet(currency, wallet) for wallet in wallets})
 
     @classmethod
     def load_wallet(cls, currency: str, wallet: Optional[str]) -> "Coin":
@@ -74,10 +64,19 @@ class APIManager(EventDelivery):
     async def _register_wallets(self, ws: "ClientWebSocketResponse") -> None:
         pass  # listen on all wallets
 
+    def _get_websocket_server(self, currency: str) -> "RPCProxy":  # type: ignore
+        for currency in self.wallets:
+            try:
+                coin = next(iter(self.wallets[currency].values()))
+            except StopIteration:  # pragma: no cover
+                coin = self.load_wallet(currency, None)
+            return coin.server  # type: ignore
+
     async def _start_websocket_for_currency(self, currency: str, reconnect_callback: Optional[Callable] = None) -> None:
         if reconnect_callback:
             reconnect_callback = partial(reconnect_callback, currency)
-        async with self.sessions[currency].ws_connect(urljoin(self.session_url[currency], "/ws")) as ws:
+        server = self._get_websocket_server(currency)
+        async with server.session.ws_connect(urljoin(server.url, "/ws")) as ws:
             await self._start_websocket_processing(ws, reconnect_callback=reconnect_callback)
 
     async def start_websocket_for_currency(
@@ -113,8 +112,6 @@ class APIManager(EventDelivery):
     ) -> None:
         wallet_obj = self.wallets[currency].get(wallet)
         if not wallet_obj:
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore")
-                wallet_obj = self.load_wallet(currency, wallet)  # type: ignore
+            wallet_obj = self.load_wallet(currency, wallet)  # type: ignore
         self._merge_event_handlers(wallet_obj)
         await wallet_obj.process_updates(updates, pass_instance=True)
