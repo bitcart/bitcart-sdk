@@ -64,13 +64,12 @@ class APIManager(EventDelivery):
     async def _register_wallets(self, ws: "ClientWebSocketResponse") -> None:
         pass  # listen on all wallets
 
-    def _get_websocket_server(self, currency: str) -> "RPCProxy":  # type: ignore
-        for currency in self.wallets:
-            try:
-                coin = next(iter(self.wallets[currency].values()))
-            except StopIteration:  # pragma: no cover
-                coin = self.load_wallet(currency, None)
-            return coin.server  # type: ignore
+    def _get_websocket_server(self, currency: str) -> "RPCProxy":
+        try:
+            coin = next(iter(self.wallets[currency].values()))
+        except StopIteration:  # pragma: no cover
+            coin = self.load_wallet(currency, None)
+        return coin.server  # type: ignore
 
     async def _start_websocket_for_currency(self, currency: str, reconnect_callback: Optional[Callable] = None) -> None:
         if reconnect_callback:

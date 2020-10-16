@@ -2,6 +2,10 @@
 
 ## Latest changes
 
+## 1.1.0.5
+
+Fixed APIManager websockets for multiple currencies
+
 ## 1.1.0.4
 
 APIManager now supports more customization of connection options by not overriding them.
