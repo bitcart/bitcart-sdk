@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 import pytest
 
 from bitcart import errors
@@ -19,11 +21,11 @@ async def test_add_invoice(btc_wallet):
         invoice.items()
         > {
             "is_lightning": True,
-            "amount_BTC": "0.5",
+            "amount_BTC": Decimal("0.5"),
             "message": "test description",
-            "expiration": 3600,
+            "expiration": 900,
             "status": 0,
-            "status_str": "Expires in about 1 hour",
+            "status_str": "Expires in 15 minutes",
             "amount_msat": 50000000000,
             "can_receive": False,
         }.items()

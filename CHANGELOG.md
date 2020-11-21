@@ -2,6 +2,16 @@
 
 ## Latest changes
 
+## 1.2.0.0
+
+`add_invoice` now works same way as `add_request` (breaking change)
+
+This means:
+
+- `message` parameter renamed to `description`
+- added `expire` parameter, which also defaults to 15 minutes (was 60 minutes before)
+- `amount` field in invoice data is Decimal too
+
 ## 1.1.0.5
 
 Fixed APIManager websockets for multiple currencies

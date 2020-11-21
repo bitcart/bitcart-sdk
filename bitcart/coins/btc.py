@@ -89,6 +89,22 @@ class BTC(Coin, EventDelivery):
     async def _add_request(self, *args: Any, **kwargs: Any) -> dict:
         return await self.server.add_request(*args, **kwargs)  # type: ignore
 
+    async def _add_request_base(
+        self,
+        method: Callable,
+        amount: Optional[AmountType] = None,
+        description: str = "",
+        expire: Union[int, float] = 15,
+        extra_kwargs: dict = {},
+    ) -> dict:
+        expiration = 60 * expire if expire else None
+        kwargs = {"amount": amount, "memo": description, "expiration": expiration}
+        kwargs.update(extra_kwargs)
+        data = await method(**kwargs)
+        if data[self.amount_field].lower() != "unknown":
+            data[self.amount_field] = convert_amount_type(data[self.amount_field])
+        return data  # type: ignore
+
     async def add_request(
         self,
         amount: Optional[AmountType] = None,
@@ -114,11 +130,7 @@ class BTC(Coin, EventDelivery):
         Returns:
             dict: Invoice data
         """
-        expiration = 60 * expire if expire else None
-        data = await self._add_request(amount=amount, memo=description, expiration=expiration, force=True)
-        if data[self.amount_field].lower() != "unknown":
-            data[self.amount_field] = convert_amount_type(data[self.amount_field])
-        return data
+        return await self._add_request_base(self._add_request, amount, description, expire, extra_kwargs={"force": True})
 
     async def get_request(self, address: str) -> dict:
         """Get invoice info
@@ -452,25 +464,32 @@ class BTC(Coin, EventDelivery):
         return await self.server.open_channel(node_id, amount)  # type: ignore
 
     @lightning
-    async def add_invoice(self, amount: AmountType, message: Optional[str] = "") -> str:
-        """Create lightning invoice
+    async def add_invoice(
+        self,
+        amount: AmountType,
+        description: str = "",
+        expire: Union[int, float] = 15,
+    ) -> dict:
+        """Create a lightning invoice
 
-        Create lightning invoice and return bolt invoice id
+        Create a lightning invoice and return invoice data with bolt invoice id
+        All parameters are the same as in add_request
 
         Example:
 
-        >>> a.add_invoice(0.5)
-        'lnbc500m1pwnt87fpp5d60sykcjd2swk72t3g0njwmdytfe4fu65fz5v...'
+        >>> a.add_invoice(0.5, "My invoice", 20)
+        {'time': 1562762334, 'amount': 50000000, 'exp': 1200, 'invoice': 'lnbc500m',...
 
         Args:
             self (BTC): self
-            amount (AmountType): invoice amount
-            message (Optional[str], optional): Invoice message. Defaults to "".
+            amount (AmountType): amount to open invoice
+            description (str, optional): Description of invoice. Defaults to "".
+            expire (Union[int, float], optional): The time invoice will expire in. In minutes. Defaults to 15.
 
         Returns:
-            str: bolt invoice id
+            dict: Invoice data
         """
-        return await self.server.add_lightning_request(amount, message)  # type: ignore
+        return await self._add_request_base(self.server.add_lightning_request, amount, description, expire)
 
     @lightning
     async def close_channel(self, channel_id: str, force: bool = False) -> str:
