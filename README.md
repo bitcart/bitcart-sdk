@@ -52,3 +52,9 @@ Where `major` is changed not frequently, and means significant changes to the SD
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Copyright and License
+
+Copyright (C) 2019 MrNaif2018
+
+Licensed under the [LGPLv3+](LICENSE.lesser)
