@@ -2,6 +2,12 @@
 
 ## Latest changes
 
+## 1.2.1.0
+
+License change to LGPLv3+
+
+Python 3.9 support
+
 ## 1.2.0.0
 
 `add_invoice` now works same way as `add_request` (breaking change)
