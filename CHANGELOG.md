@@ -2,6 +2,10 @@
 
 ## Latest changes
 
+# 1.3.0.0
+
+Drop python 3.6 support (we support 3 latest python releases)
+
 ## 1.2.1.0
 
 License change to LGPLv3+

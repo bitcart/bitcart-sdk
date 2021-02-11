@@ -5,7 +5,7 @@ def main() -> None:
     setup(
         name="bitcart",
         packages=find_packages(),
-        version="1.2.1.0",
+        version="1.3.0.0",
         license="LGPLv3+",
         description="BitcartCC coins support library",
         long_description=open("README.md").read(),
@@ -22,7 +22,6 @@ def main() -> None:
             "Topic :: Software Development :: Build Tools",
             "License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)",
             "Programming Language :: Python :: 3",
-            "Programming Language :: Python :: 3.6",
             "Programming Language :: Python :: 3.7",
             "Programming Language :: Python :: 3.8",
             "Programming Language :: Python :: 3.9",

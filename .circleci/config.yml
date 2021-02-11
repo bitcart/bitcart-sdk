@@ -2,7 +2,7 @@ version: 2
 jobs:
   test:
     docker:
-      - image: circleci/python:3.6
+      - image: circleci/python:3.7
 
     environment:
       BITCOIND_VERSION: 0.20.0
@@ -94,7 +94,7 @@ jobs:
           destination: test-reports
   deploy:
     docker:
-      - image: circleci/python:3.6
+      - image: circleci/python:3.7
     steps:
       - checkout
       - run:
