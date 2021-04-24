@@ -85,7 +85,7 @@ jobs:
       - run:
           name: run regtest tests
           command: |
-            sleep 5s
+            sleep 10s
             make regtest
             codecov
 
