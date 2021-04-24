@@ -5,7 +5,7 @@ jobs:
       - image: circleci/python:3.7
 
     environment:
-      BITCOIND_VERSION: 0.20.0
+      BITCOIND_VERSION: 0.21.0
 
     working_directory: ~/repo
 
@@ -14,7 +14,7 @@ jobs:
 
       - restore_cache:
           keys:
-            - v1-bitcoind-0.20.0
+            - v1-bitcoind-0.21.0
 
       - run:
           name: install library
@@ -41,7 +41,7 @@ jobs:
       - save_cache:
           paths:
             - ~/bitcoind
-          key: v1-bitcoind-0.20.0
+          key: v1-bitcoind-0.21.0
 
       - run:
           name: prepare daemon
