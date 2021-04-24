@@ -2,7 +2,11 @@
 
 ## Latest changes
 
-# 1.3.0.0
+## 1.3.1.0
+
+Added new `get_invoice` method to get lightning invoices by their rhash
+
+## 1.3.0.0
 
 Drop python 3.6 support (we support 3 latest python releases)
 

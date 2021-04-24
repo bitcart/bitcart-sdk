@@ -17,5 +17,10 @@ rpcbind=0.0.0.0
 rpcport=18554
 EOF
 rm -rf ~/.bitcoin/regtest
-bitcoind -X quit || true
-bitcoind -regtest
+screen -S bitcoind -X quit || true
+screen -S bitcoind -m -d bitcoind -regtest
+sleep 6
+bitcoin-cli createwallet test_wallet
+addr=$(bitcoin-cli getnewaddress)
+bitcoin-cli generatetoaddress 150 $addr > /dev/null
+screen -r bitcoind

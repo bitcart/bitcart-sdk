@@ -89,6 +89,11 @@ class BTC(Coin, EventDelivery):
     async def _add_request(self, *args: Any, **kwargs: Any) -> dict:
         return await self.server.add_request(*args, **kwargs)  # type: ignore
 
+    def _convert_amounts(self, data: dict) -> dict:
+        if data[self.amount_field].lower() != "unknown":
+            data[self.amount_field] = convert_amount_type(data[self.amount_field])
+        return data
+
     async def _add_request_base(
         self,
         method: Callable,
@@ -101,9 +106,7 @@ class BTC(Coin, EventDelivery):
         kwargs = {"amount": amount, "memo": description, "expiration": expiration}
         kwargs.update(extra_kwargs)
         data = await method(**kwargs)
-        if data[self.amount_field].lower() != "unknown":
-            data[self.amount_field] = convert_amount_type(data[self.amount_field])
-        return data  # type: ignore
+        return self._convert_amounts(data)
 
     async def add_request(
         self,
@@ -150,9 +153,7 @@ class BTC(Coin, EventDelivery):
             dict: Invoice data
         """
         data = await self.server.getrequest(address)
-        if data[self.amount_field].lower() != "unknown":
-            data[self.amount_field] = convert_amount_type(data[self.amount_field])
-        return data  # type: ignore
+        return self._convert_amounts(data)
 
     async def history(self) -> dict:
         """Get transaction history of wallet
@@ -581,3 +582,23 @@ class BTC(Coin, EventDelivery):
             list: list of channels
         """
         return await self.server.list_channels()  # type: ignore
+
+    @lightning
+    async def get_invoice(self, rhash: str) -> dict:
+        """Get lightning invoice info
+
+        Get lightning invoice information by rhash got from add_invoice
+
+        Example:
+
+        >>> c.get_invoice("e34d7fb4cda66e0760fc193496c302055d0fd960cfd982432355c8bfeecd5f33")
+        {'is_lightning': True, 'amount_BTC': Decimal('0.5'), 'timestamp': 1619273042, 'expiration': 900, ...
+
+        Args:
+            rhash (str): invoice rhash
+
+        Returns:
+            dict: invoice data
+        """
+        data = await self.server.get_invoice(rhash)
+        return self._convert_amounts(data)

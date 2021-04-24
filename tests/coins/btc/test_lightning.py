@@ -33,6 +33,8 @@ async def test_add_invoice(btc_wallet):
     data_check(invoice, "timestamp", int)
     data_check(invoice, "rhash", str)
     data_check(invoice, "invoice", str)
+    got_invoice = await btc_wallet.get_invoice(invoice["rhash"])
+    assert got_invoice == invoice
 
 
 async def test_connect(btc_wallet):
