@@ -30,7 +30,7 @@ jobs:
             tar xzf bitcoin-$BITCOIND_VERSION-x86_64-linux-gnu.tar.gz
             sudo install -m 0755 -o root -g root -t /usr/local/bin bitcoin-$BITCOIND_VERSION/bin/*
             cd ~/repo
-            sudo apt install libsecp256k1-dev
+            sudo apt install libsecp256k1-dev screen
             sudo pip install -U pip
             pip install electrumx
             git clone https://github.com/bitcartcc/bitcart ~/bitcart-daemon
