@@ -1,47 +1,64 @@
-version: 2
-jobs:
-  test:
-    docker:
-      - image: circleci/python:3.7
-
-    environment:
-      BITCOIND_VERSION: 0.21.0
-
-    working_directory: ~/repo
+version: 2.1
+commands:
+  install_dependencies:
+    parameters:
+      v:
+        type: string
+        default: "3.7"
 
     steps:
-      - checkout
+      - run:
+          name: clone daemon
+          command: |
+            git clone https://github.com/bitcartcc/bitcart ~/bitcart-daemon
 
       - restore_cache:
           keys:
-            - v1-bitcoind-0.21.0
+            - v1-dependencies-{{ checksum "setup.py" }}-{{ checksum "test-requirements.txt" }}-{{ checksum "bitcart-daemon/requirements/daemons/btc.txt" }}-<< parameters.v >>
+            - v1-dependencies-
 
       - run:
           name: install library
           command: |
+            sudo pip install -U pip
             pip install .   
             pip install -r test-requirements.txt
 
       - run:
-          name: install daemon and regtest utils
+          name: install daemon
           command: |
-            mkdir -p ~/bitcoind && cd ~/bitcoind
-            wget -N https://bitcoin.org/bin/bitcoin-core-$BITCOIND_VERSION/bitcoin-$BITCOIND_VERSION-x86_64-linux-gnu.tar.gz
-            tar xzf bitcoin-$BITCOIND_VERSION-x86_64-linux-gnu.tar.gz
-            sudo install -m 0755 -o root -g root -t /usr/local/bin bitcoin-$BITCOIND_VERSION/bin/*
-            cd ~/repo
-            sudo apt install libsecp256k1-dev screen
-            sudo pip install -U pip
-            pip install electrumx
-            git clone https://github.com/bitcartcc/bitcart ~/bitcart-daemon
+            sudo apt install libsecp256k1-dev
             cd ~/bitcart-daemon
             pip install -r requirements/base.txt
             pip install -r requirements/daemons/btc.txt
 
       - save_cache:
           paths:
-            - ~/bitcoind
-          key: v1-bitcoind-0.21.0
+            - /home/circleci/.cache/pip
+            - /home/circleci/.pyenv/versions/
+            - /home/circleci/.local/lib/
+
+          key: v1-dependencies-{{ checksum "setup.py" }}-{{ checksum "test-requirements.txt" }}-{{ checksum "bitcart-daemon/requirements/daemons/btc.txt" }}-<< parameters.v >>
+
+jobs:
+  test:
+    parameters:
+      v:
+        type: string
+        default: "3.7"
+    docker:
+      - image: circleci/python:<< parameters.v >>
+
+    environment:
+      PYTHON: << parameters.v >>
+
+    working_directory: ~/repo
+
+    steps:
+      - checkout
+
+      - install_dependencies:
+          v: << parameters.v >>
 
       - run:
           name: prepare daemon
@@ -54,6 +71,41 @@ jobs:
           name: run fast tests
           command: |
             make ci
+            codecov -F tests -e PYTHON
+
+  functional-tests:
+    docker:
+      - image: circleci/python:3.7
+    environment:
+      BITCOIND_VERSION: 0.21.0
+
+    working_directory: ~/repo
+
+    steps:
+      - checkout
+
+      - run: echo $BITCOIND_VERSION > /tmp/bitcoind-version
+
+      - restore_cache:
+          keys:
+            - v1-bitcoind-{{ checksum "/tmp/bitcoind-version" }}
+
+      - install_dependencies
+
+      - run:
+          name: install regtest utils
+          command: |
+            mkdir -p ~/bitcoind && cd ~/bitcoind
+            wget -N https://bitcoin.org/bin/bitcoin-core-$BITCOIND_VERSION/bitcoin-$BITCOIND_VERSION-x86_64-linux-gnu.tar.gz
+            tar xzf bitcoin-$BITCOIND_VERSION-x86_64-linux-gnu.tar.gz
+            sudo install -m 0755 -o root -g root -t /usr/local/bin bitcoin-$BITCOIND_VERSION/bin/*
+            sudo apt install screen
+            pip install electrumx
+
+      - save_cache:
+          paths:
+            - ~/bitcoind
+          key: v1-bitcoind-{{ checksum "/tmp/bitcoind-version" }}
 
       - run:
           name: prepare bitcoind
@@ -71,7 +123,6 @@ jobs:
           name: prepare regtest daemon
           command: |
             cd ~/bitcart-daemon
-            pkill -SIGINT -f "python3 daemons/btc.py"
             make regtest
           background: true
 
@@ -87,11 +138,7 @@ jobs:
           command: |
             sleep 10s
             make regtest
-            codecov
-
-      - store_artifacts:
-          path: test-reports
-          destination: test-reports
+            codecov -F regtest-tests
   deploy:
     docker:
       - image: circleci/python:3.7
@@ -118,13 +165,21 @@ workflows:
   test_and_deploy:
     jobs:
       - test:
-          filters:
-            tags:
-              only: /.*/
+          name: test-<< matrix.v >>
+          matrix:
+            parameters:
+              v:
+                - "3.7"
+                - "3.8"
+                - "3.9"
+      - functional-tests:
+          requires:
+            - test
       - deploy:
           context: global
           requires:
             - test
+            - functional-tests
           filters:
             tags:
               only: /[0-9]+(\.[0-9]+)*/
