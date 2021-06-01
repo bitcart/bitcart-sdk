@@ -14,8 +14,8 @@ commands:
 
       - restore_cache:
           keys:
-            - v3-dependencies-{{ checksum "setup.py" }}-{{ checksum "test-requirements.txt" }}-{{ checksum "~/bitcart-daemon/requirements/daemons/btc.txt" }}-<< parameters.v >>
-            - v3-dependencies-
+            - v4-dependencies-{{ checksum "setup.py" }}-{{ checksum "test-requirements.txt" }}-{{ checksum "~/bitcart-daemon/requirements/daemons/btc.txt" }}-{{ .Branch }}-<< parameters.v >>
+            - v4-dependencies-
 
       - run:
           name: install library
@@ -39,7 +39,7 @@ commands:
           paths:
             - ~/venv
 
-          key: v3-dependencies-{{ checksum "setup.py" }}-{{ checksum "test-requirements.txt" }}-{{ checksum "~/bitcart-daemon/requirements/daemons/btc.txt" }}-<< parameters.v >>
+          key: v4-dependencies-{{ checksum "setup.py" }}-{{ checksum "test-requirements.txt" }}-{{ checksum "~/bitcart-daemon/requirements/daemons/btc.txt" }}-{{ .Branch }}-<< parameters.v >>
 
 jobs:
   test:
