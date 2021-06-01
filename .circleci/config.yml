@@ -147,7 +147,7 @@ jobs:
             . ~/venv/bin/activate
             sleep 10s
             make regtest
-            codecov -F regtest-tests
+            codecov -F functional-tests
   deploy:
     docker:
       - image: circleci/python:3.7
