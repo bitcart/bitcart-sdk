@@ -14,7 +14,7 @@ commands:
 
       - restore_cache:
           keys:
-            - v1-dependencies-{{ checksum "setup.py" }}-{{ checksum "test-requirements.txt" }}-{{ checksum "bitcart-daemon/requirements/daemons/btc.txt" }}-<< parameters.v >>
+            - v1-dependencies-{{ checksum "setup.py" }}-{{ checksum "test-requirements.txt" }}-{{ checksum "~/bitcart-daemon/requirements/daemons/btc.txt" }}-<< parameters.v >>
             - v1-dependencies-
 
       - run:
@@ -38,7 +38,7 @@ commands:
             - /home/circleci/.pyenv/versions/
             - /home/circleci/.local/lib/
 
-          key: v1-dependencies-{{ checksum "setup.py" }}-{{ checksum "test-requirements.txt" }}-{{ checksum "bitcart-daemon/requirements/daemons/btc.txt" }}-<< parameters.v >>
+          key: v1-dependencies-{{ checksum "setup.py" }}-{{ checksum "test-requirements.txt" }}-{{ checksum "~/bitcart-daemon/requirements/daemons/btc.txt" }}-<< parameters.v >>
 
 jobs:
   test:
