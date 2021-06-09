@@ -1,11 +1,19 @@
 version: 2.1
-commands:
-  install_dependencies:
+
+executors:
+  main-executor:
     parameters:
       v:
         type: string
-        default: "3.7"
 
+    docker:
+      - image: cimg/python:<< parameters.v >>
+
+    environment:
+      TEST_ARGS: "--junitxml test-results/pytest/coverage.xml --cov-report html:coverage"
+
+commands:
+  install_dependencies:
     steps:
       - run:
           name: clone daemon
@@ -14,22 +22,21 @@ commands:
 
       - restore_cache:
           keys:
-            - v4-dependencies-{{ checksum "setup.py" }}-{{ checksum "test-requirements.txt" }}-{{ checksum "~/bitcart-daemon/requirements/daemons/btc.txt" }}-{{ .Branch }}-<< parameters.v >>
-            - v4-dependencies-
+            - v5-dependencies-{{ .Branch }}-{{ checksum "~/.pyenv/version" }}-{{ checksum "setup.py" }}-{{ checksum "test-requirements.txt" }}-{{ checksum "~/bitcart-daemon/requirements/daemons/btc.txt" }}
 
       - run:
           name: install library
           command: |
-            python3 -m venv ~/venv
-            . ~/venv/bin/activate
-            pip install -U pip
+            virtualenv ~/venv
+            echo ". ~/venv/bin/activate" >> $BASH_ENV
+            source $BASH_ENV
             pip install .   
             pip install -r test-requirements.txt
 
       - run:
           name: install daemon
           command: |
-            . ~/venv/bin/activate
+            sudo apt update
             sudo apt install libsecp256k1-dev
             cd ~/bitcart-daemon
             pip install -r requirements/base.txt
@@ -38,8 +45,18 @@ commands:
       - save_cache:
           paths:
             - ~/venv
+          key: v5-dependencies-{{ .Branch }}-{{ checksum "~/.pyenv/version" }}-{{ checksum "setup.py" }}-{{ checksum "test-requirements.txt" }}-{{ checksum "~/bitcart-daemon/requirements/daemons/btc.txt" }}
 
-          key: v4-dependencies-{{ checksum "setup.py" }}-{{ checksum "test-requirements.txt" }}-{{ checksum "~/bitcart-daemon/requirements/daemons/btc.txt" }}-{{ .Branch }}-<< parameters.v >>
+  upload-results:
+    steps:
+      - store_test_results:
+          path: test-results
+
+      - store_artifacts:
+          path: coverage
+
+      - store_artifacts:
+          path: test-results
 
 jobs:
   test:
@@ -47,8 +64,10 @@ jobs:
       v:
         type: string
         default: "3.7"
-    docker:
-      - image: circleci/python:<< parameters.v >>
+
+    executor:
+      name: main-executor
+      v: << parameters.v >>
 
     environment:
       PYTHON: << parameters.v >>
@@ -58,13 +77,11 @@ jobs:
     steps:
       - checkout
 
-      - install_dependencies:
-          v: << parameters.v >>
+      - install_dependencies
 
       - run:
           name: prepare daemon
           command: |
-            . ~/venv/bin/activate
             cd ~/bitcart-daemon
             make mainnet
           background: true
@@ -72,17 +89,20 @@ jobs:
       - run:
           name: run fast tests
           command: |
-            . ~/venv/bin/activate
             make ci
             codecov -F tests -e PYTHON
 
+      - upload-results
+
   functional-tests:
-    docker:
-      - image: circleci/python:3.7
-    environment:
-      BITCOIND_VERSION: 0.21.0
+    executor:
+      name: main-executor
+      v: "3.7"
 
     working_directory: ~/repo
+
+    environment:
+      BITCOIND_VERSION: 0.21.0
 
     steps:
       - checkout
@@ -98,13 +118,11 @@ jobs:
       - run:
           name: install regtest utils
           command: |
-            . ~/venv/bin/activate
             mkdir -p ~/bitcoind && cd ~/bitcoind
             wget -N https://bitcoin.org/bin/bitcoin-core-$BITCOIND_VERSION/bitcoin-$BITCOIND_VERSION-x86_64-linux-gnu.tar.gz
             tar xzf bitcoin-$BITCOIND_VERSION-x86_64-linux-gnu.tar.gz
             sudo install -m 0755 -o root -g root -t /usr/local/bin bitcoin-$BITCOIND_VERSION/bin/*
             sudo apt install screen
-            pip install electrumx
 
       - save_cache:
           paths:
@@ -114,21 +132,18 @@ jobs:
       - run:
           name: prepare bitcoind
           command: |
-            . ~/venv/bin/activate
             make bitcoind
           background: true
 
       - run:
           name: prepare electrumx
           command: |
-            . ~/venv/bin/activate
             make electrumx
           background: true
 
       - run:
           name: prepare regtest daemon
           command: |
-            . ~/venv/bin/activate
             cd ~/bitcart-daemon
             make regtest
           background: true
@@ -136,7 +151,6 @@ jobs:
       - run:
           name: prepare regtest lightning node
           command: |
-            . ~/venv/bin/activate
             cd ~/bitcart-daemon
             make regtestln
           background: true
@@ -144,26 +158,30 @@ jobs:
       - run:
           name: run regtest tests
           command: |
-            . ~/venv/bin/activate
             sleep 10s
             make regtest
             codecov -F functional-tests
+
+      - upload-results
+
   deploy:
     docker:
-      - image: circleci/python:3.7
+      - image: cimg/python:3.7
     steps:
       - checkout
+
       - run:
           name: setup credentials
           command: |
             echo -e "[pypi]" >> ~/.pypirc
             echo -e "username = $PYPI_USER" >> ~/.pypirc
             echo -e "password = $PYPI_PASS" >> ~/.pypirc
+
       - run:
           name: create env, build dist and upload
           command: |
-            python3 -m venv venv
-            . venv/bin/activate
+            virtualenv ~/venv
+            . ~/venv/bin/activate
             pip install -U wheel twine
             python setup.py sdist 
             python setup.py bdist_wheel
@@ -181,14 +199,13 @@ workflows:
                 - "3.7"
                 - "3.8"
                 - "3.9"
+
       - functional-tests:
           requires:
             - test
+
       - deploy:
           context: global
-          requires:
-            - test
-            - functional-tests
           filters:
             tags:
               only: /[0-9]+(\.[0-9]+)*/
