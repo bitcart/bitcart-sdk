@@ -43,11 +43,7 @@ It is not required, but recommended to run extended test suite before submitting
 
 CI can run it for you if needed.
 
-To install electrumx, run:
-
-```bash
-pip3 install electrumx
-```
+ElectrumX is installed by `test-requirements.txt`
 
 Bitcoind installation instructions differ on different distros and OSes.
 

@@ -7,3 +7,4 @@ mypy
 black
 isort>=5
 codecov
+https://github.com/spesmilo/electrumx/archive/1.16.0.zip
