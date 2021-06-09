@@ -36,6 +36,7 @@ commands:
       - run:
           name: install daemon
           command: |
+            sudo apt update
             sudo apt install libsecp256k1-dev
             cd ~/bitcart-daemon
             pip install -r requirements/base.txt
