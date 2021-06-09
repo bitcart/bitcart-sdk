@@ -13,7 +13,7 @@ format:
 	isort .
 
 test:
-	pytest tests/
+	pytest tests/ ${TEST_ARGS}
 
 bitcoind:
 	tests/regtest/start_bitcoind.sh
@@ -22,6 +22,6 @@ electrumx:
 	tests/regtest/start_electrumx.sh
 
 regtest:
-	pytest tests/regtest.py --cov-append
+	pytest tests/regtest.py --cov-append ${TEST_ARGS}
 
 ci: checkformat lint test
