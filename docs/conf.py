@@ -15,6 +15,8 @@
 import os
 import sys
 
+import pkg_resources
+
 sys.path.insert(0, os.path.abspath(".."))
 
 
@@ -25,7 +27,7 @@ copyright = "2019, MrNaif2018"
 author = "MrNaif2018"
 
 # The full version, including alpha/beta/rc tags
-release = "1.0"
+release = pkg_resources.get_distribution("bitcart").version
 
 
 # -- General configuration ---------------------------------------------------
@@ -64,7 +66,3 @@ html_theme_options = {
 
 # readthedocs
 master_doc = "index"
-# Add any paths that contain custom static files (such as style sheets) here,
-# relative to this directory. They are copied after the builtin static files,
-# so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ["_static"]
