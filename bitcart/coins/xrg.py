@@ -1,21 +1,15 @@
 from typing import Any
 
-from .btc import BTC
+from .bch import BCH
 from decimal import Decimal
 from ..utils import convert_amount_type
 
 
-class XRG(BTC):
+class XRG(BCH):
     coin_name = "XRG"
     friendly_name = "Ergon"
     RPC_URL = "http://localhost:5005"
     AMOUNT_FIELD = "amount (XRG)"
-
-    async def history(self) -> dict:  # pragma: no cover
-        return await self.server.history()  # type: ignore
-
-    async def _add_request(self, *args: Any, **kwargs: Any) -> dict:  # pragma: no cover
-        return await self.server.addrequest(*args, **kwargs)  # type: ignore
 
     async def rate(self, currency: str = "USD") -> Decimal:
         """Get Ergon price in selected fiat currency
@@ -31,11 +25,11 @@ class XRG(BTC):
         757108.226
 
         Args:
-            self (BTC): self
+            self (XRG): self
             currency (str, optional): Currency to get rate into. Defaults to "USD".
 
         Returns:
-            Decimal: price of 1 bitcoin in selected fiat currency
+            Decimal: price of 1 ergon in selected fiat currency
         """
         rate = await self.server.exchange_rate(currency)
         if rate == 'None':
