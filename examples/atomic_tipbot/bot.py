@@ -19,7 +19,7 @@ from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 # BTC class for BTC coin, the same for others, just replace the name
 # for litecoin just import LTC
-from bitcart import BCH, BSTY, BTC, GZRO, LTC, APIManager
+from bitcart import BCH, BSTY, BTC, GZRO, LTC, XRG, APIManager
 from bitcart.utils import bitcoins
 
 # Don't show message
@@ -57,11 +57,12 @@ mongo = mongo["atomic_tip_db"]
 btc = BTC(xpub=XPUB)
 # the same here
 bch = BCH(xpub=XPUB)
+xrg= XRG(xpub=XPUB)
 ltc = LTC(xpub=XPUB)
 gzro = GZRO(xpub=XPUB)
 bsty = BSTY(xpub=XPUB)
 # same api, so we can do this
-instances = {"btc": btc, "bch": bch, "ltc": ltc, "gzro": gzro, "bsty": bsty}
+instances = {"btc": btc, "bch": bch, "xrg": xrg, "ltc": ltc, "gzro": gzro, "bsty": bsty}
 manager = APIManager({currency.upper(): [coin.xpub] for currency, coin in instances.items()})  # bitcart: create APIManager
 satoshis_hundred = 0.000001
 
@@ -150,6 +151,7 @@ def payment_method_kb(amount):
         [
             InlineKeyboardButton("Bitcoin (BTC)", callback_data=f"pay_btc_{amount}"),
             InlineKeyboardButton("Bitcoin Cash (BCH)", callback_data=f"pay_bch_{amount}"),
+            InlineKeyboardButton("Ergon (XRG)", callback_data=f"pay_xrg_{amount}"),
             InlineKeyboardButton("Litecoin (LTC)", callback_data=f"pay_ltc_{amount}"),
         ],
         [

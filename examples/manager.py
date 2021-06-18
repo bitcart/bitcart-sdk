@@ -8,6 +8,7 @@ manager = APIManager(
         "LTC": [REAL_XPUB, "xpub1", "xpub2"],
         "GZRO": [REAL_XPUB, "xpub1", "xpub2"],
         "BCH": [REAL_XPUB, "xpub1", "xpub2"],
+        "XRG": [REAL_XPUB, "xpub1", "xpub2"],
     }
 )
 manager.add_wallet("BSTY", "xpub3")
