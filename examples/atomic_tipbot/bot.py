@@ -57,7 +57,7 @@ mongo = mongo["atomic_tip_db"]
 btc = BTC(xpub=XPUB)
 # the same here
 bch = BCH(xpub=XPUB)
-xrg= XRG(xpub=XPUB)
+xrg = XRG(xpub=XPUB)
 ltc = LTC(xpub=XPUB)
 gzro = GZRO(xpub=XPUB)
 bsty = BSTY(xpub=XPUB)
