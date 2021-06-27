@@ -36,6 +36,16 @@ BCH supports Schnorr signatures, they are enabled out of the box
     :show-inheritance:
     :undoc-members:
 
+XRG
+---
+
+XRG supports Schnorr signatures, they are enabled out of the box
+
+.. autoclass:: bitcart.coins.xrg.XRG
+    :members:
+    :show-inheritance:
+    :undoc-members:
+
 LTC
 ---
 
