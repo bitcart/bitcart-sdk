@@ -50,11 +50,12 @@ For examples of usage, check examples directory in github repository.
 
 Supported coins list(⚡ means lightning is supported):
 
-- Bitcoin(⚡)
+- Bitcoin (⚡)
 - Bitcoin Cash
-- Litecoin(⚡)
-- Gravity Zero(⚡)
-- Globalboost(⚡)
+- Ergon
+- Litecoin (⚡)
+- Gravity Zero (⚡)
+- Globalboost (⚡)
 
 To use proxy, install optional dependencies:
 

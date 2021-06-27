@@ -2,6 +2,10 @@
 
 ## Latest changes
 
+## 1.3.2.1
+
+PyPI readme fixes
+
 ## 1.3.2.0
 
 Added XRG support (#25)
