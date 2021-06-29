@@ -15,6 +15,8 @@ def convert_amount_type(amount: str) -> Decimal:
     Returns:
         Decimal
     """
+    if amount == "None":
+        return Decimal("Nan")
     return Decimal(amount)
 
 

@@ -5,7 +5,7 @@ def main() -> None:
     setup(
         name="bitcart",
         packages=find_packages(),
-        version="1.3.2.1",
+        version="1.3.2.2",
         license="LGPLv3+",
         description="BitcartCC coins support library",
         long_description=open("README.md").read(),

@@ -2,6 +2,10 @@
 
 ## Latest changes
 
+## 1.3.2.2
+
+Handle None values better in `convert_amount_type` to always return Decimal.
+
 ## 1.3.2.1
 
 PyPI readme fixes
@@ -384,7 +388,7 @@ This bugfix fixes xpub sending, and exception raising.
 
 Structural improvements and more
 
-**Structural improvements**
+### Structural improvements
 
 This version makes async version the default one used in the repo.
 
@@ -397,7 +401,7 @@ It means less time spent, and instead of porting new features to sync/async vers
 
 The async branch will be deleted.
 
-**Sending transactions improvements**
+### Sending transactions improvements
 
 Also, the long awaited `pay_to_many` function to do batch transactions is there!
 Both `pay_to` and `pay_to_many` now have optional `feerate`, which is sat/vbyte rate.
@@ -502,7 +506,7 @@ btc.poll_updates()
 
 The following code would print
 
-```
+```text
 new_transaction
 some_tx_hash
 dict of tx hash data
@@ -560,7 +564,7 @@ This adds in new LN class and related methods.
 
 Also, now it is not needed to fill in all values, some defaults are used:
 
-```
+```text
 rpc_user="electrum"
 rpc_pass="electrumz"
 rpc_url="http://localhost:5000" for bitcoin daemon and "http://localhost:5001" for lightning daemon.

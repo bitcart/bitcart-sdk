@@ -25,6 +25,7 @@ def test_convertability():
 
 def test_convert_amount_type():
     assert convert_amount_type("1") == Decimal("1")
+    assert convert_amount_type("None").is_nan()
 
 
 @pytest.mark.asyncio

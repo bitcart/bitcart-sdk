@@ -28,10 +28,13 @@ async def test_help(btc):
     assert "help" in data
 
 
-@pytest.mark.parametrize("currency", ["USD", "RUB", "JPY"])
+@pytest.mark.parametrize("currency", ["USD", "RUB", "JPY", "nonexisting"])
 async def test_rate(btc, currency):
     price = await btc.rate(currency)
-    assert price > 0
+    if currency == "nonexisting":
+        assert price.is_nan()
+    else:
+        assert price > 0
     assert isinstance(price, decimal.Decimal)
 
 
