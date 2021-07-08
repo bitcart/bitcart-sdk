@@ -3,7 +3,6 @@ from decimal import Decimal
 import pytest
 
 from bitcart import errors
-from bitcart.errors import LightningDisabledError
 
 from ...utils import data_check
 
@@ -62,11 +61,9 @@ async def test_list_peers(btc_wallet):
     data_check(peer, "channels", list, 0)
 
 
-async def test_lightning_disabled(btc_wallet):
+async def test_lightning_always_enabled(btc_wallet):
     await btc_wallet.set_config("lightning", False)
-    with pytest.raises(LightningDisabledError):
-        await btc_wallet.node_id
-    await btc_wallet.set_config("lightning", True)  # reset back
+    assert await btc_wallet.node_id is not None  # env variables can't be overwritten
 
 
 async def test_wallet_methods_on_non_segwit(lightning_unsupported_wallet):

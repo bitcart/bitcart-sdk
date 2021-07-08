@@ -18,7 +18,7 @@ def lightning(f: Callable) -> Callable:
     async def wrapper(*args: Any, **kwargs: Any) -> Any:
         if len(args) > 0:
             obj = args[0]
-            if not await obj.get_config("lightning"):
+            if not await obj.get_config("lightning"):  # pragma: no cover: can't be changed during tests
                 raise LightningDisabledError("Lightning is disabled in current daemon.")
         return await f(*args, **kwargs)
 
