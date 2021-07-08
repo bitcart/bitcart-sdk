@@ -8,6 +8,7 @@ import time
 import traceback
 from datetime import datetime, timedelta
 from decimal import ROUND_UP, Decimal
+from shlex import shlex
 
 import pymongo
 import qrcode
@@ -18,12 +19,20 @@ from pyrogram.session import Session
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 # BTC class for BTC coin, the same for others, just replace the name
-# for litecoin just import LTC
-from bitcart import BCH, BSTY, BTC, GZRO, LTC, XRG, APIManager
+# COINS is a dictionary of coin symbol: coin class
+from bitcart import COINS, APIManager
 from bitcart.utils import bitcoins
 
 # Don't show message
 Session.notice_displayed = True
+
+
+def parse_commas(s):
+    splitter = shlex(s, posix=True)
+    splitter.whitespace = ","
+    splitter.whitespace_split = True
+    return [item.strip() for item in splitter]
+
 
 # load token from config
 main_config = configparser.ConfigParser()
@@ -45,25 +54,35 @@ BET_LUCK_IMAGES = {
 # loading variables
 TOKEN = config.get("token")
 XPUB = config.get("xpub")
+
 if not TOKEN:
     raise ValueError("No token provided. Provide it using token variable in [app] section")
-if not XPUB:
-    raise ValueError("Provide your x/y/z pub/prv in xpub setting in [app] section")
+
+ENABLED_CRYPTOS = parse_commas(config.get("cryptos", ""))
+
+# bitcart: create APIManager
+manager_data = {}
+instances = {}
+
+for currency in ENABLED_CRYPTOS:
+    currency = currency.lower()
+    upper_currency = currency.upper()  # COINS contains uppercased symbol names
+    if upper_currency not in COINS:
+        continue
+    xpub = config.get(f"{currency}_xpub") or XPUB
+    manager_data[upper_currency] = [xpub]
+    # bitcart: create coin object
+    instances[currency] = COINS[upper_currency](xpub=xpub)
+
+if not manager_data:
+    raise ValueError("At least one valid currency must be provided")
+
+manager = APIManager(manager_data)
+
 
 app = Client("tg", bot_token=TOKEN)
 mongo = pymongo.MongoClient()
 mongo = mongo["atomic_tip_db"]
-# bitcart: initialize btc instance
-btc = BTC(xpub=XPUB)
-# the same here
-bch = BCH(xpub=XPUB)
-xrg = XRG(xpub=XPUB)
-ltc = LTC(xpub=XPUB)
-gzro = GZRO(xpub=XPUB)
-bsty = BSTY(xpub=XPUB)
-# same api, so we can do this
-instances = {"btc": btc, "bch": bch, "xrg": xrg, "ltc": ltc, "gzro": gzro, "bsty": bsty}
-manager = APIManager({currency.upper(): [coin.xpub] for currency, coin in instances.items()})  # bitcart: create APIManager
 satoshis_hundred = 0.000001
 
 # misc
@@ -147,18 +166,19 @@ def bet_menu_keyboard():
 
 
 def payment_method_kb(amount):
-    keyboard = [
-        [
-            InlineKeyboardButton("Bitcoin (BTC)", callback_data=f"pay_btc_{amount}"),
-            InlineKeyboardButton("Bitcoin Cash (BCH)", callback_data=f"pay_bch_{amount}"),
-            InlineKeyboardButton("Ergon (XRG)", callback_data=f"pay_xrg_{amount}"),
-            InlineKeyboardButton("Litecoin (LTC)", callback_data=f"pay_ltc_{amount}"),
-        ],
-        [
-            InlineKeyboardButton("Gravity (GZRO)", callback_data=f"pay_gzro_{amount}"),
-            InlineKeyboardButton("GlobalBoost (BSTY)", callback_data=f"pay_bsty_{amount}"),
-        ],
-    ]
+    keyboard = []
+    row = []
+    for coin in instances.values():
+        row.append(
+            InlineKeyboardButton(
+                f"{coin.friendly_name} ({coin.coin_name})", callback_data=f"pay_{coin.coin_name.lower()}_{amount}"
+            )
+        )
+        if len(row) == 4:
+            keyboard.append(row)
+            row = []
+    if row:
+        keyboard.append(row)
     return InlineKeyboardMarkup(keyboard)
 
 
@@ -178,7 +198,7 @@ def paylink_kb(currency, amount):
 @app.on_message(filters.command("help"))
 def help_handler(client, message):
     # bitcart: get usd price
-    usd_price = round(btc.rate() * Decimal(satoshis_hundred), 2)  # we use Decimals for accuracy
+    usd_price = round(instances["btc"].rate() * Decimal(satoshis_hundred), 2)  # we use Decimals for accuracy
     message.reply(
         f"""
 <b>In development, now working commands are tip!xxx, /start, /help, /deposit, /balance, /send, /history, /send2telegram,
@@ -387,7 +407,7 @@ async def payment_handler(instance, event, address, status, status_str):  # asyn
     inv = mongo.invoices.find({"address": address}).limit(1).sort([("$natural", -1)])[0]  # to get latest result
     if inv and inv["status_str"] != "Paid":
         # bitcart: get invoice info, not neccesary here
-        # btc.get_request(address)
+        # instance.get_request(address)
         if status_str == "Paid":
             user = mongo.users.find_one({"user_id": inv["user_id"]})
             amount = inv["original_amount"]
