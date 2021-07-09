@@ -342,7 +342,8 @@ def generate_invoice(user_id, currency, amount, amount_sat, description=""):
     invoice = instances[currency].add_request(amount, description, expire=20160)  # 14 days
     amount_field = instances[currency].amount_field  # bitcart: each coin object provides amount_field
     invoice[amount_field] = str(invoice[amount_field])  # convert to str for mongodb
-    invoice.update({"user_id": user_id, "currency": currency, "original_amount": amount_sat})
+    status = invoice.get("status_str", invoice["status"])  # for bch-based coins status_str is missing
+    invoice.update({"user_id": user_id, "currency": currency, "original_amount": amount_sat, "status_str": status})
     mongo.invoices.insert_one(invoice)
     return invoice, amount, friendly_name
 
@@ -412,7 +413,7 @@ async def payment_handler(instance, event, address, status, status_str):  # asyn
             user = mongo.users.find_one({"user_id": inv["user_id"]})
             amount = inv["original_amount"]
             new_balance = user["balance"] + amount
-            mongo.invoices.update_one({"address": address}, {"$set": {"status": "Paid"}})
+            mongo.invoices.update_one({"address": address}, {"$set": {"status_str": "Paid"}})
             change_balance(inv["user_id"], amount, "deposit", address=address)
             await app.send_message(
                 user["user_id"],
