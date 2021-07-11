@@ -2,6 +2,10 @@
 
 ## Latest changes
 
+## 1.3.3.0
+
+Added new `verified_tx` event support
+
 ## 1.3.2.2
 
 Handle None values better in `convert_amount_type` to always return Decimal.
