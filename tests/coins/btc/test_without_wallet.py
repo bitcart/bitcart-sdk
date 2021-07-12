@@ -63,8 +63,15 @@ async def test_validate_key(btc, key, expected):
     assert await btc.validate_key(key) == expected
 
 
+async def get_tx(btc, tx_hash):
+    # TODO: remove when protocol 1.5 is released
+    # This is temporarily using SPV verification to reliably get confirmations
+    # This helps avoiding CI failures, see https://github.com/spesmilo/electrum/issues/7342
+    return await btc.server.get_transaction(tx_hash, use_spv=True)
+
+
 async def test_get_tx(btc):
-    info = await btc.get_tx("0584c650e7b04cd0788832f8340ead4ce654e82127e283c8132a0bcbfabc7a01")
+    info = await get_tx(btc, "0584c650e7b04cd0788832f8340ead4ce654e82127e283c8132a0bcbfabc7a01")
     assert info.items() > {"version": 1, "locktime": 0}.items()
     data_check(info, "confirmations", int)
     assert info["confirmations"] > 0
@@ -105,7 +112,7 @@ async def test_get_address(btc):
     tx = txes[0]
     assert tx["tx_hash"] == "74fb8886abb00e66b192172d5fca504337b11af3aac658979355cefe3d51818e"
     assert tx["height"] == 645013
-    assert tx["tx"] == await btc.get_tx(tx["tx_hash"])
+    assert tx["tx"] == await get_tx(btc, tx["tx_hash"])
 
 
 async def test_create_wallet(btc, tmp_path):
