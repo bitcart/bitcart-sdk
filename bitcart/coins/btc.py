@@ -73,10 +73,10 @@ class BTC(Coin, EventDelivery):
     async def help(self) -> list:
         return await self.server.help()  # type: ignore
 
-    async def get_tx(self, tx: str) -> dict:
+    async def get_tx(self, tx: str) -> dict:  # pragma: no cover: see tests for explanation
         return await self.server.get_transaction(tx)  # type: ignore
 
-    async def get_address(self, address: str) -> list:
+    async def get_address(self, address: str) -> list:  # pragma: no cover
         out: list = await self.server.getaddresshistory(address)
         for i in out:
             i["tx"] = await self.get_tx(i["tx_hash"])
