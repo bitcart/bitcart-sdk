@@ -70,6 +70,13 @@ async def get_tx(btc, tx_hash):
     return await btc.server.get_transaction(tx_hash, use_spv=True)
 
 
+async def get_address(btc, address):
+    out = await btc.server.getaddresshistory(address)
+    for i in out:
+        i["tx"] = await get_tx(btc, i["tx_hash"])
+    return out
+
+
 async def test_get_tx(btc):
     info = await get_tx(btc, "0584c650e7b04cd0788832f8340ead4ce654e82127e283c8132a0bcbfabc7a01")
     assert info.items() > {"version": 1, "locktime": 0}.items()
@@ -107,7 +114,7 @@ async def test_config_methods(btc):
 
 
 async def test_get_address(btc):
-    txes = await btc.get_address("17ncZMaFQYZYNDycTJc5aydUKaw6oCEUSQ")
+    txes = await get_address(btc, "17ncZMaFQYZYNDycTJc5aydUKaw6oCEUSQ")
     assert isinstance(txes, list)
     tx = txes[0]
     assert tx["tx_hash"] == "74fb8886abb00e66b192172d5fca504337b11af3aac658979355cefe3d51818e"
