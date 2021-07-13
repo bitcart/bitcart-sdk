@@ -9,7 +9,7 @@ from .utils import data_check, run_shell
 pytestmark = pytest.mark.asyncio
 
 BTC_ADDRESS = (
-    "bcrt1qe0ppfnuz6wjw3vn8jefn8p4fxmyn7tqxkjt557"  # can be got by run_shell(["newaddress"]) or regtest_wallet.add_request()
+    "bcrt1qttft7vh7w3er2akkpr4lu78z2ptdhgfxf739xf"  # can be got by run_shell(["newaddress"]) or regtest_wallet.add_request()
 )
 
 TEST_PARAMS = [
@@ -110,12 +110,18 @@ async def test_open_channel(regtest_wallet, regtest_node_id, wait_for_utxos):
     run_shell(["newblocks", "3"])
 
 
+def find_channel(channels):  # there is also BACKUP type
+    for channel in channels:
+        if channel["type"] == "CHANNEL" and channel["state"] in ("OPEN", "OPENING"):
+            return channel
+
+
 async def test_list_channels(regtest_wallet, regtest_node_id):
     pubkey = regtest_node_id.split("@")[0]
     result = await regtest_wallet.list_channels()
     assert isinstance(result, list)
     assert len(result) > 0
-    channel = result[-1]  # last channel is last in the list
+    channel = find_channel(result)
     assert "short_channel_id" in channel
     assert isinstance(channel["short_channel_id"], str) or channel["short_channel_id"] is None
     data_check(channel, "channel_id", str, 64)
@@ -144,7 +150,7 @@ async def test_lnpay(regtest_wallet):
         > {
             "success": False,
             "preimage": None,
-            "log": [["None", "N/A", "No path found"]],
+            "log": [],
         }.items()
     )
     data_check(response, "payment_hash", str)
@@ -152,5 +158,5 @@ async def test_lnpay(regtest_wallet):
 
 async def test_close_channel(regtest_wallet):
     channels = await regtest_wallet.list_channels()
-    channel_id = channels[-1]["channel_point"]  # last channel is last in the list
+    channel_id = find_channel(channels)["channel_point"]
     assert isinstance(await regtest_wallet.close_channel(channel_id), str)
