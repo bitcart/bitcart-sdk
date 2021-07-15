@@ -48,8 +48,13 @@ async def regtest_wallet():
 
 
 @pytest.fixture
-async def regtest_node_id():
-    return await BTC(xpub=REGTEST_XPUB2, rpc_url="http://localhost:5110").node_id
+async def regtest_node():
+    return BTC(xpub=REGTEST_XPUB2, rpc_url="http://localhost:5110")
+
+
+@pytest.fixture
+async def regtest_node_id(regtest_node):
+    return await regtest_node.node_id
 
 
 @pytest.fixture
