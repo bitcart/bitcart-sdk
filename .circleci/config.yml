@@ -89,7 +89,6 @@ jobs:
       - run:
           name: run fast tests
           command: |
-            sleep 3s
             make ci
             codecov -F tests -e PYTHON
 
