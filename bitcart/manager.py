@@ -44,7 +44,7 @@ class APIManager(EventDelivery):
         return ExtendedDict({wallet: cls.load_wallet(currency, wallet) for wallet in wallets})
 
     @classmethod
-    def load_wallet(cls, currency: str, wallet: Optional[str]) -> "Coin":
+    def load_wallet(cls, currency: str, wallet: Optional[str] = None) -> "Coin":
         if currency not in COINS:
             raise CurrencyUnsupportedError()
         return COINS[currency](xpub=wallet)
