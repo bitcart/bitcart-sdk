@@ -3,8 +3,9 @@ from functools import wraps
 from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, Optional, Union
 
 from ..coin import Coin
-from ..errors import InvalidEventError, LightningDisabledError
+from ..errors import LightningDisabledError
 from ..event_delivery import EventDelivery
+from ..logger import logger
 from ..providers.jsonrpcrequests import RPCProxy
 from ..types import AmountType
 from ..utils import bitcoins, call_universal, convert_amount_type
@@ -176,22 +177,22 @@ class BTC(Coin, EventDelivery):
 
     async def process_updates(self, updates: Iterable[dict], *args: Any, pass_instance: bool = False, **kwargs: Any) -> None:
         if not isinstance(updates, list):
+            logger.debug(f"Invalid updates passed: {updates}")
             return
         for event_info in updates:
             if not isinstance(event_info, dict):
+                logger.debug(f"{event_info} is not a dict")
                 continue
             event = event_info.pop("event", None)
             if not event or event not in self.ALLOWED_EVENTS:
-                raise InvalidEventError(f"Invalid event from server: {event}")
+                logger.error(f"Invalid event from server: {event}")
+                continue
             handler = self.event_handlers.get(event)
             if handler:
                 args = (event,)
                 if pass_instance:
                     args = (self,) + args
-                try:
-                    await call_universal(handler, *args, **event_info)
-                except Exception:
-                    pass
+                await call_universal(handler, *args, **event_info)
 
     async def pay_to(
         self,

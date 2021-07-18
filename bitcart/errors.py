@@ -4,13 +4,16 @@ import functools
 class BaseError(Exception):
     """Base error for all errors raised"""
 
-
-class InvalidEventError(BaseError):
-    """Daemon returned unsupported event"""
+    def __init__(self, msg=None, *args, **kwargs):
+        super().__init__(msg or self.__doc__, *args, **kwargs)
 
 
 class NoCurrenciesRegisteredError(BaseError):
     """APIManager has no currencies enabled"""
+
+
+class CurrencyUnsupportedError(BaseError):
+    """This coin is not supported by SDK"""
 
 
 class LightningDisabledError(BaseError):

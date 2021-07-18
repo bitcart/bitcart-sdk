@@ -97,9 +97,6 @@ class EventDelivery:
             self (BTC): self
             timeout (Union[int, float], optional): seconds to wait before requesting transactions again. Defaults to 1.
 
-        Raises:
-            InvalidEventError: If server sent invalid event name not matching ALLOWED_EVENTS
-
         Returns:
             None: This function runs forever
         """
