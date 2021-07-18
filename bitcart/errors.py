@@ -1,11 +1,12 @@
 import functools
+from typing import Any, Optional
 
 
 class BaseError(Exception):
     """Base error for all errors raised"""
 
-    def __init__(self, msg=None, *args, **kwargs):
-        super().__init__(msg or self.__doc__, *args, **kwargs)
+    def __init__(self, msg: Optional[str] = None, *args: Any):
+        super().__init__(msg or self.__doc__, *args)
 
 
 class NoCurrenciesRegisteredError(BaseError):
