@@ -3,7 +3,7 @@ import multiprocessing
 import pytest
 
 from bitcart import BTC, GZRO, LTC
-from bitcart.errors import NoCurrenciesRegisteredError
+from bitcart.errors import CurrencyUnsupportedError, NoCurrenciesRegisteredError
 from bitcart.manager import APIManager
 
 pytestmark = pytest.mark.asyncio
@@ -49,6 +49,10 @@ async def test_manager_storage(manager, xpub):
 async def test_manager_classmethods(xpub):
     assert APIManager.load_wallet("BTC", xpub) == BTC(xpub=xpub)
     assert APIManager.load_wallets("BTC", [xpub, xpub]) == {xpub: BTC(xpub=xpub)}
+    with pytest.raises(CurrencyUnsupportedError):
+        APIManager.load_wallet("test")
+    with pytest.raises(CurrencyUnsupportedError):
+        APIManager.load_wallets("test", [xpub])
 
 
 async def test_manager_add_wallets(manager, xpub):
@@ -86,3 +90,11 @@ async def test_manager_no_wallets(patched_session, websocket_manager_no_wallets,
 async def test_manager_no_currencies():
     with pytest.raises(NoCurrenciesRegisteredError):
         await APIManager().start_websocket(auto_reconnect=False)
+
+
+async def test_manager_bad_currency(patched_session_bad_currency, websocket_manager, xpub, mocker, caplog):
+    websocket_manager.add_event_handler("new_transaction", new_tx_handler)
+    mocker.patch.object(websocket_manager.BTC[xpub].server, "session", patched_session_bad_currency)
+    await websocket_manager.start_websocket(auto_reconnect=False)
+    assert test_queue.qsize() == 0
+    assert "Received event for unsupported currency: test" in caplog.text
