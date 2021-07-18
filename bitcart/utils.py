@@ -3,6 +3,8 @@ import json
 from decimal import Decimal
 from typing import Any, Callable
 
+from .logger import logger
+
 CONVERT_RATE = 100000000
 
 
@@ -72,7 +74,10 @@ async def call_universal(func: Callable, *args: Any, **kwargs: Any) -> Any:
     Returns:
         Any: function execution result
     """
-    result = func(*args, **kwargs)
-    if inspect.isawaitable(result):
-        await result
-    return result
+    try:
+        result = func(*args, **kwargs)
+        if inspect.isawaitable(result):
+            result = await result
+        return result
+    except Exception:
+        logger.exception("Error occured:")

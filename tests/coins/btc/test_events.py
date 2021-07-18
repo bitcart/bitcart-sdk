@@ -2,8 +2,6 @@ from queue import Queue
 
 import pytest
 
-from bitcart.errors import InvalidEventError
-
 test_queue = Queue()
 
 
@@ -16,7 +14,7 @@ async def async_handler(event, height):
 
 
 @pytest.mark.asyncio
-async def test_event_system(btc):
+async def test_event_system(btc, caplog):
     assert btc.add_event_handler("event", lambda x: test_queue.put(1)) is None
 
     @btc.on("event")
@@ -31,11 +29,10 @@ async def test_event_system(btc):
     assert btc.event_handlers["new_block"] == async_handler
     assert await btc.process_updates({}) is None  # ignoring exceptions
     assert await btc.process_updates([[]]) is None  # ignoring exceptions
-    with pytest.raises(InvalidEventError):
-        await btc.process_updates([{}])
-    with pytest.raises(InvalidEventError):
-        await btc.process_updates([{"event": "event"}])
-
+    await btc.process_updates([{}])
+    assert "Invalid event from server: None" in caplog.text
+    await btc.process_updates([{"event": "event"}])
+    assert "Invalid event from server: event" in caplog.text
     await btc.process_updates(
         [{"event": "new_transaction"}, {"event": "new_transaction", "tx": "test"}]
     )  # ignoring invalid data, accepting valid

@@ -4,10 +4,11 @@ from functools import partial
 from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, Optional
 from urllib.parse import urljoin
 
-from bitcart.errors import NoCurrenciesRegisteredError
+from bitcart.errors import CurrencyUnsupportedError, NoCurrenciesRegisteredError
 
 from .coins import COINS
 from .event_delivery import EventDelivery
+from .logger import logger
 
 if TYPE_CHECKING:
     from aiohttp import ClientWebSocketResponse
@@ -44,6 +45,8 @@ class APIManager(EventDelivery):
 
     @classmethod
     def load_wallet(cls, currency: str, wallet: Optional[str]) -> "Coin":
+        if currency not in COINS:
+            raise CurrencyUnsupportedError()
         return COINS[currency](xpub=wallet)
 
     def add_wallet(self, currency: str, wallet: str) -> None:
@@ -104,13 +107,17 @@ class APIManager(EventDelivery):
             )
         await asyncio.gather(*tasks)
         if not tasks:
-            raise NoCurrenciesRegisteredError(NoCurrenciesRegisteredError.__doc__)
+            raise NoCurrenciesRegisteredError()
 
     async def process_updates(
         self, updates: Iterable[dict], currency: Optional[str] = None, wallet: Optional[str] = None
     ) -> None:
         wallet_obj = self.wallets[currency].get(wallet)
         if not wallet_obj:
-            wallet_obj = self.load_wallet(currency, wallet)  # type: ignore
+            try:
+                wallet_obj = self.load_wallet(currency, wallet)  # type: ignore
+            except CurrencyUnsupportedError:
+                logger.error(f"Received event for unsupported currency: {currency}")
+                return
         self._merge_event_handlers(wallet_obj)
         await wallet_obj.process_updates(updates, pass_instance=True)
