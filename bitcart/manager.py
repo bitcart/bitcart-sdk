@@ -1,5 +1,4 @@
 import asyncio
-from collections import UserDict, defaultdict
 from functools import partial
 from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, Optional
 from urllib.parse import urljoin
@@ -9,25 +8,13 @@ from bitcart.errors import CurrencyUnsupportedError, NoCurrenciesRegisteredError
 from .coins import COINS
 from .event_delivery import EventDelivery
 from .logger import logger
+from .types import ExtendedDefaultDict, ExtendedDict
 
 if TYPE_CHECKING:
     from aiohttp import ClientWebSocketResponse
 
     from .coin import Coin
     from .providers.jsonrpcrequests import RPCProxy
-
-
-class CustomDict:
-    def __getattr__(self, name: str) -> Any:
-        return self.__getitem__(name)
-
-
-class ExtendedDefaultDict(defaultdict, CustomDict):
-    pass
-
-
-class ExtendedDict(UserDict, CustomDict):
-    pass
 
 
 class APIManager(EventDelivery):
@@ -45,6 +32,7 @@ class APIManager(EventDelivery):
 
     @classmethod
     def load_wallet(cls, currency: str, wallet: Optional[str] = None) -> "Coin":
+        currency = currency.upper()
         if currency not in COINS:
             raise CurrencyUnsupportedError()
         return COINS[currency](xpub=wallet)
