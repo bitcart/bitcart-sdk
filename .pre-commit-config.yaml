@@ -34,6 +34,8 @@ repos:
         files: |
           .gitignore|
       - id: requirements-txt-fixer
+        exclude: >-
+          ^examples/atomic_tipbot/requirements.txt$
       - id: check-case-conflict
       - id: check-shebang-scripts-are-executable
       - id: check-json
