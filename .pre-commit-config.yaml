@@ -31,8 +31,8 @@ repos:
       - id: trailing-whitespace
       - id: mixed-line-ending
       - id: file-contents-sorter
-        files: >-
-          ^.gitignore$
+        files: |
+          .gitignore|
       - id: requirements-txt-fixer
       - id: check-case-conflict
       - id: check-shebang-scripts-are-executable
