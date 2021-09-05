@@ -30,7 +30,7 @@ commands:
             virtualenv ~/venv
             echo ". ~/venv/bin/activate" >> $BASH_ENV
             source $BASH_ENV
-            pip install .   
+            pip install .
             pip install -r test-requirements.txt
 
       - run:
@@ -168,7 +168,7 @@ jobs:
             virtualenv ~/venv
             . ~/venv/bin/activate
             pip install -U wheel twine
-            python setup.py sdist 
+            python setup.py sdist
             python setup.py bdist_wheel
             twine upload dist/*
 
