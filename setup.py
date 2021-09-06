@@ -14,7 +14,7 @@ def main() -> None:
         author_email="chuff184@gmail.com",
         url="https://github.com/bitcartcc/bitcart-sdk",
         keywords=["electrum", "daemon", "bitcart", "bitcartcc"],
-        install_requires=["jsonrpcclient[aiohttp]", "aiohttp<4.0.0"],
+        install_requires=["jsonrpcclient[aiohttp]<4.0", "aiohttp<4.0.0"],  # TODO: use jsonrpcclient 4.0 when more stable
         extras_require={"proxy": ["aiohttp_socks"]},
         classifiers=[
             "Development Status :: 4 - Beta",
