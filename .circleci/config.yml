@@ -5,6 +5,7 @@ executors:
     parameters:
       v:
         type: string
+        default: "3.7"
 
     docker:
       - image: cimg/python:<< parameters.v >>
@@ -31,7 +32,7 @@ commands:
             echo ". ~/venv/bin/activate" >> $BASH_ENV
             source $BASH_ENV
             pip install .
-            pip install -r test-requirements.txt
+            pip install -U -r test-requirements.txt
 
       - run:
           name: install daemon
@@ -39,8 +40,8 @@ commands:
             sudo apt update
             sudo apt install libsecp256k1-dev
             cd ~/bitcart-daemon
-            pip install -r requirements/base.txt
-            pip install -r requirements/daemons/btc.txt
+            pip install -U -r requirements/base.txt
+            pip install -U -r requirements/daemons/btc.txt
 
       - save_cache:
           paths:
@@ -59,11 +60,50 @@ commands:
           path: test-results
 
 jobs:
+  lint:
+    docker:
+      - image: cimg/python:3.7
+
+    working_directory: ~/repo
+
+    steps:
+      - checkout
+
+      - restore_cache:
+          keys:
+            - v1-lint-dependencies-{{ .Branch }}-{{ checksum "~/.pyenv/version" }}-{{ checksum "test-requirements.txt" }}
+
+      - restore_cache:
+          keys:
+            - v1-lint-pre-commit-{{ .Branch }}-{{ checksum ".pre-commit-config.yaml" }}
+
+      - run:
+          name: install dependencies
+          command: |
+            virtualenv ~/venv
+            echo ". ~/venv/bin/activate" >> $BASH_ENV
+            source $BASH_ENV
+            pip install -U -r test-requirements.txt
+
+      - save_cache:
+          paths:
+            - ~/venv
+          key: v1-lint-dependencies-{{ .Branch }}-{{ checksum "~/.pyenv/version" }}-{{ checksum "test-requirements.txt" }}
+
+      - run:
+          name: run pre-commit checks
+          command: |
+            pre-commit run --all-files --show-diff-on-failure
+
+      - save_cache:
+          paths:
+            - ~/.cache/pre-commit
+          key: v1-lint-pre-commit-{{ .Branch }}-{{ checksum ".pre-commit-config.yaml" }}
+
   test:
     parameters:
       v:
         type: string
-        default: "3.7"
 
     executor:
       name: main-executor
@@ -97,7 +137,6 @@ jobs:
   functional-tests:
     executor:
       name: main-executor
-      v: "3.7"
 
     working_directory: ~/repo
 
@@ -176,8 +215,11 @@ workflows:
   version: 2
   test_and_deploy:
     jobs:
+      - lint
       - test:
           name: test-<< matrix.v >>
+          requires:
+            - lint
           matrix:
             parameters:
               v:
