@@ -117,7 +117,7 @@ class RPCProxy:
                 if error_code in exceptions:
                     exc = exceptions[error_code]
                     raise generate_exception(exc["exc_name"])(exc["docstring"]) from e
-                raise UnknownError("Unknown error from server: {}".format(message)) from e
+                raise UnknownError(f"Unknown error from server: {message}") from e
             except aiohttp.ClientConnectionError as e:
                 raise ConnectionFailedError() from e
 

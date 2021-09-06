@@ -24,6 +24,14 @@ def run_sync_ctx(coroutine: Any, loop: asyncio.AbstractEventLoop) -> Any:
     return coroutine
 
 
+def run_from_another_thread(coroutine: Any, loop: asyncio.AbstractEventLoop) -> Any:
+    if inspect.iscoroutine(coroutine):
+        return asyncio.run_coroutine_threadsafe(coroutine, loop).result()
+
+    if inspect.isasyncgen(coroutine):
+        return asyncio.run_coroutine_threadsafe(consume_generator(coroutine), loop).result()
+
+
 def async_to_sync_wraps(function: Callable, is_property: bool = False) -> Callable:
     main_loop = asyncio.get_event_loop()
 
@@ -42,18 +50,28 @@ def async_to_sync_wraps(function: Callable, is_property: bool = False) -> Callab
             if threading.current_thread() is threading.main_thread():
                 return coroutine
             else:
-                if inspect.iscoroutine(coroutine):
-                    return asyncio.run_coroutine_threadsafe(coroutine, loop).result()
+                return run_from_another_thread(coroutine, loop)
 
-                if inspect.isasyncgen(coroutine):
-                    return asyncio.run_coroutine_threadsafe(consume_generator(coroutine), loop).result()
-
-        return run_sync_ctx(coroutine, loop)
+        try:
+            return run_sync_ctx(coroutine, loop)
+        except KeyboardInterrupt:
+            shutdown_tasks(loop)
+            raise
+        finally:
+            loop.run_until_complete(loop.shutdown_asyncgens())
 
     result = async_to_sync_wrap
     if is_property:
         result = property(result)  # type: ignore
     return result
+
+
+def shutdown_tasks(loop: asyncio.AbstractEventLoop) -> None:
+    tasks = asyncio.gather(*asyncio.all_tasks(loop), return_exceptions=True)
+    tasks.add_done_callback(lambda t: loop.stop())
+    tasks.cancel()
+    while not tasks.done() and not loop.is_closed():
+        loop.run_forever()
 
 
 def async_to_sync(obj: object, name: str, is_property: bool = False) -> None:

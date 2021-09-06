@@ -1,5 +1,4 @@
 import asyncio
-import logging
 from json import JSONDecodeError
 from typing import TYPE_CHECKING, Callable, Dict, Iterable, Optional, Union
 from urllib.parse import urljoin
@@ -7,6 +6,7 @@ from urllib.parse import urljoin
 from aiohttp import ClientConnectionError, WSMsgType
 
 from .errors import ConnectionFailedError
+from .logger import logger
 from .utils import call_universal
 
 if TYPE_CHECKING:
@@ -97,17 +97,14 @@ class EventDelivery:
             self (BTC): self
             timeout (Union[int, float], optional): seconds to wait before requesting transactions again. Defaults to 1.
 
-        Raises:
-            InvalidEventError: If server sent invalid event name not matching ALLOWED_EVENTS
-
         Returns:
             None: This function runs forever
         """
         while True:
             try:
                 data = await self.server.get_updates()
-            except Exception as err:
-                logging.error(err)
+            except Exception:
+                logger.exception("Error occured during event polling:")
                 await asyncio.sleep(timeout)
                 continue
             await self.process_updates(data)

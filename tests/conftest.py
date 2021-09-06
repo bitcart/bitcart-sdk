@@ -119,6 +119,11 @@ class FakeBadJSONDaemon(FakeDaemon):
         await ws.send_str("")
 
 
+class FakeBadCurrencyDaemon(FakeDaemon):
+    async def reply_to_websocket(self, ws):
+        await ws.send_json({"currency": "test", "updates": [{"event": "new_transaction", "tx": "test"}]})
+
+
 async def patched_session_maker(daemon_class):
     fake_daemon = daemon_class()
     info = await fake_daemon.start()
@@ -138,5 +143,12 @@ async def patched_session():
 @pytest.fixture
 async def patched_session_bad_json():
     session, daemon = await patched_session_maker(FakeBadJSONDaemon)
+    yield session
+    await daemon.stop()
+
+
+@pytest.fixture
+async def patched_session_bad_currency():
+    session, daemon = await patched_session_maker(FakeBadCurrencyDaemon)
     yield session
     await daemon.stop()
