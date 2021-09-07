@@ -24,6 +24,14 @@ repos:
     hooks:
       - id: pyupgrade
         args: ["--py37-plus"]
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v0.910
+    hooks:
+      - id: mypy
+        args: ["--install-types", "--non-interactive"]
+        exclude: >-
+          ^(examples|tests)/
+
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.0.1
     hooks:
