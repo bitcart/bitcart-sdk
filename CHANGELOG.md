@@ -2,6 +2,24 @@
 
 ## Latest changes
 
+## 1.4.0.0
+
+### Breaking: better error handling
+
+Now SDK won't error out on invalid event being sent, stop websocket processing on error in handler and so on. It should be reliable now.
+
+All exceptions are instead logged by `bitcart` logger. You no longer need to put try/except in each handler to prevent accidental errors.
+
+`APIManager.load_wallet` now raises `CurrencyUnsupportedError` on non-supported currency passed. It now also handles currencies in a
+case-insensitive way.
+
+Applied pre-commit normalisation of all files (whitespaces, newlines, etc), our code base is now fully formatted in an unified way.
+
+Pins `jsonrpcclient` to `<4.0` to prevent breaking the library
+
+Fixes websocket cleanup issues by mimicking `asyncio.run` behaviour, it is now possible to start/stop websocket in shell
+multiple times
+
 ## 1.3.3.0
 
 Added new `verified_tx` event support
