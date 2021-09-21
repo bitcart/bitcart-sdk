@@ -1,4 +1,5 @@
 import asyncio
+import traceback
 from json import JSONDecodeError
 from typing import TYPE_CHECKING, Callable, Dict, Iterable, Optional, Union
 from urllib.parse import urljoin
@@ -104,7 +105,7 @@ class EventDelivery:
             try:
                 data = await self.server.get_updates()
             except Exception:
-                logger.exception("Error occured during event polling:")
+                logger.error(f"Error occured during event polling:\n{traceback.format_exc()}")
                 await asyncio.sleep(timeout)
                 continue
             await self.process_updates(data)

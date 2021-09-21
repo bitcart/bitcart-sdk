@@ -1,5 +1,6 @@
 import inspect
 import json
+import traceback
 from decimal import Decimal
 from typing import Any, Callable
 
@@ -80,4 +81,4 @@ async def call_universal(func: Callable, *args: Any, **kwargs: Any) -> Any:
             result = await result
         return result
     except Exception:
-        logger.exception("Error occured:")
+        logger.error(f"Error occured:\n{traceback.format_exc()}")

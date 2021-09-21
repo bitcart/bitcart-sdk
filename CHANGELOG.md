@@ -2,6 +2,10 @@
 
 ## Latest changes
 
+## 1.4.0.1
+
+Remove `logger.exception` in favour of `logger.error`
+
 ## 1.4.0.0
 
 ### Breaking: better error handling
