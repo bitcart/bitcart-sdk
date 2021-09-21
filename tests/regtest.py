@@ -9,7 +9,7 @@ from .utils import data_check, run_shell
 pytestmark = pytest.mark.asyncio
 
 BTC_ADDRESS = (
-    "bcrt1qe0ppfnuz6wjw3vn8jefn8p4fxmyn7tqxkjt557"  # can be got by run_shell(["newaddress"]) or regtest_wallet.add_request()
+    "bcrt1qttft7vh7w3er2akkpr4lu78z2ptdhgfxf739xf"  # can be got by run_shell(["newaddress"]) or regtest_wallet.add_request()
 )
 
 TEST_PARAMS = [
@@ -41,15 +41,26 @@ async def wait_for_balance(regtest_wallet):
             break
 
 
-@pytest.fixture
-async def wait_for_utxos(regtest_wallet):
+def find_open_channel(channels):  # there is also BACKUP type
+    for channel in channels:
+        if channel["type"] == "CHANNEL" and channel["state"] == "OPEN":
+            return channel
+
+
+def find_channel_by_id(channels, channel_point):
+    for channel in channels:
+        if channel["channel_point"] == channel_point:
+            return channel
+
+
+async def wait_for_channel_opening(regtest_wallet, channel_point):
     while True:
-        utxos = [utxo for utxo in await regtest_wallet.server.listunspent() if utxo["height"] != -2]
-        # ensure we have nonlocal utxos to use to open channel
-        if len(utxos) == 0:
-            await asyncio.sleep(1)
-        else:
+        channels = await regtest_wallet.list_channels()
+        channel = find_channel_by_id(channels, channel_point)
+        await asyncio.sleep(1)
+        if channel["state"] == "OPEN":
             break
+    await asyncio.sleep(1)
 
 
 def check_tx(tx, broadcast):
@@ -98,9 +109,9 @@ async def test_payment_to_many(regtest_wallet, fee, feerate, broadcast, wait_for
     )
 
 
-async def test_open_channel(regtest_wallet, regtest_node_id, wait_for_utxos):
+async def test_open_channel(regtest_wallet, regtest_node_id):
     # works only with nonlocal balances
-    result = await regtest_wallet.open_channel(regtest_node_id, 0.002)
+    result = await regtest_wallet.open_channel(regtest_node_id, 0.1)
     assert isinstance(result, str)
     assert len(result) == 66
     assert ":" in result
@@ -108,6 +119,7 @@ async def test_open_channel(regtest_wallet, regtest_node_id, wait_for_utxos):
     assert len(splitted) == 2
     int(splitted[1])  # integer
     run_shell(["newblocks", "3"])
+    await wait_for_channel_opening(regtest_wallet, result)
 
 
 async def test_list_channels(regtest_wallet, regtest_node_id):
@@ -115,42 +127,39 @@ async def test_list_channels(regtest_wallet, regtest_node_id):
     result = await regtest_wallet.list_channels()
     assert isinstance(result, list)
     assert len(result) > 0
-    channel = result[-1]  # last channel is last in the list
+    channel = find_open_channel(result)
     assert "short_channel_id" in channel
     assert isinstance(channel["short_channel_id"], str) or channel["short_channel_id"] is None
     data_check(channel, "channel_id", str, 64)
     data_check(channel, "channel_point", str, 66)
     data_check(channel, "peer_state", str)
     assert channel["peer_state"] == "GOOD"
-    data_check(channel, "state", str)
+    assert channel["state"] == "OPEN"
     assert channel["remote_pubkey"] == pubkey
-    assert channel["local_balance"] == 200000
+    assert channel["local_balance"] == 10000000
     assert channel["remote_balance"] == 0
     data_check(channel, "local_reserve", int)
     data_check(channel, "remote_reserve", int)
     data_check(channel, "local_unsettled_sent", int)
     data_check(channel, "remote_unsettled_sent", int)
-    assert channel["local_reserve"] == channel["remote_reserve"] == 2000
+    assert channel["local_reserve"] == channel["remote_reserve"] == 100000
     assert channel["local_unsettled_sent"] == channel["remote_unsettled_sent"] == 0
 
 
-async def test_lnpay(regtest_wallet):
+async def test_lnpay(regtest_wallet, regtest_node):
     with pytest.raises(errors.InvalidLightningInvoiceError):
         assert not await regtest_wallet.lnpay("")
-    response = await regtest_wallet.lnpay((await regtest_wallet.add_invoice(0.1))["invoice"])
+    invoice = (await regtest_node.add_invoice(0.01))["invoice"]
+    response = await regtest_wallet.lnpay(invoice)
     assert isinstance(response, dict)
-    assert (
-        response.items()
-        > {
-            "success": False,
-            "preimage": None,
-            "log": [["None", "N/A", "No path found"]],
-        }.items()
-    )
+    assert response.keys() == {"payment_hash", "success", "preimage", "log"}
     data_check(response, "payment_hash", str)
+    assert response["success"]
+    data_check(response, "preimage", str)
+    data_check(response, "log", list, 1)
 
 
 async def test_close_channel(regtest_wallet):
     channels = await regtest_wallet.list_channels()
-    channel_id = channels[-1]["channel_point"]  # last channel is last in the list
+    channel_id = find_open_channel(channels)["channel_point"]
     assert isinstance(await regtest_wallet.close_channel(channel_id), str)
