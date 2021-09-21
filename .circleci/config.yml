@@ -19,7 +19,7 @@ commands:
       - run:
           name: clone daemon
           command: |
-            git clone https://github.com/bitcartcc/bitcart -b feat/electrum-4.1 ~/bitcart-daemon
+            git clone https://github.com/bitcartcc/bitcart ~/bitcart-daemon
 
       - restore_cache:
           keys:
