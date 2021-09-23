@@ -8,7 +8,7 @@ executors:
         default: "3.7"
 
     docker:
-      - image: cimg/python:<< parameters.v >>
+      - image: circleci/python:<< parameters.v >>
 
     environment:
       TEST_ARGS: "--junitxml test-results/pytest/coverage.xml --cov-report html:coverage"
@@ -226,6 +226,7 @@ workflows:
                 - "3.7"
                 - "3.8"
                 - "3.9"
+                - "3.10-rc"
 
       - functional-tests:
           requires:
