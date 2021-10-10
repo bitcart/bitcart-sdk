@@ -117,6 +117,16 @@ jobs:
             sudo apt install screen
 
       - run:
+          name: Install fulcrum
+          command: |
+            FULCRUM_VERSION=$(curl --silent https://api.github.com/repos/cculianu/Fulcrum/releases/latest | jq -r .tag_name | tr -d v)
+            BINARY_NAME=Fulcrum-$FULCRUM_VERSION-$(uname -m)-linux.tar.gz
+            wget https://github.com/cculianu/Fulcrum/releases/download/v$FULCRUM_VERSION/$BINARY_NAME
+            tar -xvz $BINARY_NAME -C Fulcrum
+            cp Fulcrum/Fulcrum /usr/local/bin/Fulcrum
+            rm -rf $BINARY_NAME Fulcrum
+
+      - run:
           name: prepare bitcoind
           command: |
             make bitcoind
