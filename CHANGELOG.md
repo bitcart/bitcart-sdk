@@ -2,6 +2,12 @@
 
 ## Latest changes
 
+## 1.5.0.0
+
+Support python 3.10
+
+Sync generator now supports calling SDK commands in any workflow, mixing threads and asyncio in any way possible: it should no longer hang!
+
 ## 1.4.0.1
 
 Remove `logger.exception` in favour of `logger.error`

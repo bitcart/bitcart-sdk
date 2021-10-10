@@ -18,8 +18,8 @@ test:
 bitcoind:
 	tests/regtest/start_bitcoind.sh
 
-electrumx:
-	tests/regtest/start_electrumx.sh
+fulcrum:
+	tests/regtest/start_fulcrum.sh
 
 regtest:
 	pytest tests/regtest.py --cov-append ${TEST_ARGS}

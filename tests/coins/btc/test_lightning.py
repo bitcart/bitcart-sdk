@@ -44,21 +44,9 @@ async def test_connect(btc_wallet):
     assert await btc_wallet.connect("0214382bdce7750dfcb8126df8e2b12de38536902dc36abcebdaeefdeca1df8284@172.81.181.3")
 
 
-async def test_list_peers(btc_wallet):
-    res1 = await btc_wallet.list_peers()
-    res2 = await btc_wallet.list_peers(True)
-    assert isinstance(res1, list)
-    assert isinstance(res2, list)
-    assert len(res1) >= 0
-    assert len(res2) >= 0
-    peer = res1[0]
-    assert peer.keys() == {"node_id", "address", "initialized", "features", "channels"}
-    data_check(peer, "initialized", bool)
-    data_check(peer, "node_id", str, 66)
-    data_check(peer, "address", str)
-    data_check(peer, "features", str)
-    assert "LnFeatures." in peer["features"]
-    data_check(peer, "channels", list, 0)
+async def test_list_gossip_peers(btc_wallet):
+    gossip_peers = await btc_wallet.list_peers(True)
+    assert isinstance(gossip_peers, list)
 
 
 async def test_lightning_always_enabled(btc_wallet):
