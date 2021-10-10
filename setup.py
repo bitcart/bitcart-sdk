@@ -5,7 +5,7 @@ def main() -> None:
     setup(
         name="bitcart",
         packages=find_packages(),
-        version="1.4.0.1",
+        version="1.5.0.0",
         license="LGPLv3+",
         description="BitcartCC coins support library",
         long_description=open("README.md").read(),
@@ -17,7 +17,7 @@ def main() -> None:
         install_requires=["jsonrpcclient[aiohttp]<4.0", "aiohttp<4.0.0"],  # TODO: use jsonrpcclient 4.0 when more stable
         extras_require={"proxy": ["aiohttp_socks"]},
         classifiers=[
-            "Development Status :: 4 - Beta",
+            "Development Status :: 5 - Production/Stable",
             "Intended Audience :: Developers",
             "Topic :: Software Development :: Build Tools",
             "License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)",
@@ -25,6 +25,7 @@ def main() -> None:
             "Programming Language :: Python :: 3.7",
             "Programming Language :: Python :: 3.8",
             "Programming Language :: Python :: 3.9",
+            "Programming Language :: Python :: 3.10",
         ],
     )
 

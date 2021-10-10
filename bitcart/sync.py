@@ -43,11 +43,11 @@ def run_from_another_thread(coroutine: Any, loop: asyncio.AbstractEventLoop, mai
 
 
 def get_event_loop() -> asyncio.AbstractEventLoop:
-    if threading.current_thread() is threading.main_thread():
-        return asyncio.get_event_loop()
     try:
         return asyncio.get_running_loop()
     except RuntimeError:
+        if threading.current_thread() is threading.main_thread():
+            return asyncio.get_event_loop_policy().get_event_loop()
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         return loop
