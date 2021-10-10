@@ -122,6 +122,19 @@ async def test_open_channel(regtest_wallet, regtest_node_id):
     await wait_for_channel_opening(regtest_wallet, result)
 
 
+async def test_list_peers(regtest_wallet, regtest_node_id):  # running on regtest to ensure we always have a peer connected
+    peers = await regtest_wallet.list_peers()
+    assert len(peers) > 0
+    peer = peers[0]
+    assert peer.keys() == {"node_id", "address", "initialized", "features", "channels"}
+    data_check(peer, "initialized", bool)
+    assert peer["node_id"] == regtest_node_id.split("@")[0]
+    data_check(peer, "address", str)
+    data_check(peer, "features", str)
+    assert "LnFeatures." in peer["features"]
+    data_check(peer, "channels", list, 0)
+
+
 async def test_list_channels(regtest_wallet, regtest_node_id):
     pubkey = regtest_node_id.split("@")[0]
     result = await regtest_wallet.list_channels()

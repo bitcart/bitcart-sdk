@@ -1,11 +1,10 @@
-import functools
 from decimal import Decimal
 
 import pytest
 
 from bitcart import errors
 
-from ...utils import data_check, wait_timeout
+from ...utils import data_check
 
 pytestmark = pytest.mark.asyncio
 
@@ -45,26 +44,9 @@ async def test_connect(btc_wallet):
     assert await btc_wallet.connect("0214382bdce7750dfcb8126df8e2b12de38536902dc36abcebdaeefdeca1df8284@172.81.181.3")
 
 
-async def get_peer_info(btc_wallet):
-    return await btc_wallet.list_peers()
-
-
-async def check_peer_list(peers):
-    assert len(peers) >= 0
-    peer = peers[0]
-    assert peer.keys() == {"node_id", "address", "initialized", "features", "channels"}
-    data_check(peer, "initialized", bool)
-    data_check(peer, "node_id", str, 66)
-    data_check(peer, "address", str)
-    data_check(peer, "features", str)
-    assert "LnFeatures." in peer["features"]
-    data_check(peer, "channels", list, 0)
-
-
-async def test_list_peers(btc_wallet):
+async def test_list_gossip_peers(btc_wallet):
     gossip_peers = await btc_wallet.list_peers(True)
     assert isinstance(gossip_peers, list)
-    await wait_timeout(functools.partial(get_peer_info, btc_wallet), lambda x: len(x) > 0, check_peer_list)
 
 
 async def test_lightning_always_enabled(btc_wallet):
