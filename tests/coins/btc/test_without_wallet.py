@@ -119,7 +119,12 @@ async def test_get_address(btc):
     tx = txes[0]
     assert tx["tx_hash"] == "74fb8886abb00e66b192172d5fca504337b11af3aac658979355cefe3d51818e"
     assert tx["height"] == 645013
-    assert tx["tx"] == await get_tx(btc, tx["tx_hash"])
+    tx2 = await get_tx(btc, tx["tx_hash"])
+    # To avoid comparing exact confirmations
+    # TODO: remove when SPV verification is the default
+    tx["tx"].pop("confirmations")
+    tx2.pop("confirmations")
+    assert tx["tx"] == tx2
 
 
 async def test_create_wallet(btc, tmp_path):
