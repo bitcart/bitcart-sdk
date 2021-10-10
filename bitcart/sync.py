@@ -24,41 +24,60 @@ def run_sync_ctx(coroutine: Any, loop: asyncio.AbstractEventLoop) -> Any:
     return coroutine
 
 
-def run_from_another_thread(coroutine: Any, loop: asyncio.AbstractEventLoop) -> Any:
+def run_from_another_thread(coroutine: Any, loop: asyncio.AbstractEventLoop, main_loop: asyncio.AbstractEventLoop) -> Any:
     if inspect.iscoroutine(coroutine):
-        return asyncio.run_coroutine_threadsafe(coroutine, loop).result()
+        if loop.is_running():
+
+            async def coro_wrapper() -> asyncio.Future:
+                return await asyncio.wrap_future(asyncio.run_coroutine_threadsafe(coroutine, main_loop))
+
+            return coro_wrapper()
+        else:
+            return asyncio.run_coroutine_threadsafe(coroutine, main_loop).result()
 
     if inspect.isasyncgen(coroutine):
-        return asyncio.run_coroutine_threadsafe(consume_generator(coroutine), loop).result()
+        if loop.is_running():
+            return coroutine
+        else:
+            return asyncio.run_coroutine_threadsafe(consume_generator(coroutine), main_loop).result()
+
+
+def get_event_loop() -> asyncio.AbstractEventLoop:
+    if threading.current_thread() is threading.main_thread():
+        return asyncio.get_event_loop()
+    try:
+        return asyncio.get_running_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        return loop
 
 
 def async_to_sync_wraps(function: Callable, is_property: bool = False) -> Callable:
-    main_loop = asyncio.get_event_loop()
+    main_loop = get_event_loop()
 
     @functools.wraps(function)
     def async_to_sync_wrap(*args: Any, **kwargs: Any) -> Any:
-        try:
-            loop = asyncio.get_event_loop()
-        except RuntimeError:
-            loop = main_loop
+        loop = get_event_loop()
+
         if is_property:
             coroutine = function.__get__(*args, **kwargs)  # type: ignore
         else:
             coroutine = function(*args, **kwargs)
 
-        if loop.is_running():
-            if threading.current_thread() is threading.main_thread():
+        if threading.current_thread() is threading.main_thread():
+            if loop.is_running():
                 return coroutine
             else:
-                return run_from_another_thread(coroutine, loop)
-
-        try:
-            return run_sync_ctx(coroutine, loop)
-        except KeyboardInterrupt:
-            shutdown_tasks(loop)
-            raise
-        finally:
-            loop.run_until_complete(loop.shutdown_asyncgens())
+                try:
+                    return run_sync_ctx(coroutine, loop)
+                except KeyboardInterrupt:
+                    shutdown_tasks(loop)
+                    raise
+                finally:
+                    loop.run_until_complete(loop.shutdown_asyncgens())
+        else:
+            return run_from_another_thread(coroutine, loop, main_loop)
 
     result = async_to_sync_wrap
     if is_property:

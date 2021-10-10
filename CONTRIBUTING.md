@@ -50,15 +50,13 @@ Some of the SDK tests require sending functionality. On bitcoin mainnet it is im
 
 We use regtest bitcoin network for some tests, which can be found at `tests/regtest.py` file.
 
-To run regtest test suite, you'll need to install bitcoind and electrumx.
-
-Installing electrumx is easy, while bitcoind isn't always easy.
+To run regtest test suite, you'll need to install bitcoind and Fulcrum.
 
 It is not required, but recommended to run extended test suite before submitting a PR.
 
 CI can run it for you if needed.
 
-ElectrumX is installed by `test-requirements.txt`
+You can get Fulcrum from https://github.com/cculianu/Fulcrum/releases
 
 Bitcoind installation instructions differ on different distros and OSes.
 
@@ -71,9 +69,9 @@ sudo apt-get install -yq bitcoind
 sudo apt-get -y install libsecp256k1-0
 ```
 
-Before running extended test suite, start bitcoind and electrumx. Each time regtest network is recreated.
+Before running extended test suite, start bitcoind and fulcrum. Each time regtest network is recreated.
 
-Run `make bitcoind` to start bitcoind, `make electrumx` to start electrumx.
+Run `make bitcoind` to start bitcoind, `make fulcrum` to start fulcrum.
 
 After that, stop your mainnet BitcartCC daemon, and start regtest one from cloned `bitcart` repo by running `make regtest`.
 

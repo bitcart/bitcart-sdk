@@ -123,9 +123,9 @@ jobs:
           background: true
 
       - run:
-          name: prepare electrumx
+          name: prepare fulcrum
           command: |
-            make electrumx
+            make fulcrum
           background: true
 
       - run:
@@ -192,6 +192,10 @@ workflows:
                 - "3.8"
                 - "3.9"
                 - "3.10"
+
+      - functional-tests:
+          requires:
+            - test
 
       - deploy:
           context: global
