@@ -72,18 +72,65 @@ class BTC(Coin, EventDelivery):
     ### High level interface ###
 
     async def help(self) -> list:
+        """Get help
+
+        Returns a list of all available RPC methods
+
+        Returns:
+            list: RPC methods list
+        """
         return await self.server.help()  # type: ignore
 
     async def get_tx(self, tx: str) -> dict:  # pragma: no cover: see tests for explanation
+        """Get transaction information
+
+        Given tx hash of transaction, return full information as dictionary
+
+        Example:
+
+        >>> c.get_tx("54604b116b28124e31d2d20bbd4561e6f8398dca4b892080bffc8c87c27762ba")
+        {'partial': False, 'version': 2, 'segwit_ser': True, 'inputs': [{'prevout_hash': 'xxxx',...
+
+        Args:
+            tx (str): tx_hash
+
+        Returns:
+            dict: transaction info
+        """
         return await self.server.get_transaction(tx)  # type: ignore
 
     async def get_address(self, address: str) -> list:  # pragma: no cover
+        """Get address history
+
+        This method should return list of transaction informations for specified address
+
+        Example:
+
+        >>> c.get_address("31smpLFzLnza6k8tJbVpxXiatGjiEQDmzc")
+        [{'tx_hash': '7854bdf4c4e27276ecc1fb8d666d6799a248f5e81bdd58b16432d1ddd1d4c332', 'height': 581878, 'tx': ...
+
+        Args:
+            address (str): address to get transactions for
+
+        Returns:
+            list: List of transactions
+        """
         out: list = await self.server.getaddresshistory(address)
         for i in out:
             i["tx"] = await self.get_tx(i["tx_hash"])
         return out
 
     async def balance(self) -> dict:
+        """Get balance of wallet
+
+        Example:
+
+        >>> c.balance()
+        {"confirmed": 0.00005, "unconfirmed": 0, "unmatured": 0}
+
+        Returns:
+            dict: It should return dict of balance statuses
+        """
         data = await self.server.getbalance()
         return {attr: convert_amount_type(data.get(attr, 0)) for attr in self.BALANCE_ATTRS}
 
