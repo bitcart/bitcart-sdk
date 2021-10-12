@@ -2,6 +2,10 @@
 
 ## Latest changes
 
+## 1.5.1.0
+
+Remove pin and use `jsonrpcclient` 4.0
+
 ## 1.5.0.0
 
 Support python 3.10

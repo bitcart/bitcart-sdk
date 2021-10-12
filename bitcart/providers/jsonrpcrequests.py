@@ -1,14 +1,25 @@
 import asyncio
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Optional, Union
 from urllib.parse import urljoin
 
 import aiohttp
-from jsonrpcclient.clients.aiohttp_client import AiohttpClient as RPC
-from jsonrpcclient.exceptions import ReceivedErrorResponseError
-from jsonrpcclient.requests import Request
+from jsonrpcclient import Ok, parse_json, request
 
 from ..errors import ConnectionFailedError, UnknownError, generate_exception
 from ..utils import json_encode
+
+
+def create_request(method: str, *args: Any, **kwargs: Any) -> dict:
+    params: Union[list, dict] = []
+    if args and kwargs:
+        # It actually violates json-rpc 2.0 spec but is pretty convenient for passing both positional and named arguments
+        params = list(args)
+        params.append(kwargs)
+    elif args:
+        params = list(args)
+    elif kwargs:
+        params = kwargs
+    return request(method, params)
 
 
 class RPCProxy:
@@ -40,7 +51,6 @@ class RPCProxy:
             self.sesson = session
         else:
             self.create_session()
-        self.rpc = RPC(endpoint=self.url, session=self.session, timeout=5 * 60)
 
     def init_proxy(self) -> None:
         if self.proxy:
@@ -104,20 +114,20 @@ class RPCProxy:
         @async_to_sync_wraps
         async def wrapper(*args: Any, **kwargs: Any) -> Any:
             try:
-                return (
-                    await self.rpc.send(
-                        json_encode(Request(method, xpub=self.xpub, *args, **kwargs)),
-                        validate_against_schema=False,
-                    )
-                ).data.result
-            except ReceivedErrorResponseError as e:
-                message = e.response.message
-                error_code = str(e.response.code)
-                exceptions = (await self.spec)["exceptions"]
-                if error_code in exceptions:
-                    exc = exceptions[error_code]
-                    raise generate_exception(exc["exc_name"])(exc["docstring"]) from e
-                raise UnknownError(f"Unknown error from server: {message}") from e
+                async with self.session.post(
+                    self.url, data=json_encode(create_request(method, xpub=self.xpub, *args, **kwargs)), timeout=5 * 60
+                ) as response:
+                    parsed = parse_json(await response.text())
+                    if isinstance(parsed, Ok):
+                        return parsed.result
+                    else:
+                        message = parsed.message
+                        error_code = str(parsed.code)
+                        exceptions = (await self.spec)["exceptions"]
+                        if error_code in exceptions:
+                            exc = exceptions[error_code]
+                            raise generate_exception(exc["exc_name"])(exc["docstring"])
+                        raise UnknownError(f"Unknown error from server: {message}")
             except aiohttp.ClientConnectionError as e:
                 raise ConnectionFailedError() from e
 
