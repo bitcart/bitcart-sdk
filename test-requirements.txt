@@ -1,7 +1,7 @@
 black
 codecov
 flake8
-isort>=5
+isort
 mypy
 pre-commit
 pytest
