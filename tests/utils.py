@@ -13,3 +13,9 @@ def data_check(data, key, check_type, length=None):
     assert isinstance(data[key], check_type)
     if length:
         assert len(data[key]) == length
+
+
+def patch_session(mocker, patched_session):
+    mocker.patch(
+        "bitcart.providers.jsonrpcrequests.RPCProxy.session", new_callable=mocker.PropertyMock(return_value=patched_session)
+    )

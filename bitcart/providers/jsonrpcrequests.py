@@ -23,8 +23,6 @@ def create_request(method: str, *args: Any, **kwargs: Any) -> dict:
 
 
 class RPCProxy:
-    session: aiohttp.ClientSession
-
     def __init__(
         self,
         url: str,
@@ -43,14 +41,16 @@ class RPCProxy:
         self.verify = verify
         self._connector_class = aiohttp.TCPConnector
         self._connector_init = dict(ssl=self.verify)
-        self._loop = asyncio.get_event_loop()
-        self._loop.set_exception_handler(lambda loop, context: None)
         self._spec = {"exceptions": {"-32600": {"exc_name": "UnauthorizedError", "docstring": "Unauthorized"}}}
         self._spec_valid = False
-        if session:
-            self.sesson = session
-        else:
-            self.create_session()
+        self._session = session
+
+    @property
+    def session(self) -> aiohttp.ClientSession:
+        if self._session is not None:
+            return self._session
+        self._session = self.create_session()
+        return self._session
 
     def init_proxy(self) -> None:
         if self.proxy:
@@ -68,11 +68,10 @@ class RPCProxy:
                 rdns=True,
             )
 
-    def create_session(self) -> None:
+    def create_session(self) -> aiohttp.ClientSession:
         self.init_proxy()
-        self.session = aiohttp.ClientSession(
+        return aiohttp.ClientSession(
             connector=self._connector_class(**self._connector_init),  # type: ignore
-            loop=self._loop,
             auth=aiohttp.BasicAuth(self.username, self.password),  # type: ignore
         )
 
@@ -134,13 +133,12 @@ class RPCProxy:
         return wrapper
 
     async def _close(self) -> None:
-        await self.session.close()
+        if self._session is not None:
+            await self._session.close()
 
     def __del__(self) -> None:
         try:
-            if self._loop.is_running():
-                self._loop.create_task(self._close())
-            else:
-                self.session._connector._closed = True  # type: ignore
-        except Exception:
-            pass
+            loop = asyncio.get_running_loop()
+            loop.create_task(self._close())
+        except RuntimeError:
+            asyncio.run(self._close())
