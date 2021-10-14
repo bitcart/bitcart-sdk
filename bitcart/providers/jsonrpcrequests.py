@@ -138,7 +138,10 @@ class RPCProxy:
 
     def __del__(self) -> None:
         try:
-            loop = asyncio.get_running_loop()
-            loop.create_task(self._close())
-        except RuntimeError:
-            asyncio.run(self._close())
+            loop = asyncio.get_event_loop_policy().get_event_loop()
+            if loop.is_running():
+                loop.create_task(self._close())
+            else:
+                loop.run_until_complete(self._close())
+        except Exception:
+            pass

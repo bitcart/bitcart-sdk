@@ -2,6 +2,10 @@
 
 ## Latest changes
 
+## 1.6.0.1
+
+Fix handling of event loop when `asyncio.run` is unavailable
+
 ## 1.6.0.0
 
 Properly use event loop
