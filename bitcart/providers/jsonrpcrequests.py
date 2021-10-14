@@ -144,4 +144,5 @@ class RPCProxy:
             else:
                 loop.run_until_complete(self._close())
         except Exception:
-            pass
+            if self._session is not None:
+                self._session._connector._closed = True  # type: ignore
