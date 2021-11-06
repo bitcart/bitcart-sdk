@@ -2,7 +2,7 @@ import multiprocessing
 
 import pytest
 
-from bitcart import BTC, GZRO, LTC
+from bitcart import BCH, BTC, LTC
 from bitcart.errors import CurrencyUnsupportedError, NoCurrenciesRegisteredError
 from bitcart.manager import APIManager
 from tests.utils import patch_session
@@ -59,8 +59,8 @@ async def test_manager_classmethods(xpub):
 async def test_manager_add_wallets(manager, xpub):
     assert manager.add_wallet("LTC", xpub) is None
     assert manager.wallets == {"BTC": {xpub: BTC(xpub=xpub)}, "LTC": {xpub: LTC(xpub=xpub)}}
-    assert manager.add_wallets("GZRO", [xpub, xpub]) is None
-    assert manager.wallets == {"BTC": {xpub: BTC(xpub=xpub)}, "LTC": {xpub: LTC(xpub=xpub)}, "GZRO": {xpub: GZRO(xpub=xpub)}}
+    assert manager.add_wallets("BCH", [xpub, xpub]) is None
+    assert manager.wallets == {"BTC": {xpub: BTC(xpub=xpub)}, "LTC": {xpub: LTC(xpub=xpub)}, "BCH": {xpub: BCH(xpub=xpub)}}
 
 
 async def test_manager_start_websocket(patched_session, websocket_manager, xpub, mocker):

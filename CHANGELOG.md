@@ -2,6 +2,8 @@
 
 ## Latest changes
 
+Drop gzro support
+
 ## 1.6.0.2
 
 Ensure no unclosed session warnings are shown
