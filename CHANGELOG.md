@@ -5,7 +5,8 @@
 ## 1.6.1.0
 
 Drop gzro support
-Migrated test suite to testnet
+
+Migrate test suite to testnet
 
 ## 1.6.0.2
 
