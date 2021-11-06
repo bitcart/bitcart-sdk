@@ -1,4 +1,4 @@
-"""Tests bitcoin methods implementation on mainnet, requires daemon to be running on localhost:5000
+"""Tests bitcoin methods implementation on testnet, requires daemon to be running on localhost:5000
 
 If this succeeds, most likely other coins will succeed too
 """
@@ -43,7 +43,7 @@ async def test_fiat(btc):
     assert ["USD", "BTC", "RUB", "JPY", "EUR"] >= fiat_currencies
 
 
-@pytest.mark.parametrize("address,expected", [("x", False), ("1KQah89MJhmhxB9hRQN6DnMSkPH3RUjPev", True)])
+@pytest.mark.parametrize("address,expected", [("x", False), ("tb1qzq67gkmp7fl45y5h87emyhhzdl3s77904h99c8", True)])
 async def test_electrum_validate_address(btc, address, expected):
     assert await btc.server.validateaddress(address) == expected
 
@@ -54,7 +54,7 @@ async def test_electrum_validate_address(btc, address, expected):
         ("x", False),
         ("gentle expire fatal fashion envelope cheap fury hunt inner copper boy relax", True),
         (
-            "xprv9s21ZrQH143K2MFWUoJmzzhhi1SNUqCFeJjbjpWvpvx9T6yxJXUpfW7fPECCNmzHGHQ6qkZYvRGvKu6D2KunXJ2kNccxT6b266F92DbRu35",
+            "vprv9FbQPcA7jVrhYYvhDuursaPzW7DwR8qGMKVHMbrk2zy3MpFXDECCuS7jnpUV7iJZccW9ExKWMzCsf2QBeiMqGBKaKnFzcsURjUR33SNmcri",
             True,
         ),
     ],
@@ -78,32 +78,32 @@ async def get_address(btc, address):
 
 
 async def test_get_tx(btc):
-    info = await get_tx(btc, "0584c650e7b04cd0788832f8340ead4ce654e82127e283c8132a0bcbfabc7a01")
-    assert info.items() > {"version": 1, "locktime": 0}.items()
+    info = await get_tx(btc, "8cf9bacdddca9d1059774d2b30327e9844175635d484c971c695b5d4b831b81b")
+    assert info.items() > {"version": 2, "locktime": 2102908}.items()
     data_check(info, "confirmations", int)
     assert info["confirmations"] > 0
     data_check(info, "inputs", list, 1)
     assert (
         info["inputs"][0].items()
         >= {
-            "prevout_hash": "f5bec7770c30679bd7e91ecc3cf243d43c5a72b28ac8e037eb8c1b5bfe520e27",
-            "prevout_n": 0,
+            "prevout_hash": "2948fda648b840900c3fbc396e8f4156eac33b73ffef52a32f61554499824054",
+            "prevout_n": 1,
             "coinbase": False,
-            "scriptSig": "",
-            "nsequence": 4294967295,
+            "scriptSig": "160014e2f0082306143e08f484ffde4f80001e5f4fb17a",
+            "nsequence": 4294967294,
             "witness": (
-                "02473044022030f19cf4b53b0c5d7a9d920240f6daab0cf8a40193f80a8"
-                "0d40635dc0ca213af0220487e8714a082f22dba14733f1149bd365767702"
-                "f69bc88375d1c47ba8d12138c012103765314d3e5ebb0af504c4993952d9"
-                "903648fa3cc645dbaedfd9c40484531836e"
+                "024630430220069d39247b7aa70f15468e193a98ee350890c779268c39e1"
+                "0d35329acffb167f021f7ed94659c9b381abbe7b6f0bfb6b2f04766c88f2"
+                "0f8faf7170f9a53724842b012102145e6b3bb6c8d409754da495460573a0"
+                "209dbc33fe22193014993423f032c3bc"
             ),
         }.items()
     )
     data_check(info, "outputs", list, 2)
     assert info["outputs"][0] == {
-        "value_sats": 490000,
-        "address": "3NyLhw2jKrA8PF2SqgGQu4cigfCg1i6SqH",
-        "scriptpubkey": "a914e970f9ca2f7d99b208b455333b0a4ab2b9b7eb3a87",
+        "value_sats": 3430096510,
+        "address": "2MwCzCcXzvmKuB4A1CMy3Atd9eH4fJQLq7H",
+        "scriptpubkey": "a9142b74297c318e8f20a817e2afb21a8fd366f6659387",
     }
 
 
@@ -114,11 +114,11 @@ async def test_config_methods(btc):
 
 
 async def test_get_address(btc):
-    txes = await get_address(btc, "17ncZMaFQYZYNDycTJc5aydUKaw6oCEUSQ")
+    txes = await get_address(btc, "2MwCzCcXzvmKuB4A1CMy3Atd9eH4fJQLq7H")
     assert isinstance(txes, list)
     tx = txes[0]
-    assert tx["tx_hash"] == "74fb8886abb00e66b192172d5fca504337b11af3aac658979355cefe3d51818e"
-    assert tx["height"] == 645013
+    assert tx["tx_hash"] == "8cf9bacdddca9d1059774d2b30327e9844175635d484c971c695b5d4b831b81b"
+    assert tx["height"] == 2102909
     tx2 = await get_tx(btc, tx["tx_hash"])
     # To avoid comparing exact confirmations
     # TODO: remove when SPV verification is the default

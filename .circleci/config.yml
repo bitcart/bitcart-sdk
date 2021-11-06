@@ -86,7 +86,7 @@ jobs:
           name: prepare daemon
           command: |
             cd ~/bitcart-daemon
-            make mainnet
+            make testnet
           background: true
 
       - run:

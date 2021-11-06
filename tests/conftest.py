@@ -8,12 +8,12 @@ from aiohttp.test_utils import unused_port
 from bitcart import BTC
 from bitcart.coin import Coin
 
-TEST_XPUB = "zprvAWgYBBk7JR8GkUwcwyhT1qk8FQpym8cHboGyDEdMhHcL1NRe8bioZR3uo5gTSTG47iqQX6VqPL6iHHDNK55taJiV9MEscu6UiqSR1tAiSUq"
+TEST_XPUB = "vpub5Uako7h1ZsQzm31AKwSsEiLj494RpbZ7iYQt9zGMbLW2EcafkmWTTESDe5NJpKTBeyyf15mPKPTPgNYdS5756jua2KFBHuGAdXqQfXkk9oQ"
 # deterministic channels support only seeds
 REGTEST_XPUB = "dutch field mango comfort symptom smooth wide senior tongue oyster wash spoon"
 REGTEST_XPUB2 = "hungry ordinary similar more spread math general wire jealous valve exhaust emotion"
 LIGHTNING_UNSUPPORTED_XPUB = (
-    "xprv9s21ZrQH143K3tZPHG8CbfZ7uUY5stdHmaEXeSqawGrZuAoBdHPgKHjdkfmHSdxDJSbo29JiU1PcWhzEsgFryqMHQfr2T5TWBPK8EqFjscZ"
+    "tpubDCrWxr5Vm9TtZAkcWyYa4jK5GLoia1c9HisBP5YUyh9bCu3ePsw74mp4GoYZXH3vYDhg4pRjskbsr7PkD4REnwiWB93d78HkdJnYY7aGjy1"
 )
 
 

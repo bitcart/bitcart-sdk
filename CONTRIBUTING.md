@@ -46,7 +46,7 @@ To run all checks before commiting (including tests), use `make` command.
 
 ## Running extended test suite
 
-Some of the SDK tests require sending functionality. On bitcoin mainnet it is impossible to test it easily.
+Some of the SDK tests require sending functionality. On bitcoin testnet it is impossible to test it easily.
 
 We use regtest bitcoin network for some tests, which can be found at `tests/regtest.py` file.
 
@@ -73,7 +73,7 @@ Before running extended test suite, start bitcoind and fulcrum. Each time regtes
 
 Run `make bitcoind` to start bitcoind, `make fulcrum` to start fulcrum.
 
-After that, stop your mainnet BitcartCC daemon, and start regtest one from cloned `bitcart` repo by running `make regtest`.
+After that, stop your testnet BitcartCC daemon, and start regtest one from cloned `bitcart` repo by running `make regtest`.
 
 You should also start an lightning node for testing, run `make regtestln` in another terminal.
 
