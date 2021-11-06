@@ -12,7 +12,6 @@ Coins support(⚡ means lightning is supported):
 - Bitcoin Cash
 - Ergon
 - Litecoin (⚡)
-- Gravity Zero (⚡)
 - Globalboost (⚡)
 
 Main focus is Bitcoin.

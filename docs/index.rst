@@ -54,7 +54,6 @@ Supported coins list(⚡ means lightning is supported):
 - Bitcoin Cash
 - Ergon
 - Litecoin (⚡)
-- Gravity Zero (⚡)
 - Globalboost (⚡)
 
 To use proxy, install optional dependencies:
