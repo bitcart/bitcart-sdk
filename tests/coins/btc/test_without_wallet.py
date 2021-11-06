@@ -78,32 +78,32 @@ async def get_address(btc, address):
 
 
 async def test_get_tx(btc):
-    info = await get_tx(btc, "8cf9bacdddca9d1059774d2b30327e9844175635d484c971c695b5d4b831b81b")
-    assert info.items() > {"version": 2, "locktime": 2102908}.items()
+    info = await get_tx(btc, "15967d9ed9b63f068c7578d54b7adff859f4aadc1253ba316b429d251da6b48c")
+    assert info.items() > {"version": 2, "locktime": 1895035}.items()
     data_check(info, "confirmations", int)
     assert info["confirmations"] > 0
     data_check(info, "inputs", list, 1)
     assert (
         info["inputs"][0].items()
         >= {
-            "prevout_hash": "2948fda648b840900c3fbc396e8f4156eac33b73ffef52a32f61554499824054",
+            "prevout_hash": "3fb55b64df34ded97e97cbd5cfc17b6f114a086950fbb0bffe3c985bfa9f5af8",
             "prevout_n": 1,
             "coinbase": False,
-            "scriptSig": "160014e2f0082306143e08f484ffde4f80001e5f4fb17a",
             "nsequence": 4294967294,
+            "scriptSig": "",
             "witness": (
-                "024630430220069d39247b7aa70f15468e193a98ee350890c779268c39e1"
-                "0d35329acffb167f021f7ed94659c9b381abbe7b6f0bfb6b2f04766c88f2"
-                "0f8faf7170f9a53724842b012102145e6b3bb6c8d409754da495460573a0"
-                "209dbc33fe22193014993423f032c3bc"
+                "024730440220331290fdbb259fde31d6e0c4eea883e7b7442b1fb1dab0b7"
+                "63cd82c1c5b27a6a02205f37387895fbedb5514a6eb3f374c3943ffefd5d"
+                "f589ac5c59f34f99558386a501210314ef5ee304b86a5c2bbc9d9e1987cd"
+                "0cb156ca6942ea41dfb487f8d5494bc5bf"
             ),
         }.items()
     )
     data_check(info, "outputs", list, 2)
     assert info["outputs"][0] == {
-        "value_sats": 3430096510,
-        "address": "2MwCzCcXzvmKuB4A1CMy3Atd9eH4fJQLq7H",
-        "scriptpubkey": "a9142b74297c318e8f20a817e2afb21a8fd366f6659387",
+        "scriptpubkey": "a9144eee7441c8104f1470e6dde89f1439cab91fdc9987",
+        "address": "2MzSaML6Y3kGn7mPx1T9xXZW1r2N9vKhGo2",
+        "value_sats": 1515748829,
     }
 
 
@@ -114,11 +114,11 @@ async def test_config_methods(btc):
 
 
 async def test_get_address(btc):
-    txes = await get_address(btc, "2MwCzCcXzvmKuB4A1CMy3Atd9eH4fJQLq7H")
+    txes = await get_address(btc, "2MzSaML6Y3kGn7mPx1T9xXZW1r2N9vKhGo2")
     assert isinstance(txes, list)
     tx = txes[0]
-    assert tx["tx_hash"] == "8cf9bacdddca9d1059774d2b30327e9844175635d484c971c695b5d4b831b81b"
-    assert tx["height"] == 2102909
+    assert tx["tx_hash"] == "15967d9ed9b63f068c7578d54b7adff859f4aadc1253ba316b429d251da6b48c"
+    assert tx["height"] == 1895036
     tx2 = await get_tx(btc, tx["tx_hash"])
     # To avoid comparing exact confirmations
     # TODO: remove when SPV verification is the default
