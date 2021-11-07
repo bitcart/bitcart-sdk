@@ -25,7 +25,6 @@ addopts = [
 filterwarnings = [
     "error::DeprecationWarning",
     "error::PendingDeprecationWarning",
-    "ignore:.*loop argument is deprecated.*:DeprecationWarning:asyncio" # TODO: remove when python 3.9.8 is out
 ]
 
 [tool.coverage.run]
