@@ -15,7 +15,7 @@ async def consume_generator(coroutine: AsyncGenerator) -> List[Any]:
 
 
 def run_sync_ctx(coroutine: Any, loop: asyncio.AbstractEventLoop) -> Any:
-    if inspect.iscoroutine(coroutine):
+    if inspect.isawaitable(coroutine):
         return loop.run_until_complete(coroutine)
 
     if inspect.isasyncgen(coroutine):
@@ -25,7 +25,7 @@ def run_sync_ctx(coroutine: Any, loop: asyncio.AbstractEventLoop) -> Any:
 
 
 def run_from_another_thread(coroutine: Any, loop: asyncio.AbstractEventLoop, main_loop: asyncio.AbstractEventLoop) -> Any:
-    if inspect.iscoroutine(coroutine):
+    if inspect.isawaitable(coroutine):
         if loop.is_running():
 
             async def coro_wrapper() -> asyncio.Future:
