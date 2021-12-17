@@ -1,4 +1,3 @@
-import asyncio
 from typing import Any, Callable, Optional, Union
 from urllib.parse import urljoin
 
@@ -47,7 +46,7 @@ class RPCProxy:
 
     @property
     def session(self) -> aiohttp.ClientSession:
-        if self._session is not None and asyncio.get_event_loop() == self._session._loop:
+        if self._session is not None and get_event_loop() == self._session._loop:
             return self._session
         self._session = self.create_session()
         return self._session

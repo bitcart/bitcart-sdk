@@ -5,7 +5,7 @@ import signal
 import threading
 import traceback
 from decimal import Decimal
-from typing import Any, Callable, NoReturn
+from typing import Any, Callable
 
 from .logger import logger
 
@@ -112,18 +112,17 @@ def get_event_loop() -> asyncio.AbstractEventLoop:
     return loop
 
 
-async def idle() -> NoReturn:
+async def idle() -> Any:
     """Useful for making event loop idle in the main thread for other threads to work"""
+    is_idling = True
 
-    def signal_handler(*args, **kwargs):
+    def signal_handler(*args: Any, **kwargs: Any) -> None:
         nonlocal is_idling
 
         is_idling = False
 
     for s in (signal.SIGINT, signal.SIGTERM, signal.SIGABRT):
         signal.signal(s, signal_handler)
-
-    is_idling = True
 
     while is_idling:
         await asyncio.sleep(1)
