@@ -9,6 +9,7 @@ from . import utils as utils_module
 from .coins import COINS
 from .manager import APIManager
 from .providers.jsonrpcrequests import RPCProxy
+from .utils import get_event_loop
 
 
 async def consume_generator(coroutine: AsyncGenerator) -> List[Any]:
@@ -41,18 +42,6 @@ def run_from_another_thread(coroutine: Any, loop: asyncio.AbstractEventLoop, mai
             return coroutine
         else:
             return asyncio.run_coroutine_threadsafe(consume_generator(coroutine), main_loop).result()
-
-
-def get_event_loop() -> asyncio.AbstractEventLoop:
-    try:
-        return asyncio.get_running_loop()
-    except RuntimeError:
-        # NOTE: do NOT remove those 2 lines. Otherwise everything just hangs because of incorrect loop being used
-        if threading.current_thread() is threading.main_thread():
-            return asyncio.get_event_loop_policy().get_event_loop()
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        return loop
 
 
 def async_to_sync_wraps(function: Callable, is_property: bool = False) -> Callable:

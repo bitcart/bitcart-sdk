@@ -6,7 +6,7 @@ import aiohttp
 from jsonrpcclient import Ok, parse_json, request
 
 from ..errors import ConnectionFailedError, UnknownError, generate_exception
-from ..utils import json_encode
+from ..utils import get_event_loop, json_encode
 
 
 def create_request(method: str, *args: Any, **kwargs: Any) -> dict:
@@ -137,12 +137,8 @@ class RPCProxy:
             await self._session.close()
 
     def __del__(self) -> None:
-        try:
-            loop = asyncio.get_event_loop_policy().get_event_loop()
-            if loop.is_running():
-                loop.create_task(self._close())
-            else:
-                loop.run_until_complete(self._close())
-        except Exception:
-            if self._session is not None:
-                self._session._connector._closed = True  # type: ignore
+        loop = get_event_loop()
+        if loop.is_running():
+            loop.create_task(self._close())
+        else:
+            loop.run_until_complete(self._close())
