@@ -5,9 +5,11 @@ import inspect
 import threading
 from typing import Any, AsyncGenerator, Callable, List
 
+from . import utils as utils_module
 from .coins import COINS
 from .manager import APIManager
 from .providers.jsonrpcrequests import RPCProxy
+from .utils import get_event_loop
 
 
 async def consume_generator(coroutine: AsyncGenerator) -> List[Any]:
@@ -15,7 +17,7 @@ async def consume_generator(coroutine: AsyncGenerator) -> List[Any]:
 
 
 def run_sync_ctx(coroutine: Any, loop: asyncio.AbstractEventLoop) -> Any:
-    if inspect.iscoroutine(coroutine):
+    if inspect.isawaitable(coroutine):
         return loop.run_until_complete(coroutine)
 
     if inspect.isasyncgen(coroutine):
@@ -25,7 +27,7 @@ def run_sync_ctx(coroutine: Any, loop: asyncio.AbstractEventLoop) -> Any:
 
 
 def run_from_another_thread(coroutine: Any, loop: asyncio.AbstractEventLoop, main_loop: asyncio.AbstractEventLoop) -> Any:
-    if inspect.iscoroutine(coroutine):
+    if inspect.isawaitable(coroutine):
         if loop.is_running():
 
             async def coro_wrapper() -> asyncio.Future:
@@ -40,15 +42,6 @@ def run_from_another_thread(coroutine: Any, loop: asyncio.AbstractEventLoop, mai
             return coroutine
         else:
             return asyncio.run_coroutine_threadsafe(consume_generator(coroutine), main_loop).result()
-
-
-def get_event_loop() -> asyncio.AbstractEventLoop:
-    try:
-        return asyncio.get_running_loop()
-    except RuntimeError:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        return loop
 
 
 def async_to_sync_wraps(function: Callable, is_property: bool = False) -> Callable:
@@ -114,4 +107,5 @@ for source in COINS.values():
 async_to_sync(COINS["BTC"], "node_id", is_property=True)  # special case: property
 async_to_sync(COINS["BTC"], "spec", is_property=True)
 async_to_sync(RPCProxy, "spec", is_property=True)
+async_to_sync(utils_module, "idle")
 wrap(APIManager)
