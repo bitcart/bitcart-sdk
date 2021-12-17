@@ -8,6 +8,8 @@ import pytest
 
 from bitcart.utils import bitcoins, convert_amount_type, get_event_loop, idle, satoshis
 
+MAXSECONDS = 1
+
 
 @pytest.mark.parametrize("btc,expected", [(0.1, 10000000), (1, 100000000), (0.00000001, 1), (5, 500000000)])
 def test_satoshis(btc, expected):
@@ -56,12 +58,18 @@ def test_get_event_loop():
 
 def test_idle():
     def inner(called):
-        asyncio.run(idle())
+        idle()
         called.value = True
 
     called = multiprocessing.Value("b", False)
     process = multiprocessing.Process(target=inner, args=(called,))
     process.start()
-    time.sleep(0.1)
+    total = 0
+    while not called.value:
+        time.sleep(0.1)
+        total += 0.1
+        if total >= MAXSECONDS:
+            break
     process.terminate()
-    assert called
+    process.join()
+    assert called.value
