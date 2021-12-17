@@ -2,6 +2,21 @@
 
 ## Latest changes
 
+## 1.7.0.0
+
+Major fixes for event loop handling
+More exactly, our `__del__` finalizer should now work in all cases
+No event loop mismatch issues are possible
+
+Added new helper functions: `get_event_loop`, which gets current event loop via the following logic:
+
+First it tries getting a running one, then main thread one, if it's not main thread or loop was stopped (i.e. not usable), it creates a new one
+This function is useful as it will give a working event loop in 100% cases.
+
+Another function added is `idle`. It can be run in main thread just to block the app and make event loop running (if your code is running asynchronously in other threads).
+
+Also our tests now test all possible usage models of the SDK, and all of them are confirmed to work without issues (even mixing threads and so on).
+
 ## 1.6.1.0
 
 Drop gzro support
