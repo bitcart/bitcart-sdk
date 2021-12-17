@@ -5,6 +5,7 @@ import inspect
 import threading
 from typing import Any, AsyncGenerator, Callable, List
 
+from . import utils as utils_module
 from .coins import COINS
 from .manager import APIManager
 from .providers.jsonrpcrequests import RPCProxy
@@ -46,6 +47,9 @@ def get_event_loop() -> asyncio.AbstractEventLoop:
     try:
         return asyncio.get_running_loop()
     except RuntimeError:
+        # NOTE: do NOT remove those 2 lines. Otherwise everything just hangs because of incorrect loop being used
+        if threading.current_thread() is threading.main_thread():
+            return asyncio.get_event_loop_policy().get_event_loop()
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         return loop
@@ -114,4 +118,5 @@ for source in COINS.values():
 async_to_sync(COINS["BTC"], "node_id", is_property=True)  # special case: property
 async_to_sync(COINS["BTC"], "spec", is_property=True)
 async_to_sync(RPCProxy, "spec", is_property=True)
+async_to_sync(utils_module, "idle")
 wrap(APIManager)

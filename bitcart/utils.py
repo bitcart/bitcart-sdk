@@ -1,8 +1,9 @@
+import asyncio
 import inspect
 import json
 import traceback
 from decimal import Decimal
-from typing import Any, Callable
+from typing import Any, Callable, NoReturn
 
 from .logger import logger
 
@@ -82,3 +83,9 @@ async def call_universal(func: Callable, *args: Any, **kwargs: Any) -> Any:
         return result
     except Exception:
         logger.error(f"Error occured:\n{traceback.format_exc()}")
+
+
+async def idle() -> NoReturn:
+    """Useful for making event loop idle in the main thread for other threads to work"""
+    while True:
+        await asyncio.sleep(1)
