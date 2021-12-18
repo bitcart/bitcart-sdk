@@ -20,7 +20,9 @@ ignore_missing_imports = true
 addopts = [
     "--cov=bitcart",
     "--cov-report",
-    "term-missing"
+    "term-missing",
+    "-k",
+    "not test_async_to_sync_usage"
 ]
 filterwarnings = [
     "error::DeprecationWarning",

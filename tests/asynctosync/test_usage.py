@@ -1,5 +1,7 @@
 import inspect
 import multiprocessing
+import os
+import signal
 import time
 from threading import Thread
 
@@ -8,28 +10,19 @@ import pytest
 from bitcart import BTC
 from bitcart.utils import get_event_loop, idle
 
-MAXSECONDS = 1
-
-
-def test_sync_works(btc):
-    assert isinstance(btc.help(), list)
-    assert isinstance(btc.help(), list)  # ensure there are no loop mismatch error
-
-
-def test_sync_works_with_properties(btc_wallet):
-    assert isinstance(btc_wallet.node_id, str)  # property: special case
+MAXSECONDS = 5
 
 
 # single threaded
 # synchronous main thread style
-def sync_(client):
-    sync_work(client)
+def sync_(client, called):
+    sync_work(client, called)
 
 
 # multi threaded
 # synchronous main thread + synchronous thread style
-def sync_sync(client):
-    t = Thread(target=sync_work, args=(client,), daemon=True)
+def sync_sync(client, called):
+    t = Thread(target=sync_work, args=(client, called), daemon=True)
     t.start()
     idle()
     t.join()
@@ -37,8 +30,8 @@ def sync_sync(client):
 
 # multi threaded
 # synchronous main thread + asynchronous thread style
-def sync_async(client):
-    t = Thread(target=run, args=(async_work(client),), daemon=True)
+def sync_async(client, called):
+    t = Thread(target=run, args=(async_work(client, called),), daemon=True)
     t.start()
     idle()
     t.join()
@@ -46,14 +39,14 @@ def sync_async(client):
 
 # single threaded
 # asynchronous main thread style
-async def async_(client):
-    await async_work(client)
+async def async_(client, called):
+    await async_work(client, called)
 
 
 # multi threaded
 # asynchronous main thread + synchronous thread style
-async def async_sync(client):
-    t = Thread(target=sync_work, args=(client,), daemon=True)
+async def async_sync(client, called):
+    t = Thread(target=sync_work, args=(client, called), daemon=True)
     t.start()
     await idle()
     t.join()
@@ -61,8 +54,8 @@ async def async_sync(client):
 
 # multi threaded
 # asynchronous main thread + asynchronous thread style
-async def async_async(client):
-    t = Thread(target=run, args=(async_work(client),), daemon=True)
+async def async_async(client, called):
+    t = Thread(target=run, args=(async_work(client, called),), daemon=True)
     t.start()
     await idle()
     t.join()
@@ -76,17 +69,18 @@ def run(coro):
         loop.close()
 
 
-def sync_work(client):
-    print(client.help())
-    called = True  # noqa: F841: injected via exec
+def sync_work(client, called):
+    client.help()
+    called.value = True
 
 
-async def async_work(client):
-    print(await client.help())
-    called = True  # noqa: F841: injected via exec
+async def async_work(client, called):
+    await client.help()
+    called.value = True
 
 
 base_src = inspect.getsource(run) + "\n" + inspect.getsource(sync_work) + "\n" + inspect.getsource(async_work)
+
 
 # NOTE: we use exec here because there is no easy way to test completely different execution models in one test run
 # this way we achieve isolation
@@ -103,18 +97,19 @@ base_src = inspect.getsource(run) + "\n" + inspect.getsource(sync_work) + "\n" +
         "async_async",
     ],
 )
-def test_coding_style(func):
+def test_async_to_sync_usage(func):
     src = inspect.getsource(globals()[func])
-    call_code = f"{func}(btc)"
+    call_code = f"{func}(btc, called)"
     if func.startswith("async_"):
         call_code = f"run({call_code})"
     full_src = f"{base_src}\n{src}\nbtc = BTC()\n{call_code}"
+    called = multiprocessing.Value("b", False)
     global_vars = {
         "BTC": BTC,
         "Thread": Thread,
         "idle": idle,
         "get_event_loop": get_event_loop,
-        "called": True,
+        "called": called,
     }
 
     def inner():
@@ -123,10 +118,11 @@ def test_coding_style(func):
     process = multiprocessing.Process(target=inner)
     process.start()
     total = 0
-    while not global_vars["called"]:
+    while not global_vars["called"].value:
         time.sleep(0.1)
         total += 0.1
         if total >= MAXSECONDS:
             break
-    process.kill()
-    assert global_vars["called"]
+    os.kill(process.pid, signal.SIGINT)
+    process.join()
+    assert global_vars["called"].value

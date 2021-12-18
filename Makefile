@@ -14,6 +14,7 @@ format:
 
 test:
 	pytest tests/ ${TEST_ARGS}
+	pytest tests/ -k 'test_async_to_sync_usage' --cov-append ${TEST_ARGS}
 
 bitcoind:
 	tests/regtest/start_bitcoind.sh
