@@ -95,8 +95,9 @@ def wrap(source: object) -> None:
         method = getattr(source, name)
 
         if not name.startswith("_"):
-            if inspect.iscoroutinefunction(method) or inspect.isasyncgenfunction(method):
-                async_to_sync(source, name)
+            is_property = inspect.isdatadescriptor(method)
+            if inspect.iscoroutinefunction(method) or inspect.isasyncgenfunction(method) or is_property:
+                async_to_sync(source, name, is_property=is_property)
 
 
 wrap(RPCProxy)
@@ -104,8 +105,5 @@ wrap(RPCProxy)
 for source in COINS.values():
     wrap(source)
 
-async_to_sync(COINS["BTC"], "node_id", is_property=True)  # special case: property
-async_to_sync(COINS["BTC"], "spec", is_property=True)
-async_to_sync(RPCProxy, "spec", is_property=True)
 async_to_sync(utils_module, "idle")
 wrap(APIManager)

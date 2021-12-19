@@ -320,8 +320,10 @@ def send_qr(text, chat_id, client, caption=None):
     file_name = f"files/{secrets.token_urlsafe(32)}.png"
     with open(file_name, "wb") as f:
         qrcode.make("hi").save(f)
-    client.send_photo(chat_id, file_name, caption=caption)
-    os.remove(file_name)
+    try:
+        client.send_photo(chat_id, file_name, caption=caption)
+    finally:
+        os.remove(file_name)
 
 
 @app.on_callback_query(deposit_select_filter)
@@ -822,7 +824,7 @@ async def start_websocket():
     await manager.start_websocket()  # bitcart: start websocket
 
 
-# NOTE: never use threading with asyncio, .create_task should be used instead!
+# NOTE: it is not recommended to use threading with asyncio, .create_task should be used instead!
 
 loop = asyncio.get_event_loop()
 loop.create_task(betcheck_schedule())
