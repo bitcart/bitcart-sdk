@@ -1,6 +1,14 @@
-from . import sync  # noqa: F401: apply magic async/sync conversion
+from universalasync import wrap
+
 from .coins import BCH, BSTY, BTC, COINS, LTC, XRG  # noqa: F401
 from .errors import errors
 from .manager import APIManager
+from .providers.jsonrpcrequests import RPCProxy
 
-__all__ = list(COINS.keys()) + ["COINS", "APIManager", "errors"]
+# Make all types accessible via both sync and async contexts
+for coin in COINS.values():
+    wrap(coin)
+wrap(APIManager)
+wrap(RPCProxy)
+
+__all__ = list(COINS.keys()) + ["APIManager", "COINS", "RPCProxy", "errors"]

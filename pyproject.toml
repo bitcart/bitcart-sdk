@@ -21,8 +21,6 @@ addopts = [
     "--cov=bitcart",
     "--cov-report",
     "term-missing",
-    "-k",
-    "not test_async_to_sync_usage"
 ]
 filterwarnings = [
     "error::DeprecationWarning",
@@ -36,7 +34,6 @@ omit = [
     "venv/*",
     "env/*",
     "setup.py",
-    "bitcart/sync.py",
     "bitcart/providers/jsonrpcrequests.py",
 ]
 

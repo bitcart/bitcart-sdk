@@ -3,9 +3,10 @@ from urllib.parse import urljoin
 
 import aiohttp
 from jsonrpcclient import Ok, parse_json, request
+from universalasync import async_to_sync_wraps, get_event_loop
 
 from ..errors import ConnectionFailedError, UnknownError, generate_exception
-from ..utils import get_event_loop, json_encode
+from ..utils import json_encode
 
 
 def create_request(method: str, *args: Any, **kwargs: Any) -> dict:
@@ -107,8 +108,6 @@ class RPCProxy:
         return self._spec
 
     def __getattr__(self, method: str, *args: Any, **kwargs: Any) -> Callable:
-        from ..sync import async_to_sync_wraps
-
         @async_to_sync_wraps
         async def wrapper(*args: Any, **kwargs: Any) -> Any:
             try:
