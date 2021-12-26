@@ -43,14 +43,15 @@ class RPCProxy:
         self._connector_init = dict(ssl=self.verify)
         self._spec = {"exceptions": {"-32600": {"exc_name": "UnauthorizedError", "docstring": "Unauthorized"}}}
         self._spec_valid = False
-        self._session = session
+        self._sessions = {get_event_loop(): session}
 
     @property
     def session(self) -> aiohttp.ClientSession:
-        if self._session is not None and get_event_loop() == self._session._loop:
-            return self._session
-        self._session = self.create_session()
-        return self._session
+        loop = get_event_loop()
+        if self._sessions.get(loop) is not None:
+            return self._sessions[loop]
+        self._sessions[loop] = self.create_session()
+        return self._sessions[loop]
 
     def init_proxy(self) -> None:
         if self.proxy:
@@ -131,8 +132,8 @@ class RPCProxy:
         return wrapper
 
     async def _close(self) -> None:
-        if self._session is not None:
-            await self._session.close()
+        for session in self._sessions:
+            await session.close()
 
     def __del__(self) -> None:
         loop = get_event_loop()

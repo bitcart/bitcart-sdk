@@ -776,8 +776,8 @@ async def betcheck_schedule():
     while True:
         try:
             await betcheck()
-        except Exception as e:
-            logging.error(e)  # log error
+        except Exception:
+            logging.exception("Error occured:")
         await asyncio.sleep(30)
 
 
