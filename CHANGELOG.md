@@ -2,6 +2,14 @@
 
 ## Latest changes
 
+## 1.8.0.0
+
+We now use our new [universalasync](https://github.com/bitcartcc/universalasync) package to make this library running in both sync and async contexts
+
+Therefore `get_event_loop` and `idle` functions were removed. They are accessible in the `universalasync` library.
+
+Now `__del__` finalizer stores a client session per event loop which should be the most correct way to handle access from many different threads and loops
+
 ## 1.7.0.0
 
 Major fixes for event loop handling
