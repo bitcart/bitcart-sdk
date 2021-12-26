@@ -1,4 +1,5 @@
-from typing import Any, Callable, Optional, Union
+import asyncio
+from typing import Any, Callable, Dict, Optional, Union
 from urllib.parse import urljoin
 
 import aiohttp
@@ -43,13 +44,16 @@ class RPCProxy:
         self._connector_init = dict(ssl=self.verify)
         self._spec = {"exceptions": {"-32600": {"exc_name": "UnauthorizedError", "docstring": "Unauthorized"}}}
         self._spec_valid = False
-        self._sessions = {get_event_loop(): session}
+        self._sessions: Dict[asyncio.AbstractEventLoop, aiohttp.ClientSession] = {}
+        if session is not None:
+            self._sessions[get_event_loop()] = session
 
     @property
     def session(self) -> aiohttp.ClientSession:
         loop = get_event_loop()
-        if self._sessions.get(loop) is not None:
-            return self._sessions[loop]
+        session = self._sessions.get(loop)
+        if session is not None:
+            return session
         self._sessions[loop] = self.create_session()
         return self._sessions[loop]
 
@@ -132,8 +136,9 @@ class RPCProxy:
         return wrapper
 
     async def _close(self) -> None:
-        for session in self._sessions:
-            await session.close()
+        for session in self._sessions.values():
+            if session is not None:
+                await session.close()
 
     def __del__(self) -> None:
         loop = get_event_loop()
