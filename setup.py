@@ -14,12 +14,9 @@ def main() -> None:
         author_email="chuff184@gmail.com",
         url="https://github.com/bitcartcc/bitcart-sdk",
         keywords=["electrum", "daemon", "bitcart", "bitcartcc"],
-        install_requires=[
-            "jsonrpcclient",
-            "aiohttp<4.0.0",
-            "universalasync @ https://github.com/bitcartcc/universalasync/archive/no-threading-case.zip",
-        ],
+        install_requires=["jsonrpcclient", "aiohttp<4.0.0", "universalasync"],
         extras_require={"proxy": ["aiohttp_socks"]},
+        package_data={"bitcart": ["py.typed"]},
         classifiers=[
             "Development Status :: 5 - Production/Stable",
             "Intended Audience :: Developers",
