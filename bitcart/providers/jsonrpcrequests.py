@@ -1,11 +1,13 @@
-from typing import Any, Callable, Optional, Union
+import asyncio
+from typing import Any, Callable, Dict, Optional, Union
 from urllib.parse import urljoin
 
 import aiohttp
 from jsonrpcclient import Ok, parse_json, request
+from universalasync import async_to_sync_wraps, get_event_loop
 
 from ..errors import ConnectionFailedError, UnknownError, generate_exception
-from ..utils import get_event_loop, json_encode
+from ..utils import json_encode
 
 
 def create_request(method: str, *args: Any, **kwargs: Any) -> dict:
@@ -42,14 +44,18 @@ class RPCProxy:
         self._connector_init = dict(ssl=self.verify)
         self._spec = {"exceptions": {"-32600": {"exc_name": "UnauthorizedError", "docstring": "Unauthorized"}}}
         self._spec_valid = False
-        self._session = session
+        self._sessions: Dict[asyncio.AbstractEventLoop, aiohttp.ClientSession] = {}
+        if session is not None:
+            self._sessions[get_event_loop()] = session
 
     @property
     def session(self) -> aiohttp.ClientSession:
-        if self._session is not None and get_event_loop() == self._session._loop:
-            return self._session
-        self._session = self.create_session()
-        return self._session
+        loop = get_event_loop()
+        session = self._sessions.get(loop)
+        if session is not None:
+            return session
+        self._sessions[loop] = self.create_session()
+        return self._sessions[loop]
 
     def init_proxy(self) -> None:
         if self.proxy:
@@ -107,8 +113,6 @@ class RPCProxy:
         return self._spec
 
     def __getattr__(self, method: str, *args: Any, **kwargs: Any) -> Callable:
-        from ..sync import async_to_sync_wraps
-
         @async_to_sync_wraps
         async def wrapper(*args: Any, **kwargs: Any) -> Any:
             try:
@@ -132,8 +136,9 @@ class RPCProxy:
         return wrapper
 
     async def _close(self) -> None:
-        if self._session is not None:
-            await self._session.close()
+        for session in self._sessions.values():
+            if session is not None:
+                await session.close()
 
     def __del__(self) -> None:
         loop = get_event_loop()
