@@ -2,6 +2,10 @@
 
 ## Latest changes
 
+## 1.9.0.0
+
+Ethereum support
+
 ## 1.8.0.0
 
 We now use our new [universalasync](https://github.com/bitcartcc/universalasync) package to make this library running in both sync and async contexts
