@@ -1,6 +1,6 @@
 from universalasync import wrap
 
-from .coins import BCH, BSTY, BTC, COINS, LTC, XRG  # noqa: F401
+from .coins import BCH, BSTY, BTC, COINS, ETH, LTC, XRG  # noqa: F401
 from .errors import errors
 from .manager import APIManager
 from .providers.jsonrpcrequests import RPCProxy

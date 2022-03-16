@@ -33,6 +33,10 @@ class UnknownError(RequestError):
     """Unknown error code returned from server"""
 
 
+class NotImplementedError(RequestError):
+    """Not implemented"""
+
+
 @functools.lru_cache()
 def generate_exception(exc_name: str) -> type:
     return type(exc_name, (RequestError,), {})

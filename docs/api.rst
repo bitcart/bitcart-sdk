@@ -28,6 +28,16 @@ BCH supports Schnorr signatures, they are enabled out of the box
     :show-inheritance:
     :undoc-members:
 
+ETH
+---
+
+ETH support is based on our custom daemon implementation which tries to follow electrum APIs as closely as possible
+
+.. autoclass:: bitcart.coins.eth.ETH
+    :members:
+    :show-inheritance:
+    :undoc-members:
+
 XRG
 ---
 
