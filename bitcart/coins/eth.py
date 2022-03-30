@@ -18,3 +18,12 @@ class ETH(BTC):
 
     async def pay_to_many(self, *args: Any, **kwargs: Any) -> NoReturn:
         raise NotImplementedError("Pay to many not available in ETH directly")
+
+    async def _convert_amounts(self, data: dict) -> dict:
+        if not hasattr(self, "_fetched_token") and isinstance(self.xpub, dict):
+            contract = self.xpub.get("contract")
+            if contract:
+                self._fetched_token = True
+                self.symbol = (await self.server.readcontract(contract, "symbol")).upper()
+                self.amount_field = f"amount_{self.symbol}"
+        return await super()._convert_amounts(data)

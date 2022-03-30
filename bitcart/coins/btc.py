@@ -45,6 +45,7 @@ class BTC(Coin, EventDelivery):
         session: Optional["ClientSession"] = None,
     ):
         super().__init__()
+        self.symbol = self.coin_name
         self.rpc_url = rpc_url or self.RPC_URL
         self.rpc_user = rpc_user or self.RPC_USER
         self.rpc_pass = rpc_pass or self.RPC_PASS
@@ -137,7 +138,7 @@ class BTC(Coin, EventDelivery):
     async def _add_request(self, *args: Any, **kwargs: Any) -> dict:
         return await self.server.add_request(*args, **kwargs)  # type: ignore
 
-    def _convert_amounts(self, data: dict) -> dict:
+    async def _convert_amounts(self, data: dict) -> dict:
         if data[self.amount_field].lower() != "unknown":
             data[self.amount_field] = convert_amount_type(data[self.amount_field])
         return data
@@ -154,7 +155,7 @@ class BTC(Coin, EventDelivery):
         kwargs = {"amount": amount, "memo": description, "expiration": expiration}
         kwargs.update(extra_kwargs)
         data = await method(**kwargs)
-        return self._convert_amounts(data)
+        return await self._convert_amounts(data)
 
     async def add_request(
         self,
@@ -201,7 +202,7 @@ class BTC(Coin, EventDelivery):
             dict: Invoice data
         """
         data = await self.server.getrequest(address)
-        return self._convert_amounts(data)
+        return await self._convert_amounts(data)
 
     async def history(self) -> dict:
         """Get transaction history of wallet
@@ -649,4 +650,4 @@ class BTC(Coin, EventDelivery):
             dict: invoice data
         """
         data = await self.server.get_invoice(rhash)
-        return self._convert_amounts(data)
+        return await self._convert_amounts(data)
