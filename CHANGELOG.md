@@ -2,6 +2,10 @@
 
 ## Latest changes
 
+## 1.9.1.0
+
+Added BNB (Binance Smart Chain) coin
+
 ## 1.9.0.1
 
 Expose new `symbol` field on `Coin` objects and fix amount fields formatting in eth
