@@ -2,6 +2,10 @@
 
 ## Latest changes
 
+## 1.9.1.1
+
+Fix PyPi description
+
 ## 1.9.1.0
 
 Added BNB (Binance Smart Chain) coin

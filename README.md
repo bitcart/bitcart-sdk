@@ -11,6 +11,7 @@ Coins support(⚡ means lightning is supported):
 - Bitcoin (⚡)
 - Bitcoin Cash
 - Ethereum
+- Binance coin (BNB)
 - Ergon
 - Litecoin (⚡)
 - Globalboost (⚡)
