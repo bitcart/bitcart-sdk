@@ -2,6 +2,10 @@
 
 ## Latest changes
 
+## 1.9.2.0
+
+SmartBCH support
+
 ## 1.9.1.1
 
 Fix PyPi description
