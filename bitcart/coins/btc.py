@@ -1,3 +1,4 @@
+import inspect
 from decimal import Decimal
 from functools import wraps
 from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, Optional, Union
@@ -237,9 +238,13 @@ class BTC(Coin, EventDelivery):
                 continue
             handler = self.event_handlers.get(event)
             if handler:
+                handler_keys = inspect.signature(handler).parameters.keys()
                 args = (event,)
                 if pass_instance:
                     args = (self,) + args
+                for arg in event_info.copy():
+                    if arg not in handler_keys:
+                        event_info.pop(arg)
                 await call_universal(handler, *args, **event_info)
 
     async def pay_to(

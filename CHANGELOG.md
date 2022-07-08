@@ -2,6 +2,22 @@
 
 ## Latest changes
 
+## 1.9.3.0
+
+SDK no longer requires all event parameters to be present in handlers: it will detect which ones to pass by name.
+
+I.e. if before you had:
+
+```python
+def event_handler(event, address, status, status_str):
+```
+
+It can now be for example:
+
+```python
+def event_handler(event, address):
+```
+
 ## 1.9.2.0
 
 SmartBCH support
