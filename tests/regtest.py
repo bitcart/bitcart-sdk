@@ -162,7 +162,7 @@ async def test_list_channels(regtest_wallet, regtest_node_id):
 async def test_lnpay(regtest_wallet, regtest_node):
     with pytest.raises(errors.InvalidLightningInvoiceError):
         assert not await regtest_wallet.lnpay("")
-    invoice = (await regtest_node.add_invoice(0.01))["invoice"]
+    invoice = (await regtest_node.add_invoice(0.01))["lightning_invoice"]
     response = await regtest_wallet.lnpay(invoice)
     assert isinstance(response, dict)
     assert response.keys() == {"payment_hash", "success", "preimage", "log"}
