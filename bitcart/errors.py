@@ -37,7 +37,7 @@ class NotImplementedError(RequestError):
     """Not implemented"""
 
 
-@functools.lru_cache()
+@functools.lru_cache
 def generate_exception(exc_name: str) -> type:
     return type(exc_name, (RequestError,), {})
 
