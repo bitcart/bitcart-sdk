@@ -22,7 +22,7 @@ commands:
       - run:
           name: clone daemon
           command: |
-            git clone https://github.com/bitcartcc/bitcart -b electrum-upgrade ~/bitcart-daemon
+            git clone https://github.com/bitcartcc/bitcart ~/bitcart-daemon
 
       - restore_cache:
           keys:
