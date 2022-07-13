@@ -22,7 +22,6 @@ async def test_add_invoice(btc_wallet):
             "is_lightning": True,
             "amount_BTC": Decimal("0.5"),
             "message": "test description",
-            "expiration": 900,
             "status": 0,
             "status_str": "Expires in 15 minutes",
             "amount_msat": 50000000000,
@@ -30,8 +29,10 @@ async def test_add_invoice(btc_wallet):
         }.items()
     )
     data_check(invoice, "timestamp", int)
+    data_check(invoice, "expiration", int)
     data_check(invoice, "rhash", str)
-    data_check(invoice, "invoice", str)
+    data_check(invoice, "lightning_invoice", str)
+    assert invoice["expiration"] - invoice["timestamp"] == 900
     got_invoice = await btc_wallet.get_invoice(invoice["rhash"])
     assert got_invoice == invoice
 
@@ -50,5 +51,8 @@ async def test_lightning_always_enabled(btc_wallet):
 
 
 async def test_wallet_methods_on_non_segwit(lightning_unsupported_wallet):
+    request = await lightning_unsupported_wallet.add_request(0.5)
+    assert request["is_lightning"] is False
+    assert "lightning_invoice" not in request
     with pytest.raises(errors.LightningUnsupportedError):
         await lightning_unsupported_wallet.list_channels()  # unsupported on non-segwit wallets

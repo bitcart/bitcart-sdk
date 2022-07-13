@@ -2,6 +2,12 @@
 
 ## Latest changes
 
+## 1.10.0.0
+
+We now support Python >= 3.8 only
+
+Updates to support electrum 4.3.0
+
 ## 1.9.3.0
 
 SDK no longer requires all event parameters to be present in handlers: it will detect which ones to pass by name.

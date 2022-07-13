@@ -41,18 +41,19 @@ async def test_payment_request(btc_wallet):
     assert (
         request1.items()
         > {
-            "is_lightning": False,
+            "is_lightning": True,
             "amount_BTC": Decimal("0.5"),
             "message": "",
-            "expiration": 900,
             "status": 0,
             "status_str": "Expires in 15 minutes",
             "amount_sat": 50000000,
         }.items()
     )
     data_check(request1, "timestamp", int)
+    data_check(request1, "expiration", int)
     data_check(request1, "address", str)
     data_check(request1, "URI", str)
+    assert request1["expiration"] - request1["timestamp"] == 900
 
 
 async def test_insufficient_funds_pay(btc_wallet):

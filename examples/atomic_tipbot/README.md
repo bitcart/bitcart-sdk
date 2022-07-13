@@ -4,7 +4,7 @@ The bot is available in telegram at @bitcart_atomic_tipbot
 
 Used tools:
 
-- Python 3.7+
+- Python 3.8+
 - Mongo DB
 - Pyrogram(for bot)
 - qrcode library for generating qr codes
@@ -15,7 +15,7 @@ This bot is rewritten in my style, using modern python 3.6+ f-strings, and of co
 
 ## Installation
 
-To get started, you will need to have [Python 3.7+](https://python.org) installed, of course. Using virtualenv is recommended.
+To get started, you will need to have [Python 3.8+](https://python.org) installed, of course. Using virtualenv is recommended.
 Install Mongo DB using it's installation [guide](https://docs.mongodb.com/manual/administration/install-community)
 After that, install dependencies of this example using:
 
@@ -70,7 +70,7 @@ If you will later need to stop them, run `./stop.sh`
 
 ### Manual way
 
-As for this example, Python 3.7+ is required. Using virtualenv is recommended.
+As for this example, Python 3.8+ is required. Using virtualenv is recommended.
 
 Clone BitcartCC repository:
 
