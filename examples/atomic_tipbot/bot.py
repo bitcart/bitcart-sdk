@@ -461,6 +461,8 @@ btc 181AUpDVRQ3JVcb9wYLzKz2C8Rdb5mDeH7 500
 
 @app.on_message(filters.reply & filters.regex(r"[Tt]ip!([0-9]+)"))
 def tip(client, message):
+    if message.edit_date:
+        return
     reply_id = message.reply_to_message.from_user.id
     user_id = message.from_user.id
     if reply_id == user_id:
