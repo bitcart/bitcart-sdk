@@ -9,6 +9,7 @@ class ETH(BTC):
     friendly_name = "Ethereum"
     RPC_URL = "http://localhost:5002"
     ALLOWED_EVENTS = ["new_block", "new_transaction", "new_payment"]
+    is_eth_based = True
 
     async def history(self) -> dict:  # pragma: no cover
         return await self.server.history()  # type: ignore

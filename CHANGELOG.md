@@ -2,6 +2,10 @@
 
 ## Latest changes
 
+## 1.10.1.0
+
+Added new `is_eth_based` attribute to coin objects to ease detecting some small differences between btc and eth
+
 ## 1.10.0.0
 
 We now support Python >= 3.8 only

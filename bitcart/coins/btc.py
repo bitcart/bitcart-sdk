@@ -35,6 +35,7 @@ class BTC(Coin, EventDelivery):
     RPC_PASS = "electrumz"
     ALLOWED_EVENTS = ["new_block", "new_transaction", "new_payment", "verified_tx"]
     BALANCE_ATTRS = ["confirmed", "unconfirmed", "unmatured", "lightning"]
+    is_eth_based = False
 
     def __init__(
         self,
