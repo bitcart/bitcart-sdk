@@ -9,7 +9,7 @@ from ..event_delivery import EventDelivery
 from ..logger import logger
 from ..providers.jsonrpcrequests import RPCProxy
 from ..types import AmountType
-from ..utils import bitcoins, call_universal, convert_amount_type
+from ..utils import bitcoins, call_universal, convert_amount_type, satoshis
 
 if TYPE_CHECKING:
     from aiohttp import ClientSession, ClientWebSocketResponse
@@ -297,7 +297,7 @@ class BTC(Coin, EventDelivery):
         )
         if is_callable:
             tx_size = await self.server.get_tx_size(tx_data)
-            default_fee = await self.server.get_default_fee(tx_size)
+            default_fee = satoshis(await self.server.get_default_fee(tx_size))
             try:
                 resulting_fee: Optional[str] = str(bitcoins(fee(tx_size, default_fee)))  # type: ignore
             except Exception:
@@ -375,7 +375,7 @@ class BTC(Coin, EventDelivery):
         )
         if is_callable:
             tx_size = await self.server.get_tx_size(tx_data)
-            default_fee = await self.server.get_default_fee(tx_size)
+            default_fee = satoshis(await self.server.get_default_fee(tx_size))
             try:
                 resulting_fee: Optional[str] = str(bitcoins(fee(tx_size, default_fee)))  # type: ignore
             except Exception:
