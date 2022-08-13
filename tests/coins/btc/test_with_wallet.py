@@ -1,8 +1,9 @@
+import os
 from decimal import Decimal
 
 import pytest
 
-from bitcart import errors
+from bitcart import BTC, errors
 
 from ...utils import data_check
 
@@ -70,3 +71,12 @@ async def test_fee_and_feerate(btc_wallet):  # can't set both fee and feerate
             fee=1,
             feerate=1,
         )
+
+
+async def test_diskless_mode(btc_wallet):
+    seed = await btc_wallet.server.make_seed()
+    filename = os.path.join((await btc_wallet.server.getinfo())["path"], "wallets", seed)
+    assert not os.path.exists(filename)
+    coin = BTC(xpub={"xpub": seed, "diskless": True})
+    await coin.help()
+    assert not os.path.exists(filename)
