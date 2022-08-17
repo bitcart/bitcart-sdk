@@ -1,5 +1,5 @@
 # BitcartCC SDK
-
+[![Verified on Openbase](https://badges.openbase.com/python/verified/bitcart.svg?style=openbase&token=IxXnY2JRK4Xux8Tx+T6zDdkAg7O5uZB6l0KTEZCWG9o=)](https://openbase.com/python/bitcart?utm_source=embedded&amp;utm_medium=badge&amp;utm_campaign=rate-badge)
 [![CircleCI](https://circleci.com/gh/bitcartcc/bitcart-sdk.svg?style=svg)](https://circleci.com/gh/bitcartcc/bitcart-sdk)
 [![Codecov](https://img.shields.io/codecov/c/github/bitcartcc/bitcart-sdk?style=flat-square)](https://codecov.io/gh/bitcartcc/bitcart-sdk)
 [![PyPI version](https://img.shields.io/pypi/v/bitcart.svg?style=flat-square)](https://pypi.python.org/pypi/bitcart/)
