@@ -55,6 +55,7 @@ Supported coins list(⚡ means lightning is supported):
 - Ethereum
 - Binance coin (BNB)
 - SmartBCH
+- Polygon (MATIC)
 - Ergon
 - Litecoin (⚡)
 - Globalboost (⚡)
