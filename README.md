@@ -14,6 +14,7 @@ Coins support(⚡ means lightning is supported):
 - Binance coin (BNB)
 - SmartBCH
 - Polygon (MATIC)
+- Tron (TRX)
 - Ergon
 - Litecoin (⚡)
 - Globalboost (⚡)

@@ -2,6 +2,10 @@
 
 ## Latest changes
 
+## 1.10.3.0
+
+Tron (TRX) support
+
 ## 1.10.2.0
 
 Polygon (MATIC) support

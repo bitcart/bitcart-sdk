@@ -6,8 +6,20 @@ from .eth import ETH
 from .ltc import LTC
 from .matic import MATIC
 from .sbch import SBCH
+from .trx import TRX
 from .xrg import XRG
 
-COINS = {"BTC": BTC, "BCH": BCH, "ETH": ETH, "BNB": BNB, "SBCH": SBCH, "LTC": LTC, "MATIC": MATIC, "BSTY": BSTY, "XRG": XRG}
+COINS = {
+    "BTC": BTC,
+    "BCH": BCH,
+    "ETH": ETH,
+    "BNB": BNB,
+    "SBCH": SBCH,
+    "LTC": LTC,
+    "MATIC": MATIC,
+    "BSTY": BSTY,
+    "TRX": TRX,
+    "XRG": XRG,
+}
 
 __all__ = list(COINS.keys()) + ["COINS"]

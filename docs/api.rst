@@ -68,6 +68,16 @@ Polygon (MATIC) support is based on our custom daemon implementation which tries
     :show-inheritance:
     :undoc-members:
 
+TRON (TRX)
+----------
+
+TRON (TRX) support is based on our custom daemon implementation which tries to follow electrum APIs as closely as possible
+
+.. autoclass:: bitcart.coins.trx.TRX
+    :members:
+    :show-inheritance:
+    :undoc-members:
+
 XRG
 ---
 
