@@ -2,6 +2,10 @@
 
 ## Latest changes
 
+## 1.10.4.0
+
+Groestlcoin (GRS) support
+
 ## 1.10.3.0
 
 Tron (TRX) support

@@ -60,6 +60,7 @@ Supported coins list(⚡ means lightning is supported):
 - Ergon
 - Litecoin (⚡)
 - Globalboost (⚡)
+- Groestlcoin (⚡)
 
 To use proxy, install optional dependencies:
 
