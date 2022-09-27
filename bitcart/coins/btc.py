@@ -563,7 +563,7 @@ class BTC(Coin, EventDelivery):
         """
         return await self.server.close_channel(channel_id, force)  # type: ignore
 
-    @property  # type: ignore
+    @property
     @lightning
     async def node_id(self) -> str:
         """Get node id
