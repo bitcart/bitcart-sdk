@@ -2,6 +2,10 @@
 
 ## Latest changes
 
+## 1.10.4.1
+
+Support python 3.11
+
 ## 1.10.4.0
 
 Groestlcoin (GRS) support
