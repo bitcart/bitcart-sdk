@@ -18,24 +18,23 @@ if TYPE_CHECKING:
 
 
 class APIManager(EventDelivery):
-    def __init__(self, wallets: Dict[str, Iterable[str]] = {}):
+    def __init__(self, wallets: Dict[str, Iterable[str]] = {}, custom_params: Dict[str, dict] = {}):
         super().__init__()
+        self.custom_params = custom_params
         self.wallets = ExtendedDefaultDict(
             lambda: ExtendedDict(),
             {currency: self.load_wallets(currency, wallets) for currency, wallets in wallets.items()},
         )
         self.event_handlers = {}
 
-    @classmethod
-    def load_wallets(cls, currency: str, wallets: Iterable[str]) -> ExtendedDict:
-        return ExtendedDict({wallet: cls.load_wallet(currency, wallet) for wallet in wallets})
+    def load_wallets(self, currency: str, wallets: Iterable[str]) -> ExtendedDict:
+        return ExtendedDict({wallet: self.load_wallet(currency, wallet) for wallet in wallets})
 
-    @classmethod
-    def load_wallet(cls, currency: str, wallet: Optional[str] = None) -> "Coin":
+    def load_wallet(self, currency: str, wallet: Optional[str] = None) -> "Coin":
         currency = currency.upper()
         if currency not in COINS:
             raise CurrencyUnsupportedError()
-        return COINS[currency](xpub=wallet)
+        return COINS[currency](xpub=wallet, **self.custom_params.get(currency, {}))
 
     def add_wallet(self, currency: str, wallet: str) -> None:
         self.wallets[currency][wallet] = self.load_wallet(currency, wallet)

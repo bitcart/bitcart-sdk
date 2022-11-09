@@ -2,6 +2,14 @@
 
 ## Latest changes
 
+## 1.10.5.0
+
+Urgent fix: APIManager is not loading correct coin settings from anywhere when receiving events.
+
+Classmethods `load_wallet` and `load_wallets` are now methods of APIManager objects.
+
+A new parameter `custom_params` was added: a mapping between currency and it's custom settings dict.
+
 ## 1.10.4.1
 
 Support python 3.11

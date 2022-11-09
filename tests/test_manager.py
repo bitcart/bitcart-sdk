@@ -47,13 +47,14 @@ async def test_manager_storage(manager, xpub):
     assert manager.wallets.BTC == manager.wallets["BTC"] == manager.BTC == manager["BTC"]
 
 
-async def test_manager_classmethods(xpub):
-    assert APIManager.load_wallet("BTC", xpub) == BTC(xpub=xpub)
-    assert APIManager.load_wallets("BTC", [xpub, xpub]) == {xpub: BTC(xpub=xpub)}
+async def test_manager_methods(xpub):
+    manager = APIManager()
+    assert manager.load_wallet("BTC", xpub) == BTC(xpub=xpub)
+    assert manager.load_wallets("BTC", [xpub, xpub]) == {xpub: BTC(xpub=xpub)}
     with pytest.raises(CurrencyUnsupportedError):
-        APIManager.load_wallet("test")
+        manager.load_wallet("test")
     with pytest.raises(CurrencyUnsupportedError):
-        APIManager.load_wallets("test", [xpub])
+        manager.load_wallets("test", [xpub])
 
 
 async def test_manager_add_wallets(manager, xpub):
