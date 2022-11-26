@@ -1,7 +1,7 @@
 import inspect
 from decimal import Decimal
 from functools import wraps
-from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, Optional, Union
+from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, List, Optional, Union
 
 from ..coin import Coin
 from ..errors import LightningDisabledError
@@ -36,6 +36,7 @@ class BTC(Coin, EventDelivery):
     ALLOWED_EVENTS = ["new_block", "new_transaction", "new_payment", "verified_tx"]
     BALANCE_ATTRS = ["confirmed", "unconfirmed", "unmatured", "lightning"]
     is_eth_based = False
+    additional_xpub_fields: List[str] = []
 
     def __init__(
         self,
@@ -474,7 +475,7 @@ class BTC(Coin, EventDelivery):
         """
         return await self.server.getconfig(key) or default
 
-    async def validate_key(self, key: str) -> bool:
+    async def validate_key(self, key: str, *args: Any, **kwargs: Any) -> bool:
         """Validate whether provided key is valid to restore a wallet
 
         If the key is x/y/z pub/prv or electrum seed at the network daemon is running
@@ -498,7 +499,7 @@ class BTC(Coin, EventDelivery):
         Returns:
             bool: Whether the key is valid or not
         """
-        return await self.server.validatekey(key)  # type: ignore
+        return await self.server.validatekey(key, *args, **kwargs)  # type: ignore
 
     ### Lightning apis ###
 
