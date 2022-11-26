@@ -10,6 +10,7 @@ Coins support(⚡ means lightning is supported):
 
 - Bitcoin (⚡)
 - Bitcoin Cash
+- Monero
 - Ethereum
 - Binance coin (BNB)
 - SmartBCH

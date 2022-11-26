@@ -8,11 +8,13 @@ from .ltc import LTC
 from .matic import MATIC
 from .sbch import SBCH
 from .trx import TRX
+from .xmr import XMR
 from .xrg import XRG
 
 COINS = {
     "BTC": BTC,
     "BCH": BCH,
+    "XMR": XMR,
     "ETH": ETH,
     "BNB": BNB,
     "SBCH": SBCH,

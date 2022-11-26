@@ -2,6 +2,10 @@
 
 ## Latest changes
 
+## 1.10.6.0
+
+Monero (XMR) support
+
 ## 1.10.5.0
 
 Urgent fix: APIManager is not loading correct coin settings from anywhere when receiving events.
