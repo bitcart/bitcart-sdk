@@ -22,7 +22,7 @@ commands:
       - run:
           name: clone daemon
           command: |
-            git clone https://github.com/bitcartcc/bitcart ~/bitcart-daemon
+            git clone https://github.com/bitcartcc/bitcart -b add-tx-hashes ~/bitcart-daemon # TODO: remove
 
       - restore_cache:
           keys:
