@@ -35,7 +35,7 @@ async def test_payment_request(btc_wallet):
     assert request2["amount_BTC"] == Decimal(request2_amount)
     assert request2["message"] == request2_desc
     # get request2
-    response2 = await btc_wallet.get_request(request2["address"])
+    response2 = await btc_wallet.get_request(request2["request_id"])
     assert response2["amount_BTC"] == Decimal(request2_amount)
     assert response2["message"] == request2_desc
     # full data structure check

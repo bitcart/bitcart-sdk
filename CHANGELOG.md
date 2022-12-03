@@ -2,6 +2,10 @@
 
 ## Latest changes
 
+## 1.10.7.0
+
+Upgrade electrums to 4.3.2
+
 ## 1.10.6.1
 
 Add new attribute `additional_xpub_fields` for coins which need it, and fix `validate_key` method

@@ -204,7 +204,7 @@ class BTC(Coin, EventDelivery):
         Returns:
             dict: Invoice data
         """
-        data = await self.server.getrequest(address)
+        data = await self.server.get_request(address)
         return await self._convert_amounts(data)
 
     async def history(self) -> dict:
