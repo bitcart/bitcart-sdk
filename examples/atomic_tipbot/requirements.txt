@@ -1,5 +1,5 @@
 # for tg bots
-pyrogram
+pyrogram<2
 tgcrypto
 # mongo db
 pymongo
