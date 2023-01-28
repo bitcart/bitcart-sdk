@@ -46,7 +46,7 @@ async def test_payment_request(btc_wallet):
             "amount_BTC": Decimal("0.5"),
             "message": "",
             "status": 0,
-            "status_str": "Expires in 15 minutes",
+            "status_str": "Expires in about 15 minutes",
             "amount_sat": 50000000,
         }.items()
     )

@@ -23,7 +23,7 @@ async def test_add_invoice(btc_wallet):
             "amount_BTC": Decimal("0.5"),
             "message": "test description",
             "status": 0,
-            "status_str": "Expires in 15 minutes",
+            "status_str": "Expires in about 15 minutes",
             "amount_msat": 50000000000,
             "can_receive": False,
         }.items()
