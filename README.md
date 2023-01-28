@@ -64,4 +64,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 Copyright (C) 2019 MrNaif2018
 
-Licensed under the [LGPLv3+](LICENSE)
+Licensed under the [MIT license](LICENSE)

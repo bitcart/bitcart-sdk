@@ -2,6 +2,10 @@
 
 ## Latest changes
 
+## 1.11.0.0
+
+Change license to MIT license
+
 ## 1.10.7.0
 
 Upgrade electrums to 4.3.2
