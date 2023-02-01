@@ -6,6 +6,7 @@ from .btc import BTC
 
 class ETH(BTC):
     coin_name = "ETH"
+    xpub_name = "Address"
     friendly_name = "Ethereum"
     RPC_URL = "http://localhost:5002"
     ALLOWED_EVENTS = ["new_block", "new_transaction", "new_payment"]

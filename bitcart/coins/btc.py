@@ -29,6 +29,7 @@ def lightning(f: Callable) -> Callable:
 
 class BTC(Coin, EventDelivery):
     coin_name = "BTC"
+    xpub_name = "Xpub"
     friendly_name = "Bitcoin"
     RPC_URL = "http://localhost:5000"
     RPC_USER = "electrum"

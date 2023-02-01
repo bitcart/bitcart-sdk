@@ -3,6 +3,7 @@ from typing import Callable, Dict, Optional
 
 class Coin:
     coin_name: str
+    xpub_name: str
     friendly_name: str
     event_handlers: Dict[str, Callable]
     xpub: Optional[str]

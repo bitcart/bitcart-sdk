@@ -2,6 +2,10 @@
 
 ## Latest changes
 
+## 1.11.1.0
+
+Add new `xpub_name` attribute in coin objects, used to display what "xpub" actually means in context of current coin (i.e. it may be xpub, or it may actually be an address)
+
 ## 1.11.0.0
 
 Change license to MIT license
