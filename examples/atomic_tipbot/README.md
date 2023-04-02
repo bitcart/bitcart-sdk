@@ -1,5 +1,7 @@
 # Full example of using BitcartCC: Telegram Atomic Tip Bot
 
+**_Note: this example doesn't work because of `rate()` command being removed. Fetch exchange rates yourself or use Merchants API for this_**
+
 The bot is available in telegram at @bitcart_atomic_tipbot
 
 Used tools:
@@ -149,7 +151,6 @@ To see a list of all RPC methods, call
 RPC methods accessible via btc.server can't have intellisence in your IDE because they are completely dynamic(via `__getattr__`).
 
 Now, about using BitcartCC in this bot's code.
-To get price of 1 bitcoin in USD, simply call `btc.rate()`
 Use `btc.add_request(amount, description="", expire=15)` to create BTC invoice
 Amount is amount in BTC, description is optional and is description of invoice, expire is the time invoice will expire in,
 default 15 minutes, but if you pass None, invoice will never expire.

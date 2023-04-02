@@ -1,5 +1,4 @@
 import inspect
-from decimal import Decimal
 from functools import wraps
 from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, List, Optional, Union
 
@@ -390,46 +389,6 @@ class BTC(Coin, EventDelivery):
             return await self.server.broadcast(tx_data)  # type: ignore
         else:
             return tx_data  # type: ignore
-
-    async def rate(self, currency: str = "USD") -> Decimal:
-        """Get bitcoin price in selected fiat currency
-
-        It uses the same method as electrum wallet gets exchange rate-via different payment providers
-
-        Examples:
-
-        >>> c.rate()
-        9878.527
-
-        >>> c.rate("RUB")
-        757108.226
-
-        Args:
-            self (BTC): self
-            currency (str, optional): Currency to get rate into. Defaults to "USD".
-
-        Returns:
-            Decimal: price of 1 bitcoin in selected fiat currency
-        """
-        return convert_amount_type(await self.server.exchange_rate(currency))
-
-    async def list_fiat(self) -> Iterable[str]:
-        """List of all available fiat currencies to get price for
-
-        This list is list of only valid currencies that could be passed to rate() function
-
-        Example:
-
-        >>> c.list_fiat()
-        ['AED', 'ARS', 'AUD', 'BCH', 'BDT', 'BHD', 'BMD', 'BNB', 'BRL', 'BTC', ...]
-
-        Args:
-            self (BTC): self
-
-        Returns:
-            Iterable[str]: list of available fiat currencies
-        """
-        return await self.server.list_currencies()  # type: ignore
 
     async def set_config(self, key: str, value: Any) -> bool:
         """Set config key to specified value

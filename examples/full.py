@@ -14,9 +14,6 @@ print(btc.RPC_USER)  # default rpc user
 print(btc.RPC_PASS)  # default rpc password
 
 # Methods used without wallet #
-print(btc.rate())  # BTC rate in USD
-print(btc.rate("RUB"))  # BTC rate in rubles, or any other currency
-print(btc.list_fiat())  # List of all fiat currencies to get bitcoin rate in
 print(btc.help())  # List of low level electrum methods
 print(btc.server.validateaddress("x"))  # Example of calling lowlevel electrum method
 print(btc.get_tx("d0e9433f41e17ef74547aa5e1873cd3ad12f1402b488eb93e1c8e3dda971ef53"))  # Get transaction info

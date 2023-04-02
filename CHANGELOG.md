@@ -2,6 +2,21 @@
 
 ## Latest changes
 
+## 1.12.0.0
+
+Breaking: removed `rate` and `list_fiat` commands.
+
+This is because the current exchange rates model:
+
+1. Didn't provide enough customization (tied to coingecko and it's currencies only)
+2. Often unreliable because sometimes depends on implementation in e.g. electrum
+3. Getting rate limited when many daemons are launched
+
+To overcome the problem, we've moved the exchange rates functionality one layer up (like it should have always been), to the Merchants API
+
+This means if you use rate command in your script, you should either use Merchants API directly (maybe your usage of SDK is not required at all), or fetch
+exchange rates from your favourite exchange rates provider (more customization)
+
 ## 1.11.1.0
 
 Add new `xpub_name` attribute in coin objects, used to display what "xpub" actually means in context of current coin (i.e. it may be xpub, or it may actually be an address)

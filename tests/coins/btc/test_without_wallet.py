@@ -2,7 +2,6 @@
 
 If this succeeds, most likely other coins will succeed too
 """
-import decimal
 import os
 
 import pytest
@@ -26,21 +25,6 @@ async def test_help(btc):
     assert "broadcast" in data
     assert "gettransaction" in data
     assert "help" in data
-
-
-@pytest.mark.parametrize("currency", ["USD", "RUB", "JPY", "nonexisting"])
-async def test_rate(btc, currency):
-    price = await btc.rate(currency)
-    if currency == "nonexisting":
-        assert price.is_nan()
-    else:
-        assert price > 0
-    assert isinstance(price, decimal.Decimal)
-
-
-async def test_fiat(btc):
-    fiat_currencies = await btc.list_fiat()
-    assert ["USD", "BTC", "RUB", "JPY", "EUR"] >= fiat_currencies
 
 
 @pytest.mark.parametrize("address,expected", [("x", False), ("tb1qzq67gkmp7fl45y5h87emyhhzdl3s77904h99c8", True)])

@@ -3,7 +3,7 @@ from setuptools import find_packages, setup
 setup(
     name="bitcart",
     packages=find_packages(),
-    version="1.11.1.0",
+    version="1.12.0.0",
     license="MIT",
     description="BitcartCC coins support library",
     long_description=open("README.md").read(),
