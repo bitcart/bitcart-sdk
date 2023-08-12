@@ -29,10 +29,10 @@ async def test_add_invoice(btc_wallet):
         }.items()
     )
     data_check(invoice, "timestamp", int)
-    data_check(invoice, "expiration", int)
+    data_check(invoice, "expiry", int)
     data_check(invoice, "rhash", str)
     data_check(invoice, "lightning_invoice", str)
-    assert invoice["expiration"] - invoice["timestamp"] == 900
+    assert invoice["expiry"] == 900
     got_invoice = await btc_wallet.get_invoice(invoice["rhash"])
     assert got_invoice == invoice
 

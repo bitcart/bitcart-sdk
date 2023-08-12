@@ -35,6 +35,7 @@ class BTC(Coin, EventDelivery):
     RPC_PASS = "electrumz"
     ALLOWED_EVENTS = ["new_block", "new_transaction", "new_payment", "verified_tx"]
     BALANCE_ATTRS = ["confirmed", "unconfirmed", "unmatured", "lightning"]
+    EXPIRATION_KEY = "expiry"
     is_eth_based = False
     additional_xpub_fields: List[str] = []
 
@@ -155,7 +156,7 @@ class BTC(Coin, EventDelivery):
         extra_kwargs: dict = {},
     ) -> dict:
         expiration = 60 * expire if expire else None
-        kwargs = {"amount": amount, "memo": description, "expiration": expiration}
+        kwargs = {"amount": amount, "memo": description, self.EXPIRATION_KEY: expiration}
         kwargs.update(extra_kwargs)
         data = await method(**kwargs)
         return await self._convert_amounts(data)
@@ -608,7 +609,7 @@ class BTC(Coin, EventDelivery):
         Example:
 
         >>> c.get_invoice("e34d7fb4cda66e0760fc193496c302055d0fd960cfd982432355c8bfeecd5f33")
-        {'is_lightning': True, 'amount_BTC': Decimal('0.5'), 'timestamp': 1619273042, 'expiration': 900, ...
+        {'is_lightning': True, 'amount_BTC': Decimal('0.5'), 'timestamp': 1619273042, 'expiry': 900, ...
 
         Args:
             rhash (str): invoice rhash

@@ -51,10 +51,10 @@ async def test_payment_request(btc_wallet):
         }.items()
     )
     data_check(request1, "timestamp", int)
-    data_check(request1, "expiration", int)
+    data_check(request1, "expiry", int)
     data_check(request1, "address", str)
     data_check(request1, "URI", str)
-    assert request1["expiration"] - request1["timestamp"] == 900
+    assert request1["expiry"] == 900
 
 
 async def test_insufficient_funds_pay(btc_wallet):

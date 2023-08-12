@@ -8,6 +8,7 @@ class BCH(BTC):
     friendly_name = "Bitcoin Cash"
     RPC_URL = "http://localhost:5004"
     AMOUNT_FIELD = "amount (BCH)"
+    EXPIRATION_KEY = "expiration"
 
     async def history(self) -> dict:  # pragma: no cover
         return await self.server.history()  # type: ignore

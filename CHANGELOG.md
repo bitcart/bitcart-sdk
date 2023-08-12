@@ -2,6 +2,10 @@
 
 ## Latest changes
 
+## 1.12.1.0
+
+Electrums upgrade to 4.4.5
+
 ## 1.12.0.0
 
 Breaking: removed `rate` and `list_fiat` commands.

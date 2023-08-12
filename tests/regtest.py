@@ -131,7 +131,6 @@ async def test_list_peers(regtest_wallet, regtest_node_id):  # running on regtes
     assert peer["node_id"] == regtest_node_id.split("@")[0]
     data_check(peer, "address", str)
     data_check(peer, "features", str)
-    assert "LnFeatures." in peer["features"]
     data_check(peer, "channels", list, 0)
 
 
