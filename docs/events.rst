@@ -1,4 +1,4 @@
-BitcartCC SDK Events System
+Bitcart SDK Events System
 ---------------------------
 
 Introduction

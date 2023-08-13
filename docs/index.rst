@@ -1,9 +1,9 @@
-.. BitcartCC SDK documentation master file, created by
+.. Bitcart SDK documentation master file, created by
    sphinx-quickstart on Tue Jul  9 22:11:54 2019.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to BitcartCC SDK's documentation!
+Welcome to Bitcart SDK's documentation!
 =========================================
 
 .. toctree::
@@ -15,12 +15,12 @@ Welcome to BitcartCC SDK's documentation!
    apimanager
    api
 
-BitcartCC is a platform to simplify cryptocurrencies adaptation.
-This SDK is part of BitcartCC.
-Using this SDK you can easily connect to BitcartCC daemon
+Bitcart is a platform to simplify cryptocurrencies adaptation.
+This SDK is part of Bitcart.
+Using this SDK you can easily connect to Bitcart daemon
 and code scripts around it easily.
 
-Behold, the power of BitcartCC:
+Behold, the power of Bitcart:
 
 .. code-block:: python
 

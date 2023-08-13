@@ -9,7 +9,7 @@ if len(sys.argv) != 2:
     print("Usage: ./gettx txhash")
     sys.exit(1)
 tx = sys.argv[1]
-# bitcartcc-related code
+# bitcart-related code
 btc = BTC()
 try:
     print(btc.get_tx(tx))

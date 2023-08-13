@@ -2,6 +2,10 @@
 
 ## Latest changes
 
+## 1.12.1.1
+
+Rename BitcartCC to Bitcart
+
 ## 1.12.1.0
 
 Electrums upgrade to 4.4.5

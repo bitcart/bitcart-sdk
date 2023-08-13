@@ -1,14 +1,14 @@
-# Contributing to BitcartCC SDK
+# Contributing to Bitcart SDK
 
-Welcome, and thank you for your interest in contributing to BitcartCC SDK!
+Welcome, and thank you for your interest in contributing to Bitcart SDK!
 
-Our [central contributing guidelines](https://github.com/bitcartcc/bitcart/blob/master/CONTRIBUTING.md) apply to all BitcartCC repositories.
+Our [central contributing guidelines](https://github.com/bitcart/bitcart/blob/master/CONTRIBUTING.md) apply to all Bitcart repositories.
 
-Below are the instructions for setting up development environment with BitcartCC SDK.
+Below are the instructions for setting up development environment with Bitcart SDK.
 
 ## Setting up development environment
 
-Some general advice can be found in our [central contributing guidelines](https://github.com/bitcartcc/bitcart/blob/master/CONTRIBUTING.md#setting-up-development-environment).
+Some general advice can be found in our [central contributing guidelines](https://github.com/bitcart/bitcart/blob/master/CONTRIBUTING.md#setting-up-development-environment).
 
 Instructions:
 
@@ -26,7 +26,7 @@ based on context.
 
 From now on, development environment is ready.
 
-Make sure to follow [our coding guidelines](https://github.com/bitcartcc/bitcart/blob/master/CODING_STANDARDS.md) when developing.
+Make sure to follow [our coding guidelines](https://github.com/bitcart/bitcart/blob/master/CODING_STANDARDS.md) when developing.
 
 This repository uses pre-commit hooks for better development experience. Install them with:
 
@@ -73,7 +73,7 @@ Before running extended test suite, start bitcoind and fulcrum. Each time regtes
 
 Run `make bitcoind` to start bitcoind, `make fulcrum` to start fulcrum.
 
-After that, stop your testnet BitcartCC daemon, and start regtest one from cloned `bitcart` repo by running `make regtest`.
+After that, stop your testnet Bitcart daemon, and start regtest one from cloned `bitcart` repo by running `make regtest`.
 
 You should also start an lightning node for testing, run `make regtestln` in another terminal.
 

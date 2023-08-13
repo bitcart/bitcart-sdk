@@ -1,11 +1,11 @@
-# BitcartCC SDK
+# Bitcart SDK
 
-[![CircleCI](https://circleci.com/gh/bitcartcc/bitcart-sdk.svg?style=svg)](https://circleci.com/gh/bitcartcc/bitcart-sdk)
-[![Codecov](https://img.shields.io/codecov/c/github/bitcartcc/bitcart-sdk?style=flat-square)](https://codecov.io/gh/bitcartcc/bitcart-sdk)
+[![CircleCI](https://circleci.com/gh/bitcart/bitcart-sdk.svg?style=svg)](https://circleci.com/gh/bitcart/bitcart-sdk)
+[![Codecov](https://img.shields.io/codecov/c/github/bitcart/bitcart-sdk?style=flat-square)](https://codecov.io/gh/bitcart/bitcart-sdk)
 [![PyPI version](https://img.shields.io/pypi/v/bitcart.svg?style=flat-square)](https://pypi.python.org/pypi/bitcart/)
-[![Read the Docs](https://img.shields.io/readthedocs/bitcart-sdk?style=flat-square)](https://sdk.bitcartcc.com)
+[![Read the Docs](https://img.shields.io/readthedocs/bitcart-sdk?style=flat-square)](https://sdk.bitcart.ai)
 
-This is a client library(wrapper) around BitcartCC daemon. It is used to simplify common commands.
+This is a client library(wrapper) around Bitcart daemon. It is used to simplify common commands.
 Coins support(⚡ means lightning is supported):
 
 - Bitcoin (⚡)
@@ -40,7 +40,7 @@ async def main():
 
 Async callback functions for `@btc.on` are supported.
 
-For more information [Read the Docs](https://sdk.bitcartcc.com)
+For more information [Read the Docs](https://sdk.bitcart.ai)
 
 ## Release versioning
 
