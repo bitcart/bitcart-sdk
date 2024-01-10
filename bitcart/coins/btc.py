@@ -19,7 +19,8 @@ def lightning(f: Callable) -> Callable:
     async def wrapper(*args: Any, **kwargs: Any) -> Any:
         if len(args) > 0:
             obj = args[0]
-            if not await obj.get_config("lightning"):  # pragma: no cover: can't be changed during tests
+            capabilities = (await obj.spec).get("capabilities", {})
+            if not capabilities.get("lightning", False):  # pragma: no cover: can't be changed during tests
                 raise LightningDisabledError("Lightning is disabled in current daemon.")
         return await f(*args, **kwargs)
 
@@ -415,10 +416,9 @@ class BTC(Coin, EventDelivery):
         """
         return await self.server.setconfig(key, value)  # type: ignore
 
-    async def get_config(self, key: str, default: Any = None) -> Any:
+    async def get_config(self, key: str) -> Any:
         """Get config key
 
-        If the key doesn't exist, default value is returned.
         Keys are stored in electrum's config file, check :meth:`bitcart.coins.btc.BTC.set_config` doc for details.
 
         Example:
@@ -434,7 +434,7 @@ class BTC(Coin, EventDelivery):
         Returns:
             Any: value of the key or default value provided
         """
-        return await self.server.getconfig(key) or default
+        return await self.server.getconfig(key)
 
     async def validate_key(self, key: str, *args: Any, **kwargs: Any) -> bool:
         """Validate whether provided key is valid to restore a wallet

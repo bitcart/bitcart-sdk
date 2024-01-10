@@ -92,9 +92,10 @@ async def test_get_tx(btc):
 
 
 async def test_config_methods(btc):
-    k, v = "x", 1
+    k, v = "auto_connect", False
     await btc.set_config(k, v)
     assert await btc.get_config(k) == v
+    await btc.set_config(k, True)
 
 
 async def test_get_address(btc):
