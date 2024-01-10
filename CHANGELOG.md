@@ -2,6 +2,10 @@
 
 ## Latest changes
 
+## 1.14.0.1
+
+Don't install a separate tests package, but include tests in source tarball
+
 ## 1.14.0.0
 
 Electrums upgrade
