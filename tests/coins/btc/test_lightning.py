@@ -45,11 +45,6 @@ async def test_connect(btc_wallet):
     assert await btc_wallet.connect("0214382bdce7750dfcb8126df8e2b12de38536902dc36abcebdaeefdeca1df8284@172.81.181.3")
 
 
-async def test_lightning_always_enabled(btc_wallet):
-    await btc_wallet.set_config("lightning", False)
-    assert await btc_wallet.node_id is not None  # env variables can't be overwritten
-
-
 async def test_wallet_methods_on_non_segwit(lightning_unsupported_wallet):
     request = await lightning_unsupported_wallet.add_request(0.5)
     assert request["is_lightning"] is False

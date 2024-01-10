@@ -2,6 +2,12 @@
 
 ## Latest changes
 
+## 1.14.0.0
+
+Electrums upgrade
+
+**Breaking changes**: `get_config` method no longer has `default` argument, this is determined by electrum. Also it is no longer possible to programmatically disable lightning
+
 ## 1.12.1.1
 
 Rename BitcartCC to Bitcart
