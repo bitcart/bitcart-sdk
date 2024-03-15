@@ -1,6 +1,7 @@
 import inspect
+from collections.abc import Iterable
 from functools import wraps
-from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Callable, Optional, Union
 
 from ..coin import Coin
 from ..errors import LightningDisabledError
@@ -38,7 +39,7 @@ class BTC(Coin, EventDelivery):
     BALANCE_ATTRS = ["confirmed", "unconfirmed", "unmatured", "lightning"]
     EXPIRATION_KEY = "expiry"
     is_eth_based = False
-    additional_xpub_fields: List[str] = []
+    additional_xpub_fields: list[str] = []
 
     def __init__(
         self,
@@ -55,7 +56,7 @@ class BTC(Coin, EventDelivery):
         self.rpc_user = rpc_user or self.RPC_USER
         self.rpc_pass = rpc_pass or self.RPC_PASS
         self.xpub = xpub
-        self.event_handlers: Dict[str, Callable] = {}
+        self.event_handlers: dict[str, Callable] = {}
         self.amount_field = getattr(self, "AMOUNT_FIELD", f"amount_{self.coin_name}")
         self.server = RPCProxy(self.rpc_url, self.rpc_user, self.rpc_pass, self.xpub, session=session, proxy=proxy)
 

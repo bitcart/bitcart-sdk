@@ -1,7 +1,8 @@
 import asyncio
 import traceback
+from collections.abc import Iterable
 from json import JSONDecodeError
-from typing import TYPE_CHECKING, Callable, Dict, Iterable, Optional, Union
+from typing import TYPE_CHECKING, Callable, Optional, Union
 from urllib.parse import urljoin
 
 from aiohttp import ClientConnectionError, WSMsgType
@@ -18,7 +19,7 @@ if TYPE_CHECKING:
 
 class EventDelivery:
     server: "RPCProxy"
-    event_handlers: Dict[str, Callable]
+    event_handlers: dict[str, Callable]
 
     async def process_updates(
         self, updates: Iterable[dict], currency: Optional[str] = None, wallet: Optional[str] = None

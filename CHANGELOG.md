@@ -2,6 +2,10 @@
 
 ## Latest changes
 
+## 1.15.0.0
+
+We now support Python >= 3.9 only
+
 ## 1.14.0.1
 
 Don't install a separate tests package, but include tests in source tarball

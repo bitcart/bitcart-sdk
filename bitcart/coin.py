@@ -1,11 +1,11 @@
-from typing import Callable, Dict, Optional
+from typing import Callable, Optional
 
 
 class Coin:
     coin_name: str
     xpub_name: str
     friendly_name: str
-    event_handlers: Dict[str, Callable]
+    event_handlers: dict[str, Callable]
     xpub: Optional[str]
 
     def __eq__(self, other: object) -> bool:

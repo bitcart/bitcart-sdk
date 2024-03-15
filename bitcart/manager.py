@@ -1,6 +1,7 @@
 import asyncio
+from collections.abc import Iterable
 from functools import partial
-from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, Optional
+from typing import TYPE_CHECKING, Any, Callable, Optional
 from urllib.parse import urljoin
 
 from bitcart.errors import CurrencyUnsupportedError, NoCurrenciesRegisteredError
@@ -18,7 +19,7 @@ if TYPE_CHECKING:
 
 
 class APIManager(EventDelivery):
-    def __init__(self, wallets: Dict[str, Iterable[str]] = {}, custom_params: Dict[str, dict] = {}):
+    def __init__(self, wallets: dict[str, Iterable[str]] = {}, custom_params: dict[str, dict] = {}):
         super().__init__()
         self.custom_params = custom_params
         self.wallets = ExtendedDefaultDict(
