@@ -578,9 +578,9 @@ def history_page(client, message):
     markup = None
     keyboard = []
     if paginator.has_prev_page(page):
-        keyboard.append(InlineKeyboardButton("◀️", callback_data=f"page_{page-1}"))
+        keyboard.append(InlineKeyboardButton("◀️", callback_data=f"page_{page - 1}"))
     if paginator.has_next_page(page):
-        keyboard.append(InlineKeyboardButton("▶️", callback_data=f"page_{page+1}"))
+        keyboard.append(InlineKeyboardButton("▶️", callback_data=f"page_{page + 1}"))
     if keyboard:
         markup = InlineKeyboardMarkup([keyboard])
     message.edit_message_text(msg, reply_markup=markup)

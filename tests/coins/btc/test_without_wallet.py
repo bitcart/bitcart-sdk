@@ -2,6 +2,7 @@
 
 If this succeeds, most likely other coins will succeed too
 """
+
 import os
 
 import pytest
