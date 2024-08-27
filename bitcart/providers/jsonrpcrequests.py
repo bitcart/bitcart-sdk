@@ -20,7 +20,7 @@ def create_request(method: str, *args: Any, **kwargs: Any) -> dict:
         params = list(args)
     elif kwargs:
         params = kwargs
-    return request(method, params)
+    return request(method, params)  # type: ignore
 
 
 class RPCProxy:

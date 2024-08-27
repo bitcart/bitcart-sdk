@@ -1,3 +1,4 @@
+import asyncio
 import socket
 
 import pytest
@@ -108,6 +109,7 @@ class FakeDaemon:
         ws = web.WebSocketResponse()
         await ws.prepare(request)
         await self.reply_to_websocket(ws)
+        await asyncio.sleep(0.5)  # because events are processed asynchronously
         await ws.close()
 
     async def reply_to_websocket(self, ws):

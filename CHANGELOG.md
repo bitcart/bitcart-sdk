@@ -2,6 +2,10 @@
 
 ## Latest changes
 
+## 1.16.0.0
+
+**Breaking changes**: all events received via websocket are now processed asynchronously. Ensure your handlers are accounted for concurrent access. In case not, ensure locking techniques are used (asyncio.Lock, postgres FOR UPDATE, advisory locks, etc)
+
 ## 1.15.0.0
 
 We now support Python >= 3.9 only

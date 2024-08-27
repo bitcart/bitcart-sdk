@@ -17,16 +17,13 @@ strict_optional = true
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
-addopts = [
-    "--cov=bitcart",
-    "--cov-report",
-    "term-missing",
-]
+addopts = ["--cov=bitcart", "--cov-report", "term-missing"]
 filterwarnings = [
     "error::DeprecationWarning",
     "error::PendingDeprecationWarning",
 ]
-asyncio_mode="auto"
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
 
 [tool.coverage.run]
 omit = [
@@ -42,5 +39,5 @@ omit = [
 exclude_lines = [
     "pragma: no cover",
     "raise NotImplementedError()",
-    "if TYPE_CHECKING:"
+    "if TYPE_CHECKING:",
 ]

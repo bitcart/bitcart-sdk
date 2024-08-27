@@ -39,7 +39,9 @@ class EventDelivery:
             if msg.type == WSMsgType.TEXT:
                 try:
                     data = msg.json()
-                    await self.process_updates(data.get("updates", []), data.get("currency", "BTC"), data.get("wallet"))
+                    asyncio.ensure_future(
+                        self.process_updates(data.get("updates", []), data.get("currency", "BTC"), data.get("wallet"))
+                    )
                 except JSONDecodeError:
                     pass
             elif msg.type == WSMsgType.CLOSED or msg.type == WSMsgType.ERROR:  # pragma: no cover
