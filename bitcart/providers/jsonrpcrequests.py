@@ -117,7 +117,9 @@ class RPCProxy:
         async def wrapper(*args: Any, **kwargs: Any) -> Any:
             try:
                 async with self.session.post(
-                    self.url, data=json_encode(create_request(method, xpub=self.xpub, *args, **kwargs)), timeout=5 * 60
+                    self.url,
+                    data=json_encode(create_request(method, xpub=self.xpub, *args, **kwargs)),
+                    timeout=aiohttp.ClientTimeout(total=5 * 60),
                 ) as response:
                     parsed = parse_json(await response.text())
                     if isinstance(parsed, Ok):
