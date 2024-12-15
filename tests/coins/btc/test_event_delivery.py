@@ -1,11 +1,11 @@
-import multiprocessing
+import queue
 
 import pytest
 
 from bitcart.errors import ConnectionFailedError
 from tests.utils import patch_session
 
-test_queue = multiprocessing.Queue()
+test_queue = queue.Queue()
 
 pytestmark = pytest.mark.asyncio
 

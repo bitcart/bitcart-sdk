@@ -1,4 +1,4 @@
-import multiprocessing
+import queue
 
 import pytest
 
@@ -9,8 +9,8 @@ from tests.utils import patch_session
 
 pytestmark = pytest.mark.asyncio
 
-test_queue = multiprocessing.Queue()
-test_queue2 = multiprocessing.Queue()
+test_queue = queue.Queue()
+test_queue2 = queue.Queue()
 
 
 class DummyServer:
