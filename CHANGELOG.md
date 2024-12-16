@@ -2,6 +2,14 @@
 
 ## Latest changes
 
+## 1.17.0.0
+
+Require Python 3.11+
+
+Support Python 3.13
+
+Use uv & ruff as tooling
+
 ## 1.16.0.0
 
 **Breaking changes**: all events received via websocket are now processed asynchronously. Ensure your handlers are accounted for concurrent access. In case not, ensure locking techniques are used (asyncio.Lock, postgres FOR UPDATE, advisory locks, etc)
