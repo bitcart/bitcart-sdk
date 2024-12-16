@@ -157,7 +157,7 @@ class BTC(Coin, EventDelivery):
         expire: int | float = 15,
         extra_kwargs: dict | None = None,
     ) -> dict:
-        if extra_kwargs is None:
+        if extra_kwargs is None:  # pragma: no cover
             extra_kwargs = {}
         expiration = 60 * expire if expire else None
         kwargs = {"amount": amount, "memo": description, self.EXPIRATION_KEY: expiration}

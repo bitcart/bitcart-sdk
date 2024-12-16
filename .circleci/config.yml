@@ -132,6 +132,7 @@ workflows:
               v:
                 - "3.11"
                 - "3.12"
+                - "3.13"
 
       - bitcart/functional-tests:
           name: functional-tests
