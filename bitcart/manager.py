@@ -1,7 +1,7 @@
 import asyncio
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from functools import partial
-from typing import TYPE_CHECKING, Any, Callable, Optional
+from typing import TYPE_CHECKING, Any
 from urllib.parse import urljoin
 
 from bitcart.errors import CurrencyUnsupportedError, NoCurrenciesRegisteredError
@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 
 
 class APIManager(EventDelivery):
-    def __init__(self, wallets: Optional[dict[str, Iterable[str]]] = None, custom_params: Optional[dict[str, dict]] = None):
+    def __init__(self, wallets: dict[str, Iterable[str]] | None = None, custom_params: dict[str, dict] | None = None):
         if custom_params is None:
             custom_params = {}
         if wallets is None:
@@ -35,7 +35,7 @@ class APIManager(EventDelivery):
     def load_wallets(self, currency: str, wallets: Iterable[str]) -> ExtendedDict:
         return ExtendedDict({wallet: self.load_wallet(currency, wallet) for wallet in wallets})
 
-    def load_wallet(self, currency: str, wallet: Optional[str] = None) -> "Coin":
+    def load_wallet(self, currency: str, wallet: str | None = None) -> "Coin":
         currency = currency.upper()
         if currency not in COINS:
             raise CurrencyUnsupportedError()
@@ -66,7 +66,7 @@ class APIManager(EventDelivery):
             coin = self.load_wallet(currency, None)
         return coin.server  # type: ignore
 
-    async def _start_websocket_for_currency(self, currency: str, reconnect_callback: Optional[Callable] = None) -> None:
+    async def _start_websocket_for_currency(self, currency: str, reconnect_callback: Callable | None = None) -> None:
         if reconnect_callback:
             reconnect_callback = partial(reconnect_callback, currency)
         server = self._get_websocket_server(currency)
@@ -76,7 +76,7 @@ class APIManager(EventDelivery):
     async def start_websocket_for_currency(
         self,
         currency: str,
-        reconnect_callback: Optional[Callable] = None,
+        reconnect_callback: Callable | None = None,
         force_connect: bool = False,
         auto_reconnect: bool = True,
     ) -> None:
@@ -88,7 +88,7 @@ class APIManager(EventDelivery):
         )
 
     async def start_websocket(
-        self, reconnect_callback: Optional[Callable] = None, force_connect: bool = False, auto_reconnect: bool = True
+        self, reconnect_callback: Callable | None = None, force_connect: bool = False, auto_reconnect: bool = True
     ) -> None:
         tasks = []
         for currency in self.wallets:
@@ -101,9 +101,7 @@ class APIManager(EventDelivery):
         if not tasks:
             raise NoCurrenciesRegisteredError()
 
-    async def process_updates(
-        self, updates: Iterable[dict], currency: Optional[str] = None, wallet: Optional[str] = None
-    ) -> None:
+    async def process_updates(self, updates: Iterable[dict], currency: str | None = None, wallet: str | None = None) -> None:
         wallet_obj = self.wallets[currency].get(wallet)
         if not wallet_obj:
             try:

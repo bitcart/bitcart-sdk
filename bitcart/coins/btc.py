@@ -1,7 +1,7 @@
 import inspect
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from functools import wraps
-from typing import TYPE_CHECKING, Any, Callable, Optional, Union
+from typing import TYPE_CHECKING, Any, Optional
 
 from ..coin import Coin
 from ..errors import LightningDisabledError
@@ -43,11 +43,11 @@ class BTC(Coin, EventDelivery):
 
     def __init__(
         self,
-        rpc_url: Optional[str] = None,
-        rpc_user: Optional[str] = None,
-        rpc_pass: Optional[str] = None,
-        xpub: Optional[str] = None,
-        proxy: Optional[str] = None,
+        rpc_url: str | None = None,
+        rpc_user: str | None = None,
+        rpc_pass: str | None = None,
+        xpub: str | None = None,
+        proxy: str | None = None,
         session: Optional["ClientSession"] = None,
     ):
         super().__init__()
@@ -152,10 +152,10 @@ class BTC(Coin, EventDelivery):
     async def _add_request_base(
         self,
         method: Callable,
-        amount: Optional[AmountType] = None,
+        amount: AmountType | None = None,
         description: str = "",
-        expire: Union[int, float] = 15,
-        extra_kwargs: Optional[dict] = None,
+        expire: int | float = 15,
+        extra_kwargs: dict | None = None,
     ) -> dict:
         if extra_kwargs is None:
             extra_kwargs = {}
@@ -167,9 +167,9 @@ class BTC(Coin, EventDelivery):
 
     async def add_request(
         self,
-        amount: Optional[AmountType] = None,
+        amount: AmountType | None = None,
         description: str = "",
-        expire: Union[int, float] = 15,
+        expire: int | float = 15,
     ) -> dict:
         """Add invoice
 
@@ -258,10 +258,10 @@ class BTC(Coin, EventDelivery):
         self,
         address: str,
         amount: AmountType,
-        fee: Optional[Union[AmountType, Callable]] = None,
-        feerate: Optional[AmountType] = None,
+        fee: AmountType | Callable | None = None,
+        feerate: AmountType | None = None,
         broadcast: bool = True,
-    ) -> Union[dict, str]:
+    ) -> dict | str:
         """Pay to address
 
         This function creates a transaction, your wallet must have sufficent balance
@@ -305,7 +305,7 @@ class BTC(Coin, EventDelivery):
             tx_size = await self.server.get_tx_size(tx_data)
             default_fee = satoshis(await self.server.get_default_fee(tx_size))
             try:
-                resulting_fee: Optional[str] = str(bitcoins(fee(tx_size, default_fee)))  # type: ignore
+                resulting_fee: str | None = str(bitcoins(fee(tx_size, default_fee)))  # type: ignore
             except Exception:
                 resulting_fee = None
             if resulting_fee:
@@ -320,11 +320,11 @@ class BTC(Coin, EventDelivery):
 
     async def pay_to_many(
         self,
-        outputs: Iterable[Union[dict, tuple]],
-        fee: Optional[Union[AmountType, Callable]] = None,
-        feerate: Optional[AmountType] = None,
+        outputs: Iterable[dict | tuple],
+        fee: AmountType | Callable | None = None,
+        feerate: AmountType | None = None,
         broadcast: bool = True,
-    ) -> Union[dict, str]:
+    ) -> dict | str:
         """Pay to multiple addresses(batch transaction)
 
         This function creates a batch transaction, your wallet must have sufficent balance
@@ -382,7 +382,7 @@ class BTC(Coin, EventDelivery):
             tx_size = await self.server.get_tx_size(tx_data)
             default_fee = satoshis(await self.server.get_default_fee(tx_size))
             try:
-                resulting_fee: Optional[str] = str(bitcoins(fee(tx_size, default_fee)))  # type: ignore
+                resulting_fee: str | None = str(bitcoins(fee(tx_size, default_fee)))  # type: ignore
             except Exception:
                 resulting_fee = None
             if resulting_fee:
@@ -487,7 +487,7 @@ class BTC(Coin, EventDelivery):
         self,
         amount: AmountType,
         description: str = "",
-        expire: Union[int, float] = 15,
+        expire: int | float = 15,
     ) -> dict:
         """Create a lightning invoice
 

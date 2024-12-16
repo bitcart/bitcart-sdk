@@ -1,15 +1,16 @@
 import inspect
 import json
 import traceback
+from collections.abc import Callable
 from decimal import Decimal
-from typing import Any, Callable, Union
+from typing import Any
 
 from .logger import logger
 
 CONVERT_RATE = 100000000
 
 
-def convert_amount_type(amount: Union[str, Decimal]) -> Decimal:
+def convert_amount_type(amount: str | Decimal) -> Decimal:
     """Convert amount from str to Decimal
 
     Args:
@@ -23,7 +24,7 @@ def convert_amount_type(amount: Union[str, Decimal]) -> Decimal:
     return Decimal(amount)
 
 
-def satoshis(amount: Union[str, Decimal]) -> int:
+def satoshis(amount: str | Decimal) -> int:
     """Convert amount from bitcoins to satoshis
 
     Args:

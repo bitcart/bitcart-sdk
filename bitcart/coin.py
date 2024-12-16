@@ -1,4 +1,4 @@
-from typing import Callable, Optional
+from collections.abc import Callable
 
 
 class Coin:
@@ -6,7 +6,7 @@ class Coin:
     xpub_name: str
     friendly_name: str
     event_handlers: dict[str, Callable]
-    xpub: Optional[str]
+    xpub: str | None
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Coin):

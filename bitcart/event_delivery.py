@@ -1,8 +1,8 @@
 import asyncio
 import traceback
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from json import JSONDecodeError
-from typing import TYPE_CHECKING, Callable, Optional, Union
+from typing import TYPE_CHECKING
 from urllib.parse import urljoin
 
 from aiohttp import ClientConnectionError, WSMsgType
@@ -21,16 +21,14 @@ class EventDelivery:
     server: "RPCProxy"
     event_handlers: dict[str, Callable]
 
-    async def process_updates(
-        self, updates: Iterable[dict], currency: Optional[str] = None, wallet: Optional[str] = None
-    ) -> None:
+    async def process_updates(self, updates: Iterable[dict], currency: str | None = None, wallet: str | None = None) -> None:
         raise NotImplementedError()
 
     async def _register_wallets(self, ws: "ClientWebSocketResponse") -> None:
         raise NotImplementedError()
 
     async def _start_websocket_processing(
-        self, ws: "ClientWebSocketResponse", reconnect_callback: Optional[Callable] = None
+        self, ws: "ClientWebSocketResponse", reconnect_callback: Callable | None = None
     ) -> None:
         await self._register_wallets(ws)
         if reconnect_callback:
@@ -47,14 +45,14 @@ class EventDelivery:
             elif msg.type == WSMsgType.CLOSED or msg.type == WSMsgType.ERROR:  # pragma: no cover
                 break
 
-    async def _start_websocket_inner(self, reconnect_callback: Optional[Callable] = None) -> None:
+    async def _start_websocket_inner(self, reconnect_callback: Callable | None = None) -> None:
         async with self.server.session.ws_connect(urljoin(self.server.url, "/ws")) as ws:
             await self._start_websocket_processing(ws, reconnect_callback=reconnect_callback)
 
     async def _websocket_base_loop(
         self,
         func: Callable,
-        reconnect_callback: Optional[Callable] = None,
+        reconnect_callback: Callable | None = None,
         force_connect: bool = False,
         auto_reconnect: bool = True,
     ) -> None:
@@ -71,7 +69,7 @@ class EventDelivery:
             await asyncio.sleep(5)  # wait a bit before re-estabilishing a connection # pragma: no cover
 
     async def start_websocket(
-        self, reconnect_callback: Optional[Callable] = None, force_connect: bool = False, auto_reconnect: bool = True
+        self, reconnect_callback: Callable | None = None, force_connect: bool = False, auto_reconnect: bool = True
     ) -> None:
         """Start a websocket connection to daemon
 
@@ -89,7 +87,7 @@ class EventDelivery:
             auto_reconnect=auto_reconnect,
         )
 
-    async def poll_updates(self, timeout: Union[int, float] = 1) -> None:  # pragma: no cover
+    async def poll_updates(self, interval: int | float = 1) -> None:  # pragma: no cover
         """Poll updates
 
         Poll daemon for new transactions in wallet,
@@ -99,7 +97,7 @@ class EventDelivery:
 
         Args:
             self (BTC): self
-            timeout (Union[int, float], optional): seconds to wait before requesting transactions again. Defaults to 1.
+            interval (Union[int, float], optional): seconds to wait before requesting transactions again. Defaults to 1.
 
         Returns:
             None: This function runs forever
@@ -109,12 +107,12 @@ class EventDelivery:
                 data = await self.server.get_updates()
             except Exception:
                 logger.error(f"Error occured during event polling:\n{traceback.format_exc()}")
-                await asyncio.sleep(timeout)
+                await asyncio.sleep(interval)
                 continue
             await self.process_updates(data)
-            await asyncio.sleep(timeout)
+            await asyncio.sleep(interval)
 
-    def add_event_handler(self, events: Union[Iterable[str], str], func: Callable) -> None:
+    def add_event_handler(self, events: Iterable[str] | str, func: Callable) -> None:
         """Add event handler to handle event(s) provided
 
         Args:
@@ -130,7 +128,7 @@ class EventDelivery:
         for event in events:
             self.event_handlers[event] = func
 
-    def on(self, events: Union[Iterable[str], str]) -> Callable:
+    def on(self, events: Iterable[str] | str) -> Callable:
         """Register on event
 
         Register callback function to be run when event is emmited

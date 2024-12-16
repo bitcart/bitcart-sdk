@@ -1,11 +1,11 @@
 import functools
-from typing import Any, Optional
+from typing import Any
 
 
 class BaseError(Exception):
     """Base error for all errors raised"""
 
-    def __init__(self, msg: Optional[str] = None, *args: Any):
+    def __init__(self, msg: str | None = None, *args: Any):
         super().__init__(msg or self.__doc__, *args)
 
 

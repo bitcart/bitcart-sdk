@@ -1,8 +1,8 @@
 from collections import UserDict, defaultdict
 from decimal import Decimal
-from typing import Any, Union
+from typing import Any
 
-AmountType = Union[int, str, Decimal]
+AmountType = int | str | Decimal
 
 
 class ExtendedDictMixin:

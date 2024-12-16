@@ -1,6 +1,7 @@
 import asyncio
 import contextlib
-from typing import Any, Callable, Optional, Union
+from collections.abc import Callable
+from typing import Any
 from urllib.parse import urljoin
 
 import aiohttp
@@ -12,7 +13,7 @@ from ..utils import json_encode
 
 
 def create_request(method: str, *args: Any, **kwargs: Any) -> dict:
-    params: Union[list, dict] = []
+    params: list | dict = []
     if args and kwargs:
         # It actually violates json-rpc 2.0 spec but is pretty convenient for passing both positional and named arguments
         params = list(args)
@@ -28,12 +29,12 @@ class RPCProxy:
     def __init__(
         self,
         url: str,
-        username: Optional[str] = None,
-        password: Optional[str] = None,
-        xpub: Optional[str] = None,
-        session: Optional[aiohttp.ClientSession] = None,
-        proxy: Optional[str] = None,
-        verify: Optional[bool] = True,
+        username: str | None = None,
+        password: str | None = None,
+        xpub: str | None = None,
+        session: aiohttp.ClientSession | None = None,
+        proxy: str | None = None,
+        verify: bool | None = True,
     ):
         self.url = url
         self.username = username
