@@ -1,6 +1,5 @@
 from typing import Any, NoReturn
 
-from ..errors import NotImplementedError
 from .btc import BTC
 
 

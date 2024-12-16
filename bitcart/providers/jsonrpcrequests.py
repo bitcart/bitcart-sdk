@@ -1,4 +1,5 @@
 import asyncio
+import contextlib
 from typing import Any, Callable, Optional, Union
 from urllib.parse import urljoin
 
@@ -41,7 +42,7 @@ class RPCProxy:
         self.proxy = proxy
         self.verify = verify
         self._connector_class = aiohttp.TCPConnector
-        self._connector_init = dict(ssl=self.verify)
+        self._connector_init = {"ssl": self.verify}
         self._spec = {"exceptions": {"-32600": {"exc_name": "UnauthorizedError", "docstring": "Unauthorized"}}}
         self._spec_valid = False
         self._sessions: dict[asyncio.AbstractEventLoop, aiohttp.ClientSession] = {}
@@ -87,29 +88,24 @@ class RPCProxy:
             return False
         if not isinstance(spec["version"], str) or not isinstance(spec["exceptions"], dict):
             return False
-        if not all(
+        return all(
             isinstance(code, str) and isinstance(exc, dict) and exc.keys() >= {"exc_name", "docstring"}
             for code, exc in spec["exceptions"].items()
-        ):
-            return False
-        return True
+        )
 
     async def fetch_spec(self) -> Any:
         resp = await self.session.get(urljoin(self.url, "/spec"))
-        spec = await resp.json()
-        return spec
+        return await resp.json()
 
     @property
     async def spec(self) -> dict:
         if self._spec_valid:
             return self._spec
-        try:
+        with contextlib.suppress(Exception):
             spec = await self.fetch_spec()
             self._spec_valid = self.validate_spec(spec)
             if self._spec_valid:
                 self._spec = spec
-        except Exception:
-            pass
         return self._spec
 
     def __getattr__(self, method: str, *args: Any, **kwargs: Any) -> Callable:
@@ -118,20 +114,19 @@ class RPCProxy:
             try:
                 async with self.session.post(
                     self.url,
-                    data=json_encode(create_request(method, xpub=self.xpub, *args, **kwargs)),
+                    data=json_encode(create_request(method, *args, xpub=self.xpub, **kwargs)),
                     timeout=aiohttp.ClientTimeout(total=5 * 60),
                 ) as response:
                     parsed = parse_json(await response.text())
                     if isinstance(parsed, Ok):
                         return parsed.result
-                    else:
-                        message = parsed.message
-                        error_code = str(parsed.code)
-                        exceptions = (await self.spec)["exceptions"]
-                        if error_code in exceptions:
-                            exc = exceptions[error_code]
-                            raise generate_exception(exc["exc_name"])(exc["docstring"])
-                        raise UnknownError(f"Unknown error from server: {message}")
+                    message = parsed.message
+                    error_code = str(parsed.code)
+                    exceptions = (await self.spec)["exceptions"]
+                    if error_code in exceptions:
+                        exc = exceptions[error_code]
+                        raise generate_exception(exc["exc_name"])(exc["docstring"])
+                    raise UnknownError(f"Unknown error from server: {message}")
             except aiohttp.ClientConnectionError as e:
                 raise ConnectionFailedError() from e
 

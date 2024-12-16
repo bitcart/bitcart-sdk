@@ -1,7 +1,9 @@
 import subprocess
 
 
-def run_shell(args=[], timeout=30):
+def run_shell(args=None, timeout=30):
+    if args is None:
+        args = []
     process = subprocess.Popen(["tests/regtest/regtest.sh"] + args, stdout=subprocess.PIPE, universal_newlines=True)
     process.wait(timeout=timeout)
     assert process.returncode == 0

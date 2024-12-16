@@ -34,7 +34,7 @@ class BTC(Coin, EventDelivery):
     friendly_name = "Bitcoin"
     RPC_URL = "http://localhost:5000"
     RPC_USER = "electrum"
-    RPC_PASS = "electrumz"
+    RPC_PASS = "electrumz"  # noqa
     ALLOWED_EVENTS = ["new_block", "new_transaction", "new_payment", "verified_tx"]
     BALANCE_ATTRS = ["confirmed", "unconfirmed", "unmatured", "lightning"]
     EXPIRATION_KEY = "expiry"
@@ -155,8 +155,10 @@ class BTC(Coin, EventDelivery):
         amount: Optional[AmountType] = None,
         description: str = "",
         expire: Union[int, float] = 15,
-        extra_kwargs: dict = {},
+        extra_kwargs: Optional[dict] = None,
     ) -> dict:
+        if extra_kwargs is None:
+            extra_kwargs = {}
         expiration = 60 * expire if expire else None
         kwargs = {"amount": amount, "memo": description, self.EXPIRATION_KEY: expiration}
         kwargs.update(extra_kwargs)
@@ -314,8 +316,7 @@ class BTC(Coin, EventDelivery):
                 await self.server.addtransaction(tx_data)
         if broadcast:
             return await self.server.broadcast(tx_data)  # type: ignore
-        else:
-            return tx_data  # type: ignore
+        return tx_data  # type: ignore
 
     async def pay_to_many(
         self,
@@ -390,8 +391,7 @@ class BTC(Coin, EventDelivery):
                 await self.server.addtransaction(tx_data)
         if broadcast:
             return await self.server.broadcast(tx_data)  # type: ignore
-        else:
-            return tx_data  # type: ignore
+        return tx_data  # type: ignore
 
     async def set_config(self, key: str, value: Any) -> bool:
         """Set config key to specified value

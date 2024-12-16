@@ -1,9 +1,91 @@
-[tool.black]
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "bitcart"
+version = "1.16.0.0"
+description = "Bitcart coins support library"
+readme = "README.md"
+license = "MIT"
+authors = [{ name = "MrNaif2018", email = "chuff184@gmail.com" }]
+requires-python = ">=3.9"
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Build Tools",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+keywords = ["electrum", "daemon", "bitcart", "bitcartcc"]
+dependencies = ["jsonrpcclient", "aiohttp", "universalasync"]
+
+[project.optional-dependencies]
+proxy = ["aiohttp_socks"]
+
+[project.urls]
+Homepage = "https://github.com/bitcart/bitcart-sdk"
+Source = "https://github.com/bitcart/bitcart-sdk"
+Changelog = "https://github.com/bitcart/bitcart-sdk/blob/master/CHANGELOG.md"
+
+[dependency-groups]
+dev = [
+    "pre-commit",
+    "pytest",
+    "pytest-cov",
+    "pytest-asyncio",
+    "pytest-mock",
+    "ruff",
+    "mypy",
+]
+docs = [
+    "commonmark",
+    "mock",
+    "pillow",
+    "recommonmark",
+    "sphinx",
+    "sphinx-rtd-theme",
+]
+all = [{ include-group = 'dev' }, { include-group = 'docs' }]
+
+[tool.uv]
+default-groups = ["dev"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["bitcart"]
+
+[tool.ruff]
+target-version = "py39"
 line-length = 127
 
-[tool.isort]
-profile = "black"
-line_length = 127
+[tool.ruff.lint]
+select = [
+    "F",
+    "E",
+    "I",
+    "UP",
+    "YTT",
+    "B",
+    "T10",
+    "C",
+    "SIM",
+    "RUF100",
+    "RET",
+    "A",
+    "S",
+    "ASYNC",
+]
+ignore = ["RET502", "RET503", "S104", "S507", "ASYNC110"]
+mccabe = { max-complexity = 12 }
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S"]
+"examples/*" = ["SIM"]
 
 [tool.mypy]
 warn_redundant_casts = true

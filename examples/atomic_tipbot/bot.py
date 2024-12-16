@@ -1,5 +1,6 @@
 import asyncio
 import configparser
+import contextlib
 import logging
 import os
 import re
@@ -39,8 +40,8 @@ main_config = configparser.ConfigParser()
 main_config.read("config.ini")
 try:
     config = main_config["app"]
-except KeyError:
-    raise ValueError("No [app] section found, exiting...")
+except KeyError as e:
+    raise ValueError("No [app] section found, exiting...") from e
 
 # constants
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
@@ -484,14 +485,12 @@ def tip(client, message):
         "https://i.imgur.com/CCqdiZZ.gif",
         caption=f"You sent {amount} satoshis to {receiver_name}({receiver_username})",
     )
-    try:
+    with contextlib.suppress(BadRequest):
         app.send_animation(
             reply_id,
             "https://i.imgur.com/U7VL2CV.gif",
             caption=f"You received {amount} satoshis",
         )
-    except BadRequest:
-        pass
 
 
 @app.on_message(filters.private & filters.text & filters.regex(r"(\w+) (\w+) (\d+)"))
@@ -591,8 +590,7 @@ def charge_user(user_id, amount, tx_type="bet"):
     if amount > 0 and user["balance"] >= amount:
         change_balance(user_id, -amount, tx_type)
         return True
-    else:
-        return False
+    return False
 
 
 def make_bet(userid, currency, amount, trend, set_time, chat_id, msg_id):
@@ -660,21 +658,16 @@ def make_bet(userid, currency, amount, trend, set_time, chat_id, msg_id):
             ),
             reply_to_message_id=msg_id,
         )
-        try:
+        with contextlib.suppress(BadRequest):
             app.send_animation(chat_id=userid, animation=BET_LUCK_IMAGES[trend], caption="Good luck!")
-        except BadRequest:
-            pass
         return True
-    else:
-        try:
-            app.send_animation(
-                userid,
-                animation=BET_LUCK_IMAGES["nobalance"],
-                caption="Not enought funds. Would you like to top-up? /deposit",
-            )
-        except BadRequest:
-            pass
-        return False
+    with contextlib.suppress(BadRequest):
+        app.send_animation(
+            userid,
+            animation=BET_LUCK_IMAGES["nobalance"],
+            caption="Not enought funds. Would you like to top-up? /deposit",
+        )
+    return False
 
 
 @app.on_message(filters.command("bet"))
@@ -741,14 +734,12 @@ def send2telegram(client, message):
             genvoucher(user_id, amount, receiver)
             message.reply(f"Funds reserved for {receiver}, now he needs send /claim command to @bitcart_atomic_tipbot")
         else:
-            try:
+            with contextlib.suppress(BadRequest):
                 app.send_animation(
                     user_id,
                     animation="https://i.imgur.com/UY8I7ow.gif",
                     caption="Not enought funds. Would you like to top-up? /deposit",
                 )
-            except BadRequest:
-                pass
     except ValueError:
         message.reply("Failed to send funds. Command format to send 10000 to @MrNaif_bel: /send2telegram @MrNaif_bel 10000")
 

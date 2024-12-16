@@ -19,7 +19,11 @@ if TYPE_CHECKING:
 
 
 class APIManager(EventDelivery):
-    def __init__(self, wallets: dict[str, Iterable[str]] = {}, custom_params: dict[str, dict] = {}):
+    def __init__(self, wallets: Optional[dict[str, Iterable[str]]] = None, custom_params: Optional[dict[str, dict]] = None):
+        if custom_params is None:
+            custom_params = {}
+        if wallets is None:
+            wallets = {}
         super().__init__()
         self.custom_params = custom_params
         self.wallets = ExtendedDefaultDict(
