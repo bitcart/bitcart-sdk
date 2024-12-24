@@ -30,10 +30,10 @@ jobs:
         run: |-
           uv sync --frozen --compile-bytecode
           echo "$PWD/.venv/bin" >> $GITHUB_PATH
-      - uses: awalsh128/cache-apt-pkgs-action@latest
-        with:
-          packages: libsecp256k1-dev
-          version: 1.0
+      - name: install daemon 1
+        run: |-
+          apt update
+          apt install libsecp256k1-dev -y
       - name: install daemon 2
         run: |-
           cd bitcart-daemon
