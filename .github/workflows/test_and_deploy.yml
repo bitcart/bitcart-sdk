@@ -32,13 +32,17 @@ jobs:
         run: |-
           uv sync --frozen --compile-bytecode
           echo "$PWD/.venv/bin" >> $GITHUB_PATH
-      - name: install daemon
+      - name: install daemon 1
         run: |-
           sudo apt update
           sudo apt install libsecp256k1-dev -y
+      - name: install daemon 2
+        run: |-
           cd bitcart-daemon
           uv pip install -U -r requirements/base.txt
           uv pip install -U -r requirements/daemons/btc.txt
+      - name: prune cache
+        run: |-
           uv cache prune --ci
       - name: prepare daemon
         run: |-
