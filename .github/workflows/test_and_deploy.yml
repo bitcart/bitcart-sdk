@@ -145,4 +145,4 @@ jobs:
       - name: run functional tests
         run: |-
           sleep 15s
-          make functional
+          make regtest
