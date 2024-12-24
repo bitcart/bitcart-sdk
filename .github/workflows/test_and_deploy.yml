@@ -37,8 +37,7 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
-    requires:
-      - lint
+    needs: lint
     strategy:
       matrix:
         v:
