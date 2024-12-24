@@ -21,7 +21,7 @@ jobs:
       - name: prepare daemon
         run: |-
           cd ~/bitcart-daemon
-          make testnet
+          make testnet &
       - name: run fast tests
         run: make ci
       - uses: "./.github/actions/upload-results"
