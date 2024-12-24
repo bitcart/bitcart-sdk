@@ -31,7 +31,7 @@ commands:
 
       - restore_cache:
           keys:
-            - v1-dependencies-{{ .Branch }}-{{ checksum "~/.pyenv/version" }}-{{ checksum "uv.lock" }}-{{ checksum "~/bitcart-daemon/requirements/daemons/btc.txt" }}
+            - v1-dependencies-{{ .Branch }}-{{ checksum "~/.pyenv/version" }}-{{ checksum "uv.lock" }}-{{ checksum "~/bitcart-daemon/uv.lock" }}
 
       - run:
           name: Install library
@@ -53,7 +53,7 @@ commands:
       - save_cache:
           paths:
             - "<<parameters.cache_dir>>"
-          key: v1-dependencies-{{ .Branch }}-{{ checksum "~/.pyenv/version" }}-{{ checksum "uv.lock" }}-{{ checksum "~/bitcart-daemon/requirements/daemons/btc.txt" }}
+          key: v1-dependencies-{{ .Branch }}-{{ checksum "~/.pyenv/version" }}-{{ checksum "uv.lock" }}-{{ checksum "~/bitcart-daemon/uv.lock" }}
 
   upload-results:
     steps:
