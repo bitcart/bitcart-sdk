@@ -47,8 +47,7 @@ commands:
             sudo apt update
             sudo apt install libsecp256k1-dev
             cd ~/bitcart-daemon
-            uv pip install -U -r requirements/base.txt
-            uv pip install -U -r requirements/daemons/btc.txt
+            UV_PROJECT_ENVIRONMENT=~/repo/.venv uv sync --frozen --compile-bytecode --inexact --no-group all --group btc --cache-dir <<parameters.cache_dir>>
             uv cache prune --ci --cache-dir <<parameters.cache_dir>>
 
       - save_cache:
