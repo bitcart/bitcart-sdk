@@ -1,0 +1,13 @@
+name: upload-results
+runs:
+  using: composite
+  steps:
+    - uses: actions/upload-artifact@v4
+      with:
+        path: test-results
+    - uses: actions/upload-artifact@v4
+      with:
+        path: coverage
+    - uses: actions/upload-artifact@v4
+      with:
+        path: test-results

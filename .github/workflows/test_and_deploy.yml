@@ -1,0 +1,31 @@
+name: test_and_deploy
+on:
+  push:
+    branches:
+      - master
+jobs:
+  test:
+    defaults:
+      run:
+        working-directory: "~/repo"
+    runs-on: ubuntu-latest
+    container:
+      image: python:${{ matrix.v }}
+    env:
+      PYTHON: "${{ matrix.v }}"
+    strategy:
+      matrix:
+        v:
+          - "3.11"
+          - "3.12"
+          - "3.13"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: "./.github/actions/install_dependencies"
+      - name: prepare daemon
+        run: |-
+          cd ~/bitcart-daemon
+          make testnet
+      - name: run fast tests
+        run: make ci
+      - uses: "./.github/actions/upload-results"
