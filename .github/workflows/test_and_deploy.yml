@@ -1,8 +1,6 @@
 name: test_and_deploy
 on:
   push:
-    branches:
-      - master
 jobs:
   test:
     defaults:
