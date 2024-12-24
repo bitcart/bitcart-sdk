@@ -12,7 +12,7 @@ jobs:
           - "3.12"
           - "3.13"
     container:
-      - image: python:${{ matrix.v }}
+      image: python:${{ matrix.v }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/checkout@v4
