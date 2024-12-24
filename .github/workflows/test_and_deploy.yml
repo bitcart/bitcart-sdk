@@ -11,12 +11,10 @@ jobs:
           - "3.11"
           - "3.12"
           - "3.13"
+    docker:
+      - image: cimg/python:${{ matrix.v }}
     steps:
       - uses: actions/checkout@v4
-      - name: "Set up Python"
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.v }}
       - uses: actions/checkout@v4
         with:
           repository: "bitcart/bitcart"
