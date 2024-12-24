@@ -15,7 +15,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: "Set up Python"
         uses: actions/setup-python@v5
-        version: ${{ matrix.v }}
+        with:
+          python-version: ${{ matrix.v }}
       - uses: "./.github/actions/install_dependencies"
       - name: prepare daemon
         run: |-
