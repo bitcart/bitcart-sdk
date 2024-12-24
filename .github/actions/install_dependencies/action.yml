@@ -14,6 +14,7 @@ runs:
       run: |-
         uv sync --frozen --compile-bytecode
         echo "$PWD/.venv/bin" >> $GITHUB_PATH
+      shell: bash
     - name: install daemon
       run: |-
         sudo apt update
@@ -21,3 +22,4 @@ runs:
         cd bitcart-daemon
         uv pip install -U -r requirements/base.txt
         uv pip install -U -r requirements/daemons/btc.txt
+      shell: bash
