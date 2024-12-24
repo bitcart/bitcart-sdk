@@ -34,8 +34,8 @@ jobs:
           echo "$PWD/.venv/bin" >> $GITHUB_PATH
       - name: install daemon 1
         run: |-
-          sudo DEBIAN_FRONTEND=noninteractive apt-get update -y
-          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+          DEBIAN_FRONTEND=noninteractive apt-get update -y
+          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
             libsecp256k1-dev
           cd bitcart-daemon
           uv pip install -U -r requirements/base.txt
