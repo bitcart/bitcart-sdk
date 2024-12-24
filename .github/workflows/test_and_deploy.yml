@@ -4,9 +4,6 @@ on:
   pull_request:
 jobs:
   test:
-    defaults:
-      run:
-        working-directory: "~/repo"
     runs-on: ubuntu-latest
     container:
       image: python:${{ matrix.v }}
@@ -23,7 +20,7 @@ jobs:
       - uses: "./.github/actions/install_dependencies"
       - name: prepare daemon
         run: |-
-          cd $HOME/bitcart-daemon
+          cd ~/bitcart-daemon
           make testnet
       - name: run fast tests
         run: make ci

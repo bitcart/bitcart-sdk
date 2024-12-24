@@ -3,7 +3,7 @@ runs:
   using: composite
   steps:
     - name: clone daemon
-      run: git clone https://github.com/bitcart/bitcart $HOME/bitcart-daemon
+      run: git clone https://github.com/bitcart/bitcart ~/bitcart-daemon
       shell: bash
     - name: Install uv
       uses: astral-sh/setup-uv@v5
@@ -18,7 +18,7 @@ runs:
       run: |-
         apt update
         apt install libsecp256k1-dev -y
-        cd $HOME/bitcart-daemon
+        cd ~/bitcart-daemon
         uv pip install -U -r requirements/base.txt
         uv pip install -U -r requirements/daemons/btc.txt
       shell: bash
