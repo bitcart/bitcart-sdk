@@ -1,30 +1,148 @@
 name: test_and_deploy
 on:
   push:
+    branches:
+      - master
   pull_request:
+
 jobs:
-  test:
-    defaults:
-      run:
-        working-directory: "~/repo"
+  lint:
     runs-on: ubuntu-latest
-    container:
-      image: python:${{ matrix.v }}
-    env:
-      PYTHON: "${{ matrix.v }}"
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.11"
+
+      - name: Restore pre-commit cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pre-commit
+          key: ${{ runner.os }}-pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
+
+      - name: Run pre-commit checks
+        run: uvx pre-commit run --all-files --show-diff-on-failure
+
+      - name: Save pre-commit cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pre-commit
+          key: ${{ runner.os }}-pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
+
+  test:
+    runs-on: ubuntu-latest
+    needs: lint
     strategy:
       matrix:
         v:
           - "3.11"
           - "3.12"
           - "3.13"
+    container:
+      image: python:${{ matrix.v }}
     steps:
       - uses: actions/checkout@v4
-      - uses: "./.github/actions/install_dependencies"
+      - uses: actions/checkout@v4
+        with:
+          repository: "bitcart/bitcart"
+          path: "bitcart-daemon"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: |
+            uv.lock
+            bitcart-daemon/requirements/daemons/btc.txt
+      - name: Install library
+        run: |-
+          uv sync --frozen --compile-bytecode
+          echo "$PWD/.venv/bin" >> $GITHUB_PATH
+      - name: install daemon 1
+        run: |-
+          DEBIAN_FRONTEND=noninteractive apt-get update -y
+          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+            libsecp256k1-dev
+          cd bitcart-daemon
+          uv pip install -U -r requirements/base.txt
+          uv pip install -U -r requirements/daemons/btc.txt
+          uv cache prune --ci
       - name: prepare daemon
         run: |-
-          cd ~/bitcart-daemon
-          make testnet
+          cd bitcart-daemon
+          make testnet &
       - name: run fast tests
         run: make ci
       - uses: "./.github/actions/upload-results"
+
+  functional:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: "bitcart/bitcart"
+          path: "bitcart-daemon"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          python-version: "3.11"
+          cache-dependency-glob: |
+            uv.lock
+            bitcart-daemon/requirements/daemons/btc.txt
+      - name: Install library
+        run: |-
+          uv sync --frozen --compile-bytecode
+          echo "$PWD/.venv/bin" >> $GITHUB_PATH
+      - name: install daemon 1
+        run: |-
+          DEBIAN_FRONTEND=noninteractive sudo apt-get update -y
+          DEBIAN_FRONTEND=noninteractive sudo apt-get install -y --no-install-recommends \
+            libsecp256k1-dev
+          cd bitcart-daemon
+          uv pip install -U -r requirements/base.txt
+          uv pip install -U -r requirements/daemons/btc.txt
+          uv cache prune --ci
+
+      - name: install regtest utils
+        run: |-
+          sudo add-apt-repository -y ppa:luke-jr/bitcoincore
+          DEBIAN_FRONTEND=noninteractive sudo apt update -y
+          DEBIAN_FRONTEND=noninteractive sudo apt install -y --no-install-recommends bitcoind screen
+
+      - name: install fulcrum
+        run: |-
+          FULCRUM_VERSION=$(curl --silent https://api.github.com/repos/cculianu/Fulcrum/releases/latest | jq -r .tag_name | tr -d v)
+          ARCHIVE_NAME=Fulcrum-$FULCRUM_VERSION-$(uname -m)-linux.tar.gz
+          wget https://github.com/cculianu/Fulcrum/releases/download/v$FULCRUM_VERSION/$ARCHIVE_NAME
+          mkdir -p Fulcrum
+          tar -xvzf $ARCHIVE_NAME -C Fulcrum
+          sudo cp Fulcrum/${ARCHIVE_NAME/.tar.gz/}/Fulcrum /usr/local/bin/Fulcrum
+          sudo chmod +x /usr/local/bin/Fulcrum
+          rm -rf $ARCHIVE_NAME Fulcrum
+
+      - name: prepare bitcoind
+        run: |-
+          make bitcoind &
+
+      - name: prepare fulcrum
+        run: |-
+          (sleep 10s && make fulcrum) &
+
+      - name: prepare regtest daemon
+        run: |-
+          cd bitcart-daemon
+          (sleep 10s && make regtest) &
+
+      - name: prepare regtest ln daemon
+        run: |-
+          cd bitcart-daemon
+          (sleep 10s && make regtestln) &
+
+      - name: run functional tests
+        run: |-
+          sleep 15s
+          make regtest
