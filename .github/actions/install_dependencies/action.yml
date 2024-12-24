@@ -16,8 +16,8 @@ runs:
       shell: bash
     - name: install daemon
       run: |-
-        sudo apt update
-        sudo apt install libsecp256k1-dev
+        apt update
+        apt install libsecp256k1-dev
         cd ~/bitcart-daemon
         uv pip install -U -r requirements/base.txt
         uv pip install -U -r requirements/daemons/btc.txt

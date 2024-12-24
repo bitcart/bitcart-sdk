@@ -1,6 +1,7 @@
 name: test_and_deploy
 on:
   push:
+  pull_request:
 jobs:
   test:
     defaults:
