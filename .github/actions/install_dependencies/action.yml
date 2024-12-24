@@ -1,0 +1,24 @@
+name: install_dependencies
+runs:
+  using: composite
+  steps:
+    - name: clone daemon
+      run: git clone https://github.com/bitcart/bitcart ~/bitcart-daemon
+      shell: bash
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
+      with:
+        enable-cache: true
+    - name: Install library
+      run: |-
+        uv sync --frozen --compile-bytecode
+        echo ". ~/repo/.venv/bin/activate" >> $BASH_ENV
+      shell: bash
+    - name: install daemon
+      run: |-
+        sudo apt update
+        sudo apt install libsecp256k1-dev
+        cd ~/bitcart-daemon
+        uv pip install -U -r requirements/base.txt
+        uv pip install -U -r requirements/daemons/btc.txt
+      shell: bash
