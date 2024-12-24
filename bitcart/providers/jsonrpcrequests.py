@@ -65,7 +65,7 @@ class RPCProxy:
             from aiohttp_socks.utils import parse_proxy_url
 
             proxy_type, host, port, username, password = parse_proxy_url(self.proxy)
-            self._connector_class = ProxyConnector
+            self._connector_class = ProxyConnector  # type: ignore
             self._connector_init.update(
                 proxy_type=proxy_type,
                 host=host,
