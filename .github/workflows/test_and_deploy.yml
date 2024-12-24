@@ -12,7 +12,7 @@ jobs:
     steps:
       - name: Checkout source code
         uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: astral-sh/setup-uv@v5
         with:
           python-version: "3.11"
 
@@ -22,12 +22,8 @@ jobs:
           path: ~/.cache/pre-commit
           key: ${{ runner.os }}-pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
 
-      - name: Install pre-commit via pip
-        run: |
-          pip3 install pre-commit
-
       - name: Run pre-commit checks
-        run: pre-commit run --all-files --show-diff-on-failure
+        run: uvx pre-commit run --all-files --show-diff-on-failure
 
       - name: Save pre-commit cache
         uses: actions/cache@v4
