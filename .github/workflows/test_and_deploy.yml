@@ -1,6 +1,8 @@
 name: test_and_deploy
 on:
   push:
+    branches:
+      - master
   pull_request:
 jobs:
   test:
@@ -35,13 +37,9 @@ jobs:
           sudo DEBIAN_FRONTEND=noninteractive apt-get update -y
           sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
             libsecp256k1-dev
-      - name: install daemon 2
-        run: |-
           cd bitcart-daemon
           uv pip install -U -r requirements/base.txt
           uv pip install -U -r requirements/daemons/btc.txt
-      - name: prune cache
-        run: |-
           uv cache prune --ci
       - name: prepare daemon
         run: |-
