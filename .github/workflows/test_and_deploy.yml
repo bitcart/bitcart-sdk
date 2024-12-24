@@ -23,7 +23,7 @@ jobs:
       - uses: "./.github/actions/install_dependencies"
       - name: prepare daemon
         run: |-
-          cd ~/bitcart-daemon
+          cd $HOME/bitcart-daemon
           make testnet
       - name: run fast tests
         run: make ci
