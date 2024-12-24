@@ -5,10 +5,6 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    container:
-      image: python:${{ matrix.v }}
-    env:
-      PYTHON: "${{ matrix.v }}"
     strategy:
       matrix:
         v:
@@ -17,6 +13,9 @@ jobs:
           - "3.13"
     steps:
       - uses: actions/checkout@v4
+      - name: "Set up Python"
+        uses: actions/setup-python@v5
+        version: ${{ matrix.v }}
       - uses: "./.github/actions/install_dependencies"
       - name: prepare daemon
         run: |-
