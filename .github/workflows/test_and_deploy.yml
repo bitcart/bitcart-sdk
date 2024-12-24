@@ -17,7 +17,29 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.v }}
-      - uses: "./.github/actions/install_dependencies"
+      - uses: actions/checkout@v4
+        with:
+          repository: "bitcart/bitcart"
+          path: "bitcart-daemon"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: |
+            uv.lock
+            bitcart-daemon/requirements/daemons/btc.txt
+      - name: Install library
+        run: |-
+          uv sync --frozen --compile-bytecode
+          echo "$PWD/.venv/bin" >> $GITHUB_PATH
+      - name: install daemon
+        run: |-
+          sudo apt update
+          sudo apt install libsecp256k1-dev -y
+          cd bitcart-daemon
+          uv pip install -U -r requirements/base.txt
+          uv pip install -U -r requirements/daemons/btc.txt
+          uv cache prune --ci
       - name: prepare daemon
         run: |-
           cd bitcart-daemon
