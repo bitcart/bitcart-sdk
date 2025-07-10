@@ -13,12 +13,10 @@ Coins support(⚡ means lightning is supported):
 - Monero
 - Ethereum
 - Binance coin (BNB)
-- SmartBCH
 - Polygon (MATIC)
 - Tron (TRX)
 - Ergon
 - Litecoin (⚡)
-- Globalboost (⚡)
 - Groestlcoin (⚡)
 
 Main focus is Bitcoin.

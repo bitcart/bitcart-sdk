@@ -58,16 +58,6 @@ BNB support is based on our custom daemon implementation which tries to follow e
     :show-inheritance:
     :undoc-members:
 
-SmartBCH
---------
-
-SmartBCH support is based on our custom daemon implementation which tries to follow electrum APIs as closely as possible
-
-.. autoclass:: bitcart.coins.sbch.SBCH
-    :members:
-    :show-inheritance:
-    :undoc-members:
-
 Polygon (MATIC)
 ---------------
 
