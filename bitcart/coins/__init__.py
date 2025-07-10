@@ -1,6 +1,5 @@
 from .bch import BCH
 from .bnb import BNB
-from .bsty import BSTY
 from .btc import BTC
 from .eth import ETH
 from .grs import GRS
@@ -20,7 +19,6 @@ COINS = {
     "SBCH": SBCH,
     "LTC": LTC,
     "MATIC": MATIC,
-    "BSTY": BSTY,
     "TRX": TRX,
     "XRG": XRG,
     "GRS": GRS,

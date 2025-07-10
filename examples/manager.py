@@ -8,10 +8,9 @@ manager = APIManager(
         "LTC": [REAL_XPUB, "xpub1", "xpub2"],
         "BCH": [REAL_XPUB, "xpub1", "xpub2"],
         "XRG": [REAL_XPUB, "xpub1", "xpub2"],
-        "BSTY": [REAL_XPUB, "xpub1", "xpub2"],
     }
 )
-manager.add_wallet("BSTY", "xpub3")
+manager.add_wallet("XRG", "xpub3")
 manager.add_wallets("BTC", ["xpub4", "xpub5"])
 
 print(APIManager.load_wallet("BTC", "xpub"))  # shortcut to from bitcart import BTC; return BTC(xpub=xpub)

@@ -3,6 +3,6 @@ api_id = my_api_id
 api_hash = my_api_hash
 
 [app]
-cryptos=btc,bch,eth,bnb,sbch,matic,trx,xrg,ltc,bsty,grs,xmr
+cryptos=btc,bch,eth,bnb,sbch,matic,trx,xrg,ltc,grs,xmr
 token=my_telegram_bot_token
 xpub=my x/y/z pub/prv here
