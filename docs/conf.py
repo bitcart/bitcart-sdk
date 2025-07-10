@@ -60,7 +60,6 @@ html_theme_options = {
     "collapse_navigation": True,
     "sticky_navigation": True,
     "logo_only": True,
-    "display_version": True,
     "style_external_links": True,
 }
 

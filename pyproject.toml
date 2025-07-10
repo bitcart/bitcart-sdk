@@ -98,6 +98,7 @@ warn_return_any = true
 no_implicit_optional = true
 strict_optional = true
 ignore_missing_imports = true
+exclude = ["examples", "tests", "docs"]
 
 [tool.pytest.ini_options]
 addopts = ["--cov=bitcart", "--cov-report", "term-missing"]

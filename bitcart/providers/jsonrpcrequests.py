@@ -43,7 +43,7 @@ class RPCProxy:
         self.proxy = proxy
         self.verify = verify
         self._connector_class = aiohttp.TCPConnector
-        self._connector_init = {"ssl": self.verify}
+        self._connector_init: dict[str, Any] = {"ssl": self.verify}
         self._spec = {"exceptions": {"-32600": {"exc_name": "UnauthorizedError", "docstring": "Unauthorized"}}}
         self._spec_valid = False
         self._sessions: dict[asyncio.AbstractEventLoop, aiohttp.ClientSession] = {}
@@ -78,7 +78,7 @@ class RPCProxy:
     def create_session(self) -> aiohttp.ClientSession:
         self.init_proxy()
         return aiohttp.ClientSession(
-            connector=self._connector_class(**self._connector_init),  # type: ignore
+            connector=self._connector_class(**self._connector_init),
             auth=aiohttp.BasicAuth(self.username, self.password),  # type: ignore
         )
 

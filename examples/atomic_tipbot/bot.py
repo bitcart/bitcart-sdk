@@ -519,7 +519,7 @@ def withdraw(client, message):
         wallet_balance_sat = int(round(wallet_balance * coin_obj.rate("BTC") * 100000000, 8))
         return message.reply(
             f"Current {currency} wallet balance: {wallet_balance_sat}. \nIf you want to withdraw {amount} satoshis, you can do"
-            f' so in any of these currencies: {", ".join(available_coins)}',
+            f" so in any of these currencies: {', '.join(available_coins)}",
             quote=False,
         )
     # bitcart: send to address in BTC
@@ -800,7 +800,7 @@ async def betcheck():
                 )
                 await app.send_message(
                     chat_id=bet["chat_id"],
-                    text=f'Someone just won {bet["win"]} satoshis on bets!',
+                    text=f"Someone just won {bet['win']} satoshis on bets!",
                     reply_to_message_id=bet["msg_id"],
                 )
             else:
