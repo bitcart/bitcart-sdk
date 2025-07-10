@@ -15,7 +15,7 @@
 import os
 import sys
 
-import pkg_resources
+from bitcart import VERSION
 
 sys.path.insert(0, os.path.abspath(".."))
 
@@ -23,11 +23,11 @@ sys.path.insert(0, os.path.abspath(".."))
 # -- Project information -----------------------------------------------------
 
 project = "Bitcart SDK"
-copyright = "2019-2023, MrNaif2018"  # noqa
+copyright = "2019-2025, MrNaif2018"  # noqa
 author = "MrNaif2018"
 
 # The full version, including alpha/beta/rc tags
-release = pkg_resources.get_distribution("bitcart").version
+release = VERSION
 
 
 # -- General configuration ---------------------------------------------------

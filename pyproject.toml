@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "bitcart"
-version = "1.17.0.0"
+dynamic = ["version"]
 description = "Bitcart coins support library"
 readme = "README.md"
 license = "MIT"
@@ -56,6 +56,9 @@ default-groups = ["dev"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["bitcart"]
+
+[tool.hatch.version]
+path = "bitcart/version.py"
 
 [tool.ruff]
 target-version = "py311"
