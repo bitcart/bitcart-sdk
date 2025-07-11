@@ -39,6 +39,11 @@ async def btc_wallet():
 
 
 @pytest.fixture
+async def btc_wallet_lightning():
+    return BTC(xpub=REGTEST_XPUB)
+
+
+@pytest.fixture
 async def lightning_unsupported_wallet():
     return BTC(xpub=LIGHTNING_UNSUPPORTED_XPUB)
 

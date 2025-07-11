@@ -508,7 +508,9 @@ class BTC(Coin, EventDelivery):
         Returns:
             dict: Invoice data
         """
-        return await self.add_request(amount, description, expire)
+        return await self._add_request_base(
+            self._add_request, amount, description, expire, extra_kwargs={"force": True, "lightning": True}
+        )
 
     @lightning
     async def close_channel(self, channel_id: str, force: bool = False) -> str:

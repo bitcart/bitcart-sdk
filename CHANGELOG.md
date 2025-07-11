@@ -2,6 +2,15 @@
 
 ## Latest changes
 
+## 1.18.0.0
+
+Electrums upgrade: `add_request` no longer creates a lightning invoice as well, use `add_invoice` as you should have always been doing
+
+`get_tx` witness is now a list of witness items, not a string
+
+Drop support for BSTY
+Drop support for SmartBCH
+
 ## 1.17.0.0
 
 Require Python 3.11+

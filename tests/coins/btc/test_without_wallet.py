@@ -9,7 +9,7 @@ import pytest
 
 from bitcart import BTC
 
-from ...utils import data_check
+from ...utils import assert_contains, data_check
 
 pytestmark = pytest.mark.asyncio
 
@@ -64,25 +64,23 @@ async def get_address(btc, address):
 
 async def test_get_tx(btc):
     info = await get_tx(btc, "15967d9ed9b63f068c7578d54b7adff859f4aadc1253ba316b429d251da6b48c")
-    assert info.items() > {"version": 2, "locktime": 1895035}.items()
+    assert_contains({"version": 2, "locktime": 1895035}, info)
     data_check(info, "confirmations", int)
     assert info["confirmations"] > 0
     data_check(info, "inputs", list, 1)
-    assert (
-        info["inputs"][0].items()
-        >= {
+    assert_contains(
+        {
             "prevout_hash": "3fb55b64df34ded97e97cbd5cfc17b6f114a086950fbb0bffe3c985bfa9f5af8",
             "prevout_n": 1,
             "coinbase": False,
             "nsequence": 4294967294,
             "scriptSig": "",
-            "witness": (
-                "024730440220331290fdbb259fde31d6e0c4eea883e7b7442b1fb1dab0b7"
-                "63cd82c1c5b27a6a02205f37387895fbedb5514a6eb3f374c3943ffefd5d"
-                "f589ac5c59f34f99558386a501210314ef5ee304b86a5c2bbc9d9e1987cd"
-                "0cb156ca6942ea41dfb487f8d5494bc5bf"
-            ),
-        }.items()
+            "witness": [
+                "30440220331290fdbb259fde31d6e0c4eea883e7b7442b1fb1dab0b763cd82c1c5b27a6a02205f37387895fbedb5514a6eb3f374c3943ffefd5df589ac5c59f34f99558386a501",
+                "0314ef5ee304b86a5c2bbc9d9e1987cd0cb156ca6942ea41dfb487f8d5494bc5bf",
+            ],
+        },
+        info["inputs"][0],
     )
     data_check(info, "outputs", list, 2)
     assert info["outputs"][0] == {

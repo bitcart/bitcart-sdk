@@ -5,7 +5,7 @@ import pytest
 
 from bitcart import BTC, errors
 
-from ...utils import data_check
+from ...utils import assert_contains, data_check
 
 pytestmark = pytest.mark.asyncio
 
@@ -20,8 +20,8 @@ async def test_balance(btc_wallet):
 
 async def test_history(btc_wallet):
     history = await btc_wallet.history()
-    data_check(history, "summary", dict)
-    data_check(history, "transactions", list, 0)
+    assert isinstance(history, list)
+    assert len(history) == 0
 
 
 async def test_payment_request(btc_wallet):
@@ -39,16 +39,16 @@ async def test_payment_request(btc_wallet):
     assert response2["amount_BTC"] == Decimal(request2_amount)
     assert response2["message"] == request2_desc
     # full data structure check
-    assert (
-        request1.items()
-        > {
-            "is_lightning": True,
+    assert_contains(
+        {
+            "is_lightning": False,
             "amount_BTC": Decimal("0.5"),
             "message": "",
             "status": 0,
             "status_str": "Expires in about 15 minutes",
             "amount_sat": 50000000,
-        }.items()
+        },
+        request1,
     )
     data_check(request1, "timestamp", int)
     data_check(request1, "expiry", int)
