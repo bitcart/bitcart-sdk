@@ -1,5 +1,6 @@
 import asyncio
 import contextlib
+import weakref
 from collections.abc import Callable
 from typing import Any
 from urllib.parse import urljoin
@@ -25,6 +26,18 @@ def create_request(method: str, *args: Any, **kwargs: Any) -> dict:
     return request(method, params)  # type: ignore
 
 
+def _cleanup_sessions(sessions: dict[asyncio.AbstractEventLoop, aiohttp.ClientSession]) -> None:
+    loop = get_event_loop()
+    for session in list(sessions.values()):
+        if session is None or session.closed:
+            continue
+        if loop.is_running():
+            loop.create_task(session.close())
+        else:
+            loop.run_until_complete(session.close())
+    sessions.clear()
+
+
 class RPCProxy:
     def __init__(
         self,
@@ -42,13 +55,14 @@ class RPCProxy:
         self.xpub = xpub
         self.proxy = proxy
         self.verify = verify
-        self._connector_class = aiohttp.TCPConnector
+        self._connector_class: type[aiohttp.BaseConnector] = aiohttp.TCPConnector
         self._connector_init: dict[str, Any] = {"ssl": self.verify}
         self._spec = {"exceptions": {"-32600": {"exc_name": "UnauthorizedError", "docstring": "Unauthorized"}}}
         self._spec_valid = False
         self._sessions: dict[asyncio.AbstractEventLoop, aiohttp.ClientSession] = {}
         if session is not None:
             self._sessions[get_event_loop()] = session
+        self._finalizer = weakref.finalize(self, _cleanup_sessions, self._sessions)
 
     @property
     def session(self) -> aiohttp.ClientSession:
@@ -65,7 +79,7 @@ class RPCProxy:
             from aiohttp_socks.utils import parse_proxy_url
 
             proxy_type, host, port, username, password = parse_proxy_url(self.proxy)
-            self._connector_class = ProxyConnector  # type: ignore
+            self._connector_class = ProxyConnector
             self._connector_init.update(
                 proxy_type=proxy_type,
                 host=host,
@@ -133,14 +147,6 @@ class RPCProxy:
 
         return wrapper
 
-    async def _close(self) -> None:
-        for session in self._sessions.values():
-            if session is not None:
-                await session.close()
-
-    def __del__(self) -> None:
-        loop = get_event_loop()
-        if loop.is_running():
-            loop.create_task(self._close())
-        else:
-            loop.run_until_complete(self._close())
+    async def close(self) -> None:
+        if self._finalizer.alive:
+            self._finalizer()

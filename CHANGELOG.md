@@ -2,6 +2,14 @@
 
 ## Latest changes
 
+## 1.19.0.0
+
+Require Python 3.12+
+
+Support Python 3.14
+
+Better management of client session closure
+
 ## 1.18.0.0
 
 Electrums upgrade: `add_request` no longer creates a lightning invoice as well, use `add_invoice` as you should have always been doing
