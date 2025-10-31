@@ -15,3 +15,12 @@ class BCH(BTC):
 
     async def _add_request(self, *args: Any, **kwargs: Any) -> dict:  # pragma: no cover
         return await self.server.addrequest(*args, **kwargs)  # type: ignore
+
+    async def _convert_amounts(self, data: dict) -> dict:  # pragma: no cover
+        if not hasattr(self, "_fetched_token") and isinstance(self.xpub, dict):
+            contract = self.xpub.get("contract")
+            if contract:
+                self.symbol = (await self.server.readcontract(contract, "symbol")).upper()
+                self._fetched_token = True
+                self.amount_field = f"amount ({self.symbol})"
+        return await super()._convert_amounts(data)

@@ -2,6 +2,10 @@
 
 ## Latest changes
 
+## 1.19.1.0
+
+Support cashtokens in BCH
+
 ## 1.19.0.0
 
 Require Python 3.12+

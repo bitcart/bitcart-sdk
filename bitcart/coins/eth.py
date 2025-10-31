@@ -25,7 +25,7 @@ class ETH(BTC):
         if not hasattr(self, "_fetched_token") and isinstance(self.xpub, dict):
             contract = self.xpub.get("contract")
             if contract:
-                self._fetched_token = True
                 self.symbol = (await self.server.readcontract(contract, "symbol")).upper()
+                self._fetched_token = True
                 self.amount_field = f"amount_{self.symbol}"
         return await super()._convert_amounts(data)
