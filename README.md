@@ -1,6 +1,6 @@
 # Bitcart SDK
 
-[![CircleCI](https://circleci.com/gh/bitcart/bitcart-sdk.svg?style=svg)](https://circleci.com/gh/bitcart/bitcart-sdk)
+[![CI](https://github.com/bitcart/bitcart-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/bitcart/bitcart-sdk/actions/workflows/ci.yml)
 [![Codecov](https://img.shields.io/codecov/c/github/bitcart/bitcart-sdk?style=flat-square)](https://codecov.io/gh/bitcart/bitcart-sdk)
 [![PyPI version](https://img.shields.io/pypi/v/bitcart.svg?style=flat-square)](https://pypi.python.org/pypi/bitcart/)
 [![Read the Docs](https://img.shields.io/readthedocs/bitcart-sdk?style=flat-square)](https://sdk.bitcart.ai)
