@@ -68,7 +68,7 @@ jobs:
         with:
           run: |
             cd $DAEMON_DIR
-            BTC_EXPERIMENTAL_NOSYNC=true just testnet
+            just testnet
           key: testnet
 
       - name: Run tests
