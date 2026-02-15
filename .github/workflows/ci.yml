@@ -90,3 +90,21 @@ jobs:
         if: ${{ !cancelled() }}
         with:
           suffix: py${{ env.PYTHON }}
+
+  functional-tests:
+    uses: bitcart/bitcart-actions/.github/workflows/functional-tests.yml@master
+    needs: test
+    name: functional-tests
+    with:
+      tests-target: just regtest
+      install-dependencies: |
+        uv sync --frozen --compile-bytecode
+      daemon-dir: ${{ github.workspace }}/../daemon
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  combine-coverage:
+    uses: bitcart/bitcart-actions/.github/workflows/combine-coverage.yml@master
+    needs: [test, functional-tests]
+    if: ${{ !cancelled() }}
+    name: combine-coverage
