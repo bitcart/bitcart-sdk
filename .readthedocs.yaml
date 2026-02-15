@@ -13,4 +13,4 @@ build:
 mkdocs:
   configuration: mkdocs.yml
 
-formats: all
+formats: []
