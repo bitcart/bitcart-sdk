@@ -34,7 +34,7 @@ jobs:
 
     env:
       TEST_ARGS: "-o junit_family=legacy --junitxml test-results/junit.xml --cov-report html:coverage"
-      DAEMON_DIR: $GITHUB_WORKSPACE/../daemon
+      DAEMON_DIR: ../daemon
 
     steps:
       - uses: actions/checkout@v6
@@ -98,7 +98,7 @@ jobs:
     with:
       tests-target: just regtest
       daemon-repository: bitcart/bitcart
-      daemon-dir: $GITHUB_WORKSPACE/../daemon
+      daemon-dir: ../daemon
       install-dependencies: |
         uv sync --frozen --compile-bytecode
         cd $GITHUB_WORKSPACE/../daemon
