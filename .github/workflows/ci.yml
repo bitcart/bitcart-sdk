@@ -1,0 +1,88 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - "**"
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow_ref }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    uses: bitcart/bitcart-actions/.github/workflows/lint.yml@master
+    name: lint
+    with:
+      install-dependencies: |
+        uv sync --frozen --compile-bytecode
+
+  test:
+    needs: lint
+    name: test-${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: ["3.12", "3.13", "3.14"]
+
+    env:
+      TEST_ARGS: "-o junit_family=legacy --junitxml test-results/junit.xml --cov-report html:coverage"
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/checkout@v6
+        with:
+          repository: "bitcart/bitcart"
+          path: "~/bitcart-daemon"
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: bitcart/bitcart-actions/actions/setup-python@master
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install library
+        run: |
+          uv sync --frozen --compile-bytecode
+
+      - name: Install daemon
+        run: |
+          sudo apt update
+          sudo apt install libsecp256k1-dev
+          cd ~/bitcart-daemon
+          UV_PROJECT_ENVIRONMENT=~/repo/.venv uv sync --frozen --compile-bytecode --inexact --no-dev --group btc
+
+      - uses: bitcart/bitcart-actions/actions/run-in-background@master
+        name: Prepare daemon
+        with:
+          run: |
+            cd ~/bitcart-daemon
+            BTC_EXPERIMENTAL_NOSYNC=true just testnet
+          key: testnet
+
+      - name: Run tests
+        run: |
+          just ci
+
+      - uses: bitcart/bitcart-actions/actions/codecov@master
+        name: Upload coverage to Codecov
+        if: ${{ !cancelled() }}
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          name: Tests - Python ${{ env.PYTHON }}
+          flags: tests
+          env_vars: PYTHON
+          upload_coverage: ${{ job.status == 'success' }}
+
+      - uses: bitcart/bitcart-actions/actions/upload-test-results@master
+        name: Upload test results
+        if: ${{ !cancelled() }}
+        with:
+          suffix: py${{ env.PYTHON }}

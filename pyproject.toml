@@ -33,13 +33,14 @@ Changelog = "https://github.com/bitcart/bitcart-sdk/blob/master/CHANGELOG.md"
 
 [dependency-groups]
 dev = [
-    "pre-commit",
     "pytest",
     "pytest-cov",
     "pytest-asyncio",
     "pytest-mock",
     "ruff",
     "mypy",
+    "rust-just>=1.46.0",
+    "prek",
 ]
 docs = [
     "commonmark",
@@ -81,7 +82,7 @@ select = [
     "S",
     "ASYNC",
 ]
-ignore = ["RET502", "RET503", "S104", "S507", "ASYNC110"]
+ignore = ["RET502", "RET503", "S104", "S507", "ASYNC110", "ASYNC240"]
 mccabe = { max-complexity = 12 }
 
 [tool.ruff.lint.per-file-ignores]
