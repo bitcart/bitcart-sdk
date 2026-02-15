@@ -34,21 +34,15 @@ jobs:
 
     env:
       TEST_ARGS: "-o junit_family=legacy --junitxml test-results/junit.xml --cov-report html:coverage"
-      UV_PROJECT_ENVIRONMENT: ${{ github.workspace }}/.venv
-
-    defaults:
-      run:
-        working-directory: sdk
+      DAEMON_DIR: ${{ github.workspace }}/../daemon
 
     steps:
       - uses: actions/checkout@v6
-        with:
-          path: "sdk"
 
       - uses: actions/checkout@v6
         with:
           repository: "bitcart/bitcart"
-          path: "daemon"
+          path: "../daemon"
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: bitcart/bitcart-actions/actions/setup-python@master
@@ -63,14 +57,14 @@ jobs:
         run: |
           sudo apt update
           sudo apt install libsecp256k1-dev
-          cd $GITHUB_WORKSPACE/daemon
-          uv sync --frozen --compile-bytecode --inexact --no-dev --group btc
+          cd $DAEMON_DIR
+          UV_PROJECT_ENVIRONMENT=$GITHUB_WORKSPACE/.venv uv sync --frozen --compile-bytecode --inexact --no-dev --group btc
 
       - uses: bitcart/bitcart-actions/actions/run-in-background@master
         name: Prepare daemon
         with:
           run: |
-            cd $GITHUB_WORKSPACE/daemon
+            cd $DAEMON_DIR
             BTC_EXPERIMENTAL_NOSYNC=true just testnet
           key: testnet
 
