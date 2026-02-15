@@ -2,6 +2,12 @@
 
 ## Latest changes
 
+## 1.19.1.1
+
+Switch to github actions from CircleCI.
+
+We now use PyPI trusted publishing.
+
 ## 1.19.1.0
 
 Support cashtokens in BCH

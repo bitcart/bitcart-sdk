@@ -15,10 +15,7 @@ Instructions:
 ```bash
 git clone https://github.com/<<<your-github-account>>>/bitcart-sdk.git
 cd bitcart-sdk
-virtualenv env
-source env/bin/activate
-pip3 install -e .
-pip3 install -r test-requirements.txt # for tests
+uv sync
 ```
 
 The library is async, sync version is supported by file `bitcart/sync.py` by wrapping all functions and returning coroutines or function results
@@ -42,7 +39,7 @@ If you ever need to run the full prek checks on all files, run:
 prek run --all-files
 ```
 
-To run all checks before commiting (including tests), use `make` command.
+To run linters with autofix, run `just lint`. To run all checks before committing (including tests), use `just ci`.
 
 ## Running extended test suite
 
@@ -71,13 +68,13 @@ sudo apt-get -y install libsecp256k1-0
 
 Before running extended test suite, start bitcoind and fulcrum. Each time regtest network is recreated.
 
-Run `make bitcoind` to start bitcoind, `make fulcrum` to start fulcrum.
+Run `just bitcoind` to start bitcoind, `just fulcrum` to start fulcrum.
 
-After that, stop your testnet Bitcart daemon, and start regtest one from cloned `bitcart` repo by running `make regtest`.
+After that, stop your testnet Bitcart daemon, and start regtest one from cloned `bitcart` repo by running `just regtest`.
 
-You should also start an lightning node for testing, run `make regtestln` in another terminal.
+You should also start an lightning node for testing, run `just regtestln` in another terminal.
 
-To run extended test suite, run `make regtest`.
+To run extended test suite, run `just functional`.
 
 Coverage from extended test suite is appended to main test coverage.
 
