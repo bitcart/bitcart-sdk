@@ -32,15 +32,13 @@ Source = "https://github.com/bitcart/bitcart-sdk"
 Changelog = "https://github.com/bitcart/bitcart-sdk/blob/master/CHANGELOG.md"
 
 [dependency-groups]
-dev = [
+lint = ["mypy", "prek", "ruff"]
+test = [
     "pytest",
-    "pytest-cov",
     "pytest-asyncio",
+    "pytest-cov",
+    "pytest-durations",
     "pytest-mock",
-    "ruff",
-    "mypy",
-    "rust-just>=1.46.0",
-    "prek",
 ]
 docs = [
     "commonmark",
@@ -50,10 +48,12 @@ docs = [
     "sphinx",
     "sphinx-rtd-theme",
 ]
-all = [{ include-group = 'dev' }, { include-group = 'docs' }]
-
-[tool.uv]
-default-groups = ["dev"]
+dev = [
+    "rust-just>=1.46.0",
+    { include-group = "lint" },
+    { include-group = "test" },
+    { include-group = "docs" },
+]
 
 [tool.hatch.build.targets.wheel]
 packages = ["bitcart"]
@@ -102,6 +102,8 @@ ignore_missing_imports = true
 exclude = ["examples", "tests", "docs"]
 
 [tool.pytest.ini_options]
+junit_duration_report = "call"
+junit_suite_name = "bitcart_sdk_test_suite"
 addopts = ["--cov=bitcart", "--cov-report", "term-missing"]
 filterwarnings = [
     "error::DeprecationWarning",
