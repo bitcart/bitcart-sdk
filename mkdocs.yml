@@ -14,8 +14,8 @@ docs_dir: docs/content
 theme:
   name: material
   custom_dir: docs
-  logo: https://bitcart.ai/logo.svg
-  favicon: https://bitcart.ai/favicon.ico
+  logo: images/logo.svg
+  favicon: images/favicon.ico
   features:
     - content.action.edit
     - content.action.view
