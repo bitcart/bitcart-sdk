@@ -41,7 +41,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           repository: "bitcart/bitcart"
-          path: "~/bitcart-daemon"
+          path: "bitcart-daemon"
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: bitcart/bitcart-actions/actions/setup-python@master
@@ -56,14 +56,14 @@ jobs:
         run: |
           sudo apt update
           sudo apt install libsecp256k1-dev
-          cd ~/bitcart-daemon
-          UV_PROJECT_ENVIRONMENT=~/repo/.venv uv sync --frozen --compile-bytecode --inexact --no-dev --group btc
+          cd bitcart-daemon
+          UV_PROJECT_ENVIRONMENT=../.venv uv sync --frozen --compile-bytecode --inexact --no-dev --group btc
 
       - uses: bitcart/bitcart-actions/actions/run-in-background@master
         name: Prepare daemon
         with:
           run: |
-            cd ~/bitcart-daemon
+            cd bitcart-daemon
             BTC_EXPERIMENTAL_NOSYNC=true just testnet
           key: testnet
 
