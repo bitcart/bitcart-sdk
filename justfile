@@ -39,6 +39,23 @@ ci-lint: lint-check lint-types
 [group("CI")]
 ci *args: ci-lint (test args)
 
+# docs
+
+# build documentation
+[group("Documentation")]
+docs:
+    mkdocs build
+
+# serve documentation
+[group("Documentation")]
+docs-serve:
+    mkdocs serve
+
+# develop documentation with live reload
+[group("Documentation")]
+docs-dev:
+    mkdocs serve --livereload
+
 # btc-setup tasks
 
 # start bitcoind
