@@ -4,13 +4,15 @@
 .idea/
 .mypy_cache/
 .prettiercache
-.vscode/
+.vscode/*
+!.vscode/settings.json
 __pycache__/
 backup/
 backups/
 build/
 dist/
 docs/_build
+site/
 env/
 htmlcov/
 venv/

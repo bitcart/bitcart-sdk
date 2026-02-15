@@ -66,10 +66,9 @@ class BTC(Coin, EventDelivery):
 
         It contains documentation for all possible exceptions raised
 
-        Example:
-
-        >>> c.spec
-        {'version': '0.0.1', 'electrum_map': {...}, 'exceptions': {...}}
+        Examples:
+            >>> c.spec
+            {'version': '0.0.1', 'electrum_map': {...}, 'exceptions': {...}}
 
         Returns:
             dict: spec
@@ -93,10 +92,9 @@ class BTC(Coin, EventDelivery):
 
         Given tx hash of transaction, return full information as dictionary
 
-        Example:
-
-        >>> c.get_tx("54604b116b28124e31d2d20bbd4561e6f8398dca4b892080bffc8c87c27762ba")
-        {'partial': False, 'version': 2, 'segwit_ser': True, 'inputs': [{'prevout_hash': 'xxxx',...
+        Examples:
+            >>> c.get_tx("54604b116b28124e31d2d20bbd4561e6f8398dca4b892080bffc8c87c27762ba")
+            {'partial': False, 'version': 2, 'segwit_ser': True, 'inputs': [{'prevout_hash': 'xxxx',...
 
         Args:
             tx (str): tx_hash
@@ -111,10 +109,9 @@ class BTC(Coin, EventDelivery):
 
         This method should return list of transaction informations for specified address
 
-        Example:
-
-        >>> c.get_address("31smpLFzLnza6k8tJbVpxXiatGjiEQDmzc")
-        [{'tx_hash': '7854bdf4c4e27276ecc1fb8d666d6799a248f5e81bdd58b16432d1ddd1d4c332', 'height': 581878, 'tx': ...
+        Examples:
+            >>> c.get_address("31smpLFzLnza6k8tJbVpxXiatGjiEQDmzc")
+            [{'tx_hash': '7854bdf4c4e27276ecc1fb8d666d6799a248f5e81bdd58b16432d1ddd1d4c332', 'height': 581878, 'tx': ...
 
         Args:
             address (str): address to get transactions for
@@ -130,10 +127,9 @@ class BTC(Coin, EventDelivery):
     async def balance(self) -> dict:
         """Get balance of wallet
 
-        Example:
-
-        >>> c.balance()
-        {"confirmed": 0.00005, "unconfirmed": 0, "unmatured": 0}
+        Examples:
+            >>> c.balance()
+            {"confirmed": 0.00005, "unconfirmed": 0, "unmatured": 0}
 
         Returns:
             dict: It should return dict of balance statuses
@@ -176,10 +172,9 @@ class BTC(Coin, EventDelivery):
         Create an invoice and request amount in BTC, it will expire by parameter provided.
         If expire is None, it will last forever.
 
-        Example:
-
-        >>> c.add_request(0.5, "My invoice", 20)
-        {'time': 1562762334, 'amount': 50000000, 'exp': 1200, 'address': 'xxx',...
+        Examples:
+            >>> c.add_request(0.5, "My invoice", 20)
+            {'time': 1562762334, 'amount': 50000000, 'exp': 1200, 'address': 'xxx',...
 
         Args:
             self (BTC): self
@@ -197,10 +192,9 @@ class BTC(Coin, EventDelivery):
 
         Get invoice information by address got from add_request
 
-        Example:
-
-        >>> c.get_request("1A6jnc6xQwmhsChNLcyKAQNWPcWsVYqCqJ")
-        {'time': 1562762334, 'amount': 50000000, 'exp': 1200, 'address': '1A6jnc6xQwmhsChNLcyKAQNWPcWsVYqCqJ',...
+        Examples:
+            >>> c.get_request("1A6jnc6xQwmhsChNLcyKAQNWPcWsVYqCqJ")
+            {'time': 1562762334, 'amount': 50000000, 'exp': 1200, 'address': '1A6jnc6xQwmhsChNLcyKAQNWPcWsVYqCqJ',...
 
         Args:
             self (BTC): self
@@ -215,10 +209,9 @@ class BTC(Coin, EventDelivery):
     async def history(self) -> dict:
         """Get transaction history of wallet
 
-        Example:
-
-        >>> c.history()
-        {'summary': {'end_balance': '0.', 'end_date': None, 'from_height': None, 'incoming': '0.00185511',...
+        Examples:
+            >>> c.history()
+            {'summary': {'end_balance': '0.', 'end_date': None, 'from_height': None, 'incoming': '0.00185511',...
 
         Args:
             self (BTC): self
@@ -268,15 +261,14 @@ class BTC(Coin, EventDelivery):
         and address must exist.
 
         Examples:
+            >>> btc.pay_to("mkHS9ne12qx9pS9VojpwU5xtRd4T7X7ZUt", 0.001)
+            '608d9af34032868fd2849723a4de9ccd874a51544a7fba879a18c847e37e577b'
 
-        >>> btc.pay_to("mkHS9ne12qx9pS9VojpwU5xtRd4T7X7ZUt", 0.001)
-        '608d9af34032868fd2849723a4de9ccd874a51544a7fba879a18c847e37e577b'
+            >>> btc.pay_to("mkHS9ne12qx9pS9VojpwU5xtRd4T7X7ZUt",0.001, feerate=1)
+            '23d0aec06f6ea6100ba9c6ce8a1fa5d333a6c1d39a780b5fadc4b2836d71b66f'
 
-        >>> btc.pay_to("mkHS9ne12qx9pS9VojpwU5xtRd4T7X7ZUt",0.001, feerate=1)
-        '23d0aec06f6ea6100ba9c6ce8a1fa5d333a6c1d39a780b5fadc4b2836d71b66f'
-
-        >>> btc.pay_to("mkHS9ne12qx9pS9VojpwU5xtRd4T7X7ZUt", 0.001, broadcast=False)
-        {'hex': '02000000026.....', 'complete': True, 'final': False, 'name': None, 'csv_delay': 0, 'cltv_expiry': 0}
+            >>> btc.pay_to("mkHS9ne12qx9pS9VojpwU5xtRd4T7X7ZUt", 0.001, broadcast=False)
+            {'hex': '02000000026.....', 'complete': True, 'final': False, 'name': None, 'csv_delay': 0, 'cltv_expiry': 0}
 
         Args:
             self (BTC): self
@@ -333,21 +325,20 @@ class BTC(Coin, EventDelivery):
         keys: address and amount ``{"address": "someaddress", "amount": 0.5}``
 
         Examples:
+            >>> btc.pay_to_many([{"address":"mkHS9ne12qx9pS9VojpwU5xtRd4T7X7ZUt","amount":0.001}, \
+            {"address":"mv4rnyY3Su5gjcDNzbMLKBQkBicCtHUtFB","amount":0.0001}])
+            '60fa120d9f868a7bd03d6bbd1e225923cab0ba7a3a6b961861053c90365ed40a'
 
-        >>> btc.pay_to_many([{"address":"mkHS9ne12qx9pS9VojpwU5xtRd4T7X7ZUt","amount":0.001}, \
-{"address":"mv4rnyY3Su5gjcDNzbMLKBQkBicCtHUtFB","amount":0.0001}])
-        '60fa120d9f868a7bd03d6bbd1e225923cab0ba7a3a6b961861053c90365ed40a'
+            >>> btc.pay_to_many([("mkHS9ne12qx9pS9VojpwU5xtRd4T7X7ZUt",0.001), ("mv4rnyY3Su5gjcDNzbMLKBQkBicCtHUtFB",0.0001)])
+            'd80f14e20af2ceaa43a8b7e15402d420246d39e235d87874f929977fb0b1cab8'
 
-        >>> btc.pay_to_many([("mkHS9ne12qx9pS9VojpwU5xtRd4T7X7ZUt",0.001), ("mv4rnyY3Su5gjcDNzbMLKBQkBicCtHUtFB",0.0001)])
-        'd80f14e20af2ceaa43a8b7e15402d420246d39e235d87874f929977fb0b1cab8'
+            >>> btc.pay_to_many((("mkHS9ne12qx9pS9VojpwU5xtRd4T7X7ZUt",0.001), \
+            ("mkHS9ne12qx9pS9VojpwU5xtRd4T7X7ZUt",0.001)), feerate=1)
+            '0a6611876e04a6f2742eac02d4fac4c242dda154d85f0d547bbac1a33dbbbe34'
 
-        >>> btc.pay_to_many((("mkHS9ne12qx9pS9VojpwU5xtRd4T7X7ZUt",0.001), \
-("mkHS9ne12qx9pS9VojpwU5xtRd4T7X7ZUt",0.001)), feerate=1)
-        '0a6611876e04a6f2742eac02d4fac4c242dda154d85f0d547bbac1a33dbbbe34'
-
-        >>> btc.pay_to_many([("mkHS9ne12qx9pS9VojpwU5xtRd4T7X7ZUt",0.001), \
-("mv4rnyY3Su5gjcDNzbMLKBQkBicCtHUtFB",0.0001)], broadcast=False)
-        {'hex': '0200000...', 'complete': True, 'final': False}
+            >>> btc.pay_to_many([("mkHS9ne12qx9pS9VojpwU5xtRd4T7X7ZUt",0.001), \
+            ("mv4rnyY3Su5gjcDNzbMLKBQkBicCtHUtFB",0.0001)], broadcast=False)
+            {'hex': '0200000...', 'complete': True, 'final': False}
 
         Args:
             self (BTC): self
@@ -402,10 +393,9 @@ class BTC(Coin, EventDelivery):
         You can set any keys and values using this function(as long as JSON serializable),
         and some are used to configure underlying electrum daemon.
 
-        Example:
-
-        >>> c.set_config("x", 5)
-        True
+        Examples:
+            >>> c.set_config("x", 5)
+            True
 
         Args:
             self (BTC): self
@@ -422,15 +412,13 @@ class BTC(Coin, EventDelivery):
 
         Keys are stored in electrum's config file, check :meth:`bitcart.coins.btc.BTC.set_config` doc for details.
 
-        Example:
-
-        >>> c.get_config("x")
-        5
+        Examples:
+            >>> c.get_config("x")
+            5
 
         Args:
             self (BTC): self
             key (str): key to get
-            default (Any, optional): The value to default to when key doesn't exist. Defaults to None.
 
         Returns:
             Any: value of the key or default value provided
@@ -444,15 +432,14 @@ class BTC(Coin, EventDelivery):
         at, then it would be valid(True), else False
 
         Examples:
+            >>> c.validate_key("test")
+            False
 
-        >>> c.validate_key("test")
-        False
+            >>> c.validate_key("your awesome electrum seed")
+            True
 
-        >>> c.validate_key("your awesome electrum seed")
-        True
-
-        >>> c.validate_key("x/y/z pub/prv here")
-        True
+            >>> c.validate_key("x/y/z pub/prv here")
+            True
 
         Args:
             self (BTC): self
@@ -494,10 +481,9 @@ class BTC(Coin, EventDelivery):
         Create a lightning invoice and return invoice data with bolt invoice id
         All parameters are the same as in add_request
 
-        Example:
-
-        >>> a.add_invoice(0.5, "My invoice", 20)
-        {'time': 1562762334, 'amount': 50000000, 'exp': 1200, 'invoice': 'lnbc500m',...
+        Examples:
+            >>> a.add_invoice(0.5, "My invoice", 20)
+            {'time': 1562762334, 'amount': 50000000, 'exp': 1200, 'invoice': 'lnbc500m',...
 
         Args:
             self (BTC): self
@@ -536,10 +522,9 @@ class BTC(Coin, EventDelivery):
         Electrum's lightning implementation itself is a lightning node,
         that way you can get a super light node, this method returns it's id
 
-        Example:
-
-        >>> a.node_id
-        '030ff29580149a366bdddf148713fa808f0f4b934dccd5f7820f3d613e03c86e55'
+        Examples:
+            >>> a.node_id
+            '030ff29580149a366bdddf148713fa808f0f4b934dccd5f7820f3d613e03c86e55'
 
         Returns:
             str: id of your node
@@ -593,10 +578,9 @@ class BTC(Coin, EventDelivery):
         Possible channel statuses:
         OPENING, OPEN, CLOSED, DISCONNECTED
 
-        Example:
-
-        >>> a.server.list_channels()
-        [{'local_htlcs': {'adds': {}, 'locked_in': {}, 'settles': {}, 'fails': {}}, 'remote_htlcs': ...
+        Examples:
+            >>> a.server.list_channels()
+            [{'local_htlcs': {'adds': {}, 'locked_in': {}, 'settles': {}, 'fails': {}}, 'remote_htlcs': ...
 
         Returns:
             list: list of channels
@@ -609,10 +593,9 @@ class BTC(Coin, EventDelivery):
 
         Get lightning invoice information by rhash got from add_invoice
 
-        Example:
-
-        >>> c.get_invoice("e34d7fb4cda66e0760fc193496c302055d0fd960cfd982432355c8bfeecd5f33")
-        {'is_lightning': True, 'amount_BTC': Decimal('0.5'), 'timestamp': 1619273042, 'expiry': 900, ...
+        Examples:
+            >>> c.get_invoice("e34d7fb4cda66e0760fc193496c302055d0fd960cfd982432355c8bfeecd5f33")
+            {'is_lightning': True, 'amount_BTC': Decimal('0.5'), 'timestamp': 1619273042, 'expiry': 900, ...
 
         Args:
             rhash (str): invoice rhash

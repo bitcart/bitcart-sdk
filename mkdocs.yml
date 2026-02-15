@@ -1,0 +1,128 @@
+site_name: Bitcart SDK
+site_description: Bitcart coins support library
+site_url: https://sdk.bitcart.ai
+repo_url: https://github.com/bitcart/bitcart-sdk
+repo_name: bitcart/bitcart-sdk
+site_dir: site
+watch: [docs, mkdocs.yml, bitcart]
+copyright: "Copyright &copy; 2019 MrNaif2018"
+hooks:
+  - docs/hooks.py
+
+docs_dir: docs/content
+
+theme:
+  name: material
+  custom_dir: docs
+  logo: https://bitcart.ai/logo.svg
+  favicon: https://bitcart.ai/favicon.ico
+  features:
+    - content.action.edit
+    - content.action.view
+    - content.code.annotate
+    - content.code.copy
+    - content.tooltips
+    - navigation.footer
+    - navigation.instant.preview
+    - navigation.path
+    - navigation.sections
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.top
+    - search.highlight
+    - search.suggest
+    - toc.follow
+  palette:
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: white
+      accent: deep purple
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: black
+      accent: deep purple
+      toggle:
+        icon: material/weather-night
+        name: Switch to system preference
+
+nav:
+  - Home: index.md
+  - Usage:
+      - Installation: installation.md
+      - Events: events.md
+      - APIManager: apimanager.md
+  - API Reference: api.md
+
+plugins:
+  - search
+  - autorefs
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [.]
+          options:
+            backlinks: tree
+            docstring_options:
+              ignore_init_summary: true
+            docstring_section_style: list
+            heading_level: 4
+            line_length: 88
+            merge_init_into_class: true
+            parameter_headings: true
+            type_parameter_headings: true
+            relative_crossrefs: true
+            scoped_crossrefs: true
+            separate_signature: true
+            show_bases: false
+            show_inheritance_diagram: true
+            show_root_heading: true
+            show_root_full_path: false
+            show_signature_annotations: true
+            show_signature_type_parameters: true
+            show_source: true
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+            signature_crossrefs: true
+            summary: true
+            unwrap_annotated: true
+  - typeset
+
+markdown_extensions:
+  - abbr
+  - attr_list
+  - footnotes
+  - md_in_html
+  - pymdownx.blocks.admonition
+  - pymdownx.blocks.details
+  - pymdownx.blocks.tab
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      pygments_lang_class: true
+  - pymdownx.magiclink
+  - pymdownx.superfences
+  - pymdownx.tasklist
+  - toc:
+      permalink: true
+
+extra_css:
+  - css/extra.css
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/bitcart
+    - icon: fontawesome/brands/telegram
+      link: https://t.me/bitcart
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/BitcartCC
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/bitcart
