@@ -164,7 +164,7 @@ proxy = [
 ]
 
 [package.dev-dependencies]
-dev = [
+all = [
     { name = "commonmark" },
     { name = "mock" },
     { name = "mypy" },
@@ -180,6 +180,17 @@ dev = [
     { name = "rust-just" },
     { name = "sphinx" },
     { name = "sphinx-rtd-theme" },
+]
+dev = [
+    { name = "mypy" },
+    { name = "prek" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pytest-cov" },
+    { name = "pytest-durations" },
+    { name = "pytest-mock" },
+    { name = "ruff" },
+    { name = "rust-just" },
 ]
 docs = [
     { name = "commonmark" },
@@ -212,7 +223,7 @@ requires-dist = [
 provides-extras = ["proxy"]
 
 [package.metadata.requires-dev]
-dev = [
+all = [
     { name = "commonmark" },
     { name = "mock" },
     { name = "mypy" },
@@ -228,6 +239,17 @@ dev = [
     { name = "rust-just", specifier = ">=1.46.0" },
     { name = "sphinx" },
     { name = "sphinx-rtd-theme" },
+]
+dev = [
+    { name = "mypy" },
+    { name = "prek" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pytest-cov" },
+    { name = "pytest-durations" },
+    { name = "pytest-mock" },
+    { name = "ruff" },
+    { name = "rust-just", specifier = ">=1.46.0" },
 ]
 docs = [
     { name = "commonmark" },

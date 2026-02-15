@@ -52,8 +52,8 @@ dev = [
     "rust-just>=1.46.0",
     { include-group = "lint" },
     { include-group = "test" },
-    { include-group = "docs" },
 ]
+all = [{ include-group = "dev" }, { include-group = "docs" }]
 
 [tool.hatch.build.targets.wheel]
 packages = ["bitcart"]
