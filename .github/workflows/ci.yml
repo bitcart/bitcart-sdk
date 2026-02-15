@@ -97,9 +97,12 @@ jobs:
     name: functional-tests
     with:
       tests-target: just regtest
+      daemon-repository: bitcart/bitcart
+      daemon-dir: ${{ github.workspace }}/../daemon
       install-dependencies: |
         uv sync --frozen --compile-bytecode
-      daemon-dir: ${{ github.workspace }}/../daemon
+        cd ${{ github.workspace }}/../daemon
+        UV_PROJECT_ENVIRONMENT=$GITHUB_WORKSPACE/.venv uv sync --frozen --compile-bytecode --inexact --no-dev --group btc
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
