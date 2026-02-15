@@ -23,6 +23,8 @@ theme:
     - content.code.copy
     - content.tooltips
     - navigation.footer
+    - navigation.instant
+    - navigation.instant.progress
     - navigation.instant.preview
     - navigation.path
     - navigation.sections
