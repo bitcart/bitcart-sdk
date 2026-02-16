@@ -15,6 +15,7 @@ jobs:
       name: pypi
       url: https://pypi.org/p/bitcart
     permissions:
+      contents: read
       id-token: write
 
     steps:
