@@ -2,6 +2,10 @@
 
 ## Latest changes
 
+## 1.19.1.2
+
+Include PEP740 digital attestations with release
+
 ## 1.19.1.1
 
 Switch to github actions from CircleCI.
