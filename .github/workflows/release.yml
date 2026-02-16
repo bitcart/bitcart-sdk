@@ -1,4 +1,4 @@
-name: Deploy
+name: Release
 
 on:
   release:
@@ -8,8 +8,8 @@ permissions:
   contents: read
 
 jobs:
-  deploy:
-    name: deploy
+  release:
+    name: release
     runs-on: ubuntu-latest
     environment:
       name: pypi
