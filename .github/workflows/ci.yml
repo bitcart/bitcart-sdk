@@ -17,16 +17,19 @@ jobs:
   lint:
     name: lint
     uses: bitcart/bitcart-actions/.github/workflows/lint.yml@master
-    permissions:
-      security-events: write
     with:
-      run-zizmor: true
       install-dependencies: |
         uv sync --frozen --compile-bytecode
 
+  zizmor:
+    name: zizmor
+    uses: bitcart/bitcart-actions/.github/workflows/zizmor-audit.yml@master
+    permissions:
+      security-events: write
+
   test:
     name: test-${{ matrix.python-version }}
-    needs: lint
+    needs: [lint, zizmor]
     runs-on: ubuntu-latest
 
     strategy:

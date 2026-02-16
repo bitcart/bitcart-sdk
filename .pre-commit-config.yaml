@@ -23,6 +23,10 @@ repos:
       - id: debug-statements
       - id: fix-byte-order-marker
       - id: detect-private-key
+  - repo: https://github.com/zizmorcore/zizmor-pre-commit
+    rev: v1.22.0
+    hooks:
+      - id: zizmor
   - repo: local
     hooks:
       - id: prettier
