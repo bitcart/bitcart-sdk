@@ -48,6 +48,9 @@ dev = [
 ]
 all = [{ include-group = "dev" }, { include-group = "docs" }]
 
+[tool.uv]
+cache-keys = [{ file = "pyproject.toml" }, { file = "bitcart/version.py" }]
+
 [tool.hatch.build.targets.wheel]
 packages = ["bitcart"]
 
