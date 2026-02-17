@@ -6,7 +6,6 @@ repo_name: bitcart/bitcart-sdk
 site_dir: site
 watch: [docs, mkdocs.yml, bitcart]
 copyright: "Copyright &copy; 2019 MrNaif2018"
-use_directory_urls: false
 hooks:
   - docs/hooks.py
 
