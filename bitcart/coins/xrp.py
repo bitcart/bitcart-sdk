@@ -5,4 +5,4 @@ class XRP(ETH):
     coin_name = "XRP"
     friendly_name = "XRP"
     RPC_URL = "http://localhost:5012"
-    is_eth_based = False
+    is_eth_based = True
