@@ -8,6 +8,7 @@ from .matic import MATIC
 from .trx import TRX
 from .xmr import XMR
 from .xrg import XRG
+from .xrp import XRP
 
 COINS = {
     "BTC": BTC,
@@ -20,6 +21,7 @@ COINS = {
     "TRX": TRX,
     "XRG": XRG,
     "GRS": GRS,
+    "XRP": XRP,
 }
 
 __all__ = list(COINS.keys()) + ["COINS"]
