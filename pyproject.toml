@@ -40,7 +40,7 @@ test = [
     "pytest-durations",
     "pytest-mock",
 ]
-docs = ["mkdocs", "mkdocs-material", "mkdocstrings[python]"]
+docs = ["zensical", "mkdocstrings-python"]
 dev = [
     "rust-just>=1.46.0",
     { include-group = "lint" },
