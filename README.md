@@ -3,7 +3,7 @@
 [![CI](https://github.com/bitcart/bitcart-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/bitcart/bitcart-sdk/actions/workflows/ci.yml)
 [![Codecov](https://img.shields.io/codecov/c/github/bitcart/bitcart-sdk?style=flat-square)](https://codecov.io/gh/bitcart/bitcart-sdk)
 [![PyPI version](https://img.shields.io/pypi/v/bitcart.svg?style=flat-square)](https://pypi.python.org/pypi/bitcart/)
-[![Read the Docs](https://img.shields.io/readthedocs/bitcart-sdk?style=flat-square)](https://sdk.bitcart.ai)
+[![Docs](https://github.com/bitcart/bitcart-sdk/actions/workflows/docs.yml/badge.svg)](https://sdk.bitcart.ai)
 
 This is a client library(wrapper) around Bitcart daemon. It is used to simplify common commands.
 Coins support(⚡ means lightning is supported):

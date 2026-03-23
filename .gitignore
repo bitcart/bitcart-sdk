@@ -11,8 +11,6 @@ backup/
 backups/
 build/
 dist/
-docs/images/logo.svg
-docs/images/favicon.ico
 site/
 env/
 htmlcov/
