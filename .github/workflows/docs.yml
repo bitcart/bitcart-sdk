@@ -38,7 +38,7 @@ jobs:
 
       - name: Build docs
         run: |
-          just docs
+          just docs-build
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v5

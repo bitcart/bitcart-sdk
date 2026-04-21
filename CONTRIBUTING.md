@@ -74,7 +74,7 @@ After that, stop your testnet Bitcart daemon, and start regtest one from cloned 
 
 You should also start an lightning node for testing, run `just regtestln` in another terminal.
 
-To run extended test suite, run `just functional`.
+To run extended test suite, run `just test-functional`.
 
 Coverage from extended test suite is appended to main test coverage.
 

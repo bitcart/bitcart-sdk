@@ -97,7 +97,7 @@ jobs:
     uses: bitcart/bitcart-actions/.github/workflows/functional-tests.yml@master
     needs: test
     with:
-      tests-target: just functional
+      tests-target: just test-functional
       daemon-repository: bitcart/bitcart
       daemon-dir: ../daemon
       install-dependencies: |

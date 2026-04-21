@@ -6,83 +6,87 @@ test-args := env("TEST_ARGS", "")
 default:
     @just --list --unsorted --justfile {{ justfile() }}
 
-# auto-format code with ruff
-[group("Code quality")]
-format:
-    ruff format .
+### Code quality
 
-# run linters with autofix
+# Auto-format code
+[group("Code quality")]
+format *files:
+    ruff format {{ files }}
+
+# Run linters with autofix
 [group("Code quality")]
 lint:
     ruff check --fix .
 
-# lint and format, fixing all issues
+# Format and lint, fixing all issues
 [group("Code quality")]
 fix: format lint
 
-# verify formatting with ruff
+# Verify formatting
 [group("Code quality")]
-format-check:
-    ruff format --check .
+format-check *files:
+    ruff format --check {{ files }}
 
-# verify linting
+# Verify linting
 [group("Code quality")]
 lint-check:
     ruff check .
 
-# run type checking
+# Run type checking
 [group("Code quality")]
 typecheck:
     mypy bitcart
 
-# run dependency checks
+# Run dependency checks
 [group("Code quality")]
 deps-check:
     deptry .
 
-# run all checks without fixing
+# Run all checks without fixing
 [group("Code quality")]
 check: format-check lint-check typecheck deps-check
 
-# run tests
+# Run tests
 [group("Code quality")]
 test *args:
     pytest {{ trim(test-args + " " + args) }}
 
-# run functional tests
-[group("Code quality")]
-functional *args:
-    pytest tests/regtest.py --cov-append {{ trim(test-args + " " + args) }}
-
-# run ci checks
+# Run CI checks
 [group("Code quality")]
 ci *args: check (test args)
 
-# docs
+### Testing
 
-# build documentation
+# Run functional tests
+[group("Testing")]
+test-functional *args:
+    pytest tests/regtest.py --cov-append {{ trim(test-args + " " + args) }}
+
+### Documentation
+
+# Build documentation
 [group("Documentation")]
-docs:
+docs-build:
     zensical build
 
-# serve documentation
+# Serve documentation
 [group("Documentation")]
 docs-serve:
     zensical serve
 
-# develop documentation with live reload
+# Develop documentation with live reload
 [group("Documentation")]
 docs-dev:
     zensical serve
 
-# btc-setup tasks
+### Regtest setup
 
-# start bitcoind
-[group("BTC setup")]
+# Start bitcoind
+[group("Regtest setup")]
 bitcoind:
     tests/regtest/start_bitcoind.sh
 
-# start fulcrum
-[group("BTC setup")]
+# Start fulcrum
+[group("Regtest setup")]
 fulcrum:
     tests/regtest/start_fulcrum.sh
