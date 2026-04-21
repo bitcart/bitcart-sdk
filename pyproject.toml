@@ -32,24 +32,17 @@ Source = "https://github.com/bitcart/bitcart-sdk"
 Changelog = "https://github.com/bitcart/bitcart-sdk/blob/master/CHANGELOG.md"
 
 [dependency-groups]
-lint = ["mypy", "prek", "ruff"]
-test = [
-    "pytest",
-    "pytest-asyncio",
-    "pytest-cov",
-    "pytest-durations",
-    "pytest-mock",
-]
+lint = ["deptry", "mypy", "prek", "ruff"]
+test = ["pytest", "pytest-asyncio", "pytest-cov", "pytest-durations", "pytest-mock"]
 docs = ["zensical", "mkdocstrings-python"]
-dev = [
-    "rust-just>=1.46.0",
-    { include-group = "lint" },
-    { include-group = "test" },
-]
+dev = ["rust-just>=1.46.0", { include-group = "lint" }, { include-group = "test" }]
 all = [{ include-group = "dev" }, { include-group = "docs" }]
 
 [tool.uv]
 cache-keys = [{ file = "pyproject.toml" }, { file = "bitcart/version.py" }]
+
+[tool.deptry]
+extend_exclude = ["examples"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["bitcart"]
@@ -62,22 +55,7 @@ target-version = "py312"
 line-length = 127
 
 [tool.ruff.lint]
-select = [
-    "F",
-    "E",
-    "I",
-    "UP",
-    "YTT",
-    "B",
-    "T10",
-    "C",
-    "SIM",
-    "RUF100",
-    "RET",
-    "A",
-    "S",
-    "ASYNC",
-]
+select = ["F", "E", "I", "UP", "YTT", "B", "T10", "C", "SIM", "RUF100", "RET", "A", "S", "ASYNC"]
 ignore = ["RET502", "RET503", "S104", "S507", "ASYNC110", "ASYNC240"]
 mccabe = { max-complexity = 12 }
 
@@ -101,10 +79,7 @@ exclude = ["examples", "tests", "docs"]
 junit_duration_report = "call"
 junit_suite_name = "bitcart_sdk_test_suite"
 addopts = ["--cov=bitcart", "--cov-report", "term-missing"]
-filterwarnings = [
-    "error::DeprecationWarning",
-    "error::PendingDeprecationWarning",
-]
+filterwarnings = ["error::DeprecationWarning", "error::PendingDeprecationWarning"]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 
@@ -119,8 +94,4 @@ omit = [
 ]
 
 [tool.coverage.report]
-exclude_lines = [
-    "pragma: no cover",
-    "raise NotImplementedError()",
-    "if TYPE_CHECKING:",
-]
+exclude_lines = ["pragma: no cover", "raise NotImplementedError()", "if TYPE_CHECKING:"]
