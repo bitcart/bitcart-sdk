@@ -73,7 +73,7 @@ class RPCProxy:
         self._sessions[loop] = self.create_session()
         return self._sessions[loop]
 
-    def init_proxy(self) -> None:
+    def init_proxy(self) -> None:  # pragma: no cover
         if self.proxy:
             from aiohttp_socks import ProxyConnector
             from aiohttp_socks.utils import parse_proxy_url
