@@ -1,4 +1,4 @@
-set no-exit-message := true
+set no-exit-message
 
 test-args := env("TEST_ARGS", "")
 
@@ -21,6 +21,11 @@ lint-check:
 lint-types:
     mypy bitcart
 
+# run dependency checks
+[group("Linting")]
+lint-deps:
+    deptry .
+
 # run tests
 [group("Testing")]
 test *args:
@@ -33,7 +38,7 @@ functional *args:
 
 # run ci checks (without tests)
 [group("CI")]
-ci-lint: lint-check lint-types
+ci-lint: lint-check lint-types lint-deps
 
 # run ci checks
 [group("CI")]
