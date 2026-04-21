@@ -39,7 +39,7 @@ If you ever need to run the full prek checks on all files, run:
 prek run --all-files
 ```
 
-To run linters with autofix, run `just lint`. To run all checks before committing (including tests), use `just ci`.
+To run linters and formatter with autofix, run `just fix`. To run all checks before committing (including tests), use `just ci`.
 
 ## Running extended test suite
 

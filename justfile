@@ -6,43 +6,57 @@ test-args := env("TEST_ARGS", "")
 default:
     @just --list --unsorted --justfile {{ justfile() }}
 
-# run linters with autofix
-[group("Linting")]
-lint:
-    ruff format . && ruff check --fix .
+# auto-format code with ruff
+[group("Code quality")]
+format:
+    ruff format .
 
-# run linters (check only)
-[group("Linting")]
+# run linters with autofix
+[group("Code quality")]
+lint:
+    ruff check --fix .
+
+# lint and format, fixing all issues
+[group("Code quality")]
+fix: format lint
+
+# verify formatting with ruff
+[group("Code quality")]
+format-check:
+    ruff format --check .
+
+# verify linting
+[group("Code quality")]
 lint-check:
-    ruff format --check . && ruff check .
+    ruff check .
 
 # run type checking
-[group("Linting")]
-lint-types:
+[group("Code quality")]
+typecheck:
     mypy bitcart
 
 # run dependency checks
-[group("Linting")]
-lint-deps:
+[group("Code quality")]
+deps-check:
     deptry .
 
+# run all checks without fixing
+[group("Code quality")]
+check: format-check lint-check typecheck deps-check
+
 # run tests
-[group("Testing")]
+[group("Code quality")]
 test *args:
     pytest {{ trim(test-args + " " + args) }}
 
 # run functional tests
-[group("Testing")]
+[group("Code quality")]
 functional *args:
     pytest tests/regtest.py --cov-append {{ trim(test-args + " " + args) }}
 
-# run ci checks (without tests)
-[group("CI")]
-ci-lint: lint-check lint-types lint-deps
-
 # run ci checks
-[group("CI")]
-ci *args: ci-lint (test args)
+[group("Code quality")]
+ci *args: check (test args)
 
 # docs
 
