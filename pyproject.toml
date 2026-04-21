@@ -82,16 +82,3 @@ addopts = ["--cov=bitcart", "--cov-report", "term-missing"]
 filterwarnings = ["error::DeprecationWarning", "error::PendingDeprecationWarning"]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
-
-[tool.coverage.run]
-omit = [
-    "*__init__.py",
-    "tests/*",
-    "venv/*",
-    "env/*",
-    "setup.py",
-    "bitcart/providers/jsonrpcrequests.py",
-]
-
-[tool.coverage.report]
-exclude_lines = ["pragma: no cover", "raise NotImplementedError()", "if TYPE_CHECKING:"]

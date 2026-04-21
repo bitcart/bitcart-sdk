@@ -22,10 +22,10 @@ class EventDelivery:
     event_handlers: dict[str, Callable]
 
     async def process_updates(self, updates: Iterable[dict], currency: str | None = None, wallet: str | None = None) -> None:
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma: no cover
 
     async def _register_wallets(self, ws: "ClientWebSocketResponse") -> None:
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma: no cover
 
     async def _start_websocket_processing(
         self, ws: "ClientWebSocketResponse", reconnect_callback: Callable | None = None

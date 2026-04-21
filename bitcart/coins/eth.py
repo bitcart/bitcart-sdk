@@ -16,10 +16,12 @@ class ETH(BTC):
         return await self.server.history()  # type: ignore
 
     async def get_address(self, *args: Any, **kwargs: Any) -> NoReturn:
-        raise NotImplementedError(f"Full address history lookup not implemented for {self.coin_name} to remain lightweight")
+        raise NotImplementedError(  # pragma: no cover
+            f"Full address history lookup not implemented for {self.coin_name} to remain lightweight"
+        )
 
     async def pay_to_many(self, *args: Any, **kwargs: Any) -> NoReturn:
-        raise NotImplementedError(f"Pay to many not available in {self.coin_name} directly")
+        raise NotImplementedError(f"Pay to many not available in {self.coin_name} directly")  # pragma: no cover
 
     async def _convert_amounts(self, data: dict) -> dict:  # pragma: no cover
         if not hasattr(self, "_fetched_token") and isinstance(self.xpub, dict):
