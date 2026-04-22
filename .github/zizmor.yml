@@ -2,7 +2,7 @@ rules:
   unpinned-uses:
     config:
       policies:
-        "*": ref-pin
+        "bitcart/*": ref-pin
   secrets-outside-env:
     config:
       allow:
