@@ -6,7 +6,7 @@ test-args := env("TEST_ARGS", "")
 default:
     @just --list --unsorted --justfile {{ justfile() }}
 
-### Code quality
+## CODE QUALITY
 
 # Auto-format code
 [group("Code quality")]
@@ -55,14 +55,14 @@ test *args:
 [group("Code quality")]
 ci *args: check (test args)
 
-### Testing
+## TESTING
 
 # Run functional tests
 [group("Testing")]
 test-functional *args:
     pytest tests/regtest.py --cov-append {{ trim(test-args + " " + args) }}
 
-### Documentation
+## DOCUMENTATION
 
 # Build documentation
 [group("Documentation")]
@@ -79,7 +79,7 @@ docs-serve:
 docs-dev:
     zensical serve
 
-### Regtest setup
+## REGTEST SETUP
 
 # Start bitcoind
 [group("Regtest setup")]
