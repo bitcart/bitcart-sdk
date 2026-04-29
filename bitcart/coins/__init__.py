@@ -5,6 +5,7 @@ from .eth import ETH
 from .grs import GRS
 from .ltc import LTC
 from .matic import MATIC
+from .sui import SUI
 from .trx import TRX
 from .xmr import XMR
 from .xrg import XRG
@@ -17,6 +18,7 @@ COINS = {
     "BNB": BNB,
     "LTC": LTC,
     "MATIC": MATIC,
+    "SUI": SUI,
     "TRX": TRX,
     "XRG": XRG,
     "GRS": GRS,
