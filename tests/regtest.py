@@ -70,6 +70,49 @@ def check_tx(tx, broadcast):
     # if it is not broadcast, it returns raw transaction
 
 
+async def fetch_regtest_tx(wallet, tx_hash):
+    return await wallet.server.get_transaction(tx_hash, use_spv=True)
+
+
+async def fetch_regtest_address_history(wallet, address):
+    out = await wallet.server.getaddresshistory(address)
+    for tx_info in out:
+        tx_info["tx"] = await fetch_regtest_tx(wallet, tx_info["tx_hash"])
+    return out
+
+
+def without_confirmations(tx):
+    comparable_tx = tx.copy()
+    comparable_tx.pop("confirmations")
+    return comparable_tx
+
+
+async def test_get_tx(regtest_wallet):
+    txes = await fetch_regtest_address_history(regtest_wallet, BTC_ADDRESS)
+    tx_hash = txes[0]["tx_hash"]
+
+    info = await fetch_regtest_tx(regtest_wallet, tx_hash)
+
+    data_check(info, "confirmations", int)
+    assert info["confirmations"] > 0
+    data_check(info, "inputs", list)
+    data_check(info, "outputs", list)
+    assert any(output.get("address") == BTC_ADDRESS for output in info["outputs"])
+
+
+async def test_get_address(regtest_wallet):
+    txes = await fetch_regtest_address_history(regtest_wallet, BTC_ADDRESS)
+
+    assert isinstance(txes, list)
+    assert len(txes) > 0
+    tx = txes[0]
+    data_check(tx, "tx_hash", str, 64)
+    data_check(tx, "height", int)
+    assert tx["height"] > 0
+    tx2 = await fetch_regtest_tx(regtest_wallet, tx["tx_hash"])
+    assert without_confirmations(tx["tx"]) == without_confirmations(tx2)
+
+
 @pytest.mark.parametrize("fee,feerate,broadcast", TEST_PARAMS)
 async def test_payment_to_single(regtest_wallet, fee, feerate, broadcast, wait_for_balance):
     check_tx(
