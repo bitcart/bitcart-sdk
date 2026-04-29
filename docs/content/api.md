@@ -42,6 +42,12 @@ Polygon (MATIC) support is based on our custom daemon implementation which tries
 
 ::: bitcart.coins.matic.MATIC
 
+### Sui (SUI)
+
+Sui (SUI) support is based on our custom daemon implementation which tries to follow electrum APIs as closely as possible
+
+::: bitcart.coins.sui.SUI
+
 ### TRON (TRX)
 
 TRON (TRX) support is based on our custom daemon implementation which tries to follow electrum APIs as closely as possible
