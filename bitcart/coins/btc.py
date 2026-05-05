@@ -453,7 +453,7 @@ class BTC(Coin, EventDelivery):
     ### Lightning apis ###
 
     @lightning
-    async def open_channel(self, node_id: str, amount: AmountType) -> str:
+    async def open_channel(self, node_id: str, amount: AmountType, private: bool = False) -> str:
         """Open lightning channel
 
         Open channel with node, returns string of format
@@ -463,6 +463,7 @@ class BTC(Coin, EventDelivery):
             self (BTC): self
             node_id (str): id of node to open channel with
             amount (AmountType): amount to open channel
+            private (bool): if True, open an unannounced (private) channel
 
         Returns:
             str: string of format txid:output_index
