@@ -1,6 +1,7 @@
 from .bch import BCH
 from .bnb import BNB
 from .btc import BTC
+from .btclnd import BTCLND
 from .eth import ETH
 from .grs import GRS
 from .ltc import LTC
@@ -11,6 +12,7 @@ from .xrg import XRG
 
 COINS = {
     "BTC": BTC,
+    "BTCLND": BTCLND,
     "BCH": BCH,
     "XMR": XMR,
     "ETH": ETH,
