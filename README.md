@@ -14,6 +14,7 @@ Coins support(⚡ means lightning is supported):
 - Ethereum
 - Binance coin (BNB)
 - Polygon (MATIC)
+- Ethereum on Arbitrum (ARBETH)
 - Tron (TRX)
 - Ergon
 - Litecoin (⚡)
