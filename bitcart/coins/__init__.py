@@ -1,3 +1,4 @@
+from .arbeth import ARBETH
 from .bch import BCH
 from .bnb import BNB
 from .btc import BTC
@@ -20,6 +21,7 @@ COINS = {
     "TRX": TRX,
     "XRG": XRG,
     "GRS": GRS,
+    "ARBETH": ARBETH,
 }
 
 __all__ = list(COINS.keys()) + ["COINS"]

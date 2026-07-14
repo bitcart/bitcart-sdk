@@ -42,6 +42,12 @@ Polygon (MATIC) support is based on our custom daemon implementation which tries
 
 ::: bitcart.coins.matic.MATIC
 
+### Ethereum on Arbitrum (ARBETH)
+
+Ethereum on Arbitrum (ARBETH) support is based on our custom daemon implementation which tries to follow electrum APIs as closely as possible
+
+::: bitcart.coins.arbeth.ARBETH
+
 ### TRON (TRX)
 
 TRON (TRX) support is based on our custom daemon implementation which tries to follow electrum APIs as closely as possible

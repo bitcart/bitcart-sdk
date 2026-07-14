@@ -2,6 +2,8 @@
 
 ## Latest changes
 
+Add Ethereum on Arbitrum (ARBETH) support
+
 ## 1.19.1.2
 
 Include PEP740 digital attestations with release
