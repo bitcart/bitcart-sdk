@@ -1,13 +1,11 @@
-import asyncio
 import contextlib
-import weakref
 from collections.abc import Callable
 from typing import Any
 from urllib.parse import urljoin
 
 import aiohttp
 from jsonrpcclient import Ok, parse_json, request
-from universalasync import async_to_sync_wraps, get_event_loop
+from universalasync import LoopLocal, async_to_sync_wraps
 
 from ..errors import ConnectionFailedError, UnknownError, generate_exception
 from ..utils import json_encode
@@ -24,18 +22,6 @@ def create_request(method: str, *args: Any, **kwargs: Any) -> dict:
     elif kwargs:
         params = kwargs
     return request(method, params)  # type: ignore
-
-
-def _cleanup_sessions(sessions: dict[asyncio.AbstractEventLoop, aiohttp.ClientSession]) -> None:
-    loop = get_event_loop()
-    for session in list(sessions.values()):
-        if session is None or session.closed:
-            continue
-        if loop.is_running():
-            loop.create_task(session.close())
-        else:
-            loop.run_until_complete(session.close())
-    sessions.clear()
 
 
 class RPCProxy:
@@ -59,19 +45,13 @@ class RPCProxy:
         self._connector_init: dict[str, Any] = {"ssl": self.verify}
         self._spec = {"exceptions": {"-32600": {"exc_name": "UnauthorizedError", "docstring": "Unauthorized"}}}
         self._spec_valid = False
-        self._sessions: dict[asyncio.AbstractEventLoop, aiohttp.ClientSession] = {}
+        self._sessions: LoopLocal[aiohttp.ClientSession] = LoopLocal(aiohttp.ClientSession.close)
         if session is not None:
-            self._sessions[get_event_loop()] = session
-        self._finalizer = weakref.finalize(self, _cleanup_sessions, self._sessions)
+            self._sessions.get(lambda: session)
 
     @property
     def session(self) -> aiohttp.ClientSession:
-        loop = get_event_loop()
-        session = self._sessions.get(loop)
-        if session is not None:
-            return session
-        self._sessions[loop] = self.create_session()
-        return self._sessions[loop]
+        return self._sessions.get(self.create_session)
 
     def init_proxy(self) -> None:  # pragma: no cover
         if self.proxy:
@@ -91,10 +71,10 @@ class RPCProxy:
 
     def create_session(self) -> aiohttp.ClientSession:
         self.init_proxy()
-        return aiohttp.ClientSession(
-            connector=self._connector_class(**self._connector_init),
-            auth=aiohttp.BasicAuth(self.username, self.password),  # type: ignore
-        )
+        headers = {}
+        if self.username is not None:
+            headers["Authorization"] = aiohttp.encode_basic_auth(self.username, self.password or "", encoding="latin1")
+        return aiohttp.ClientSession(connector=self._connector_class(**self._connector_init), headers=headers)
 
     def validate_spec(self, spec: Any) -> bool:
         if not isinstance(spec, dict):
@@ -148,5 +128,4 @@ class RPCProxy:
         return wrapper
 
     async def close(self) -> None:
-        if self._finalizer.alive:
-            self._finalizer()
+        await self._sessions.close()

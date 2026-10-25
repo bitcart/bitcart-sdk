@@ -17,25 +17,25 @@ This will load all specified wallets to the manager.
 You can access wallets in a manager like so:
 
 ```python
-manager.BTC.xpub1 # access wallet <=> BTC(xpub="xpub1")
+manager.BTC.xpub1  # access wallet <=> BTC(xpub="xpub1")
 # or
-manager["BTC"]["xpub1"] # same wallet, but via dict-like interface
-manager["currency2"]["xpub3"] # <=> currency2(xpub="xpub3")
-manager.BTC[xpub].balance() # <=> BTC(xpub=xpub).balance()
+manager["BTC"]["xpub1"]  # same wallet, but via dict-like interface
+manager["currency2"]["xpub3"]  # <=> currency2(xpub="xpub3")
+manager.BTC[xpub].balance()  # <=> BTC(xpub=xpub).balance()
 ```
 
 ## Adding new wallets to existing manager
 
 ```python
-manager.add_wallet("BTC", "xpub3") # adds wallet to currency BTC with xpub="xpub3"
-manager.add_wallets("currency2", ["xpub1", "xpub2"]) # batch add
+manager.add_wallet("BTC", "xpub3")  # adds wallet to currency BTC with xpub="xpub3"
+manager.add_wallets("currency2", ["xpub1", "xpub2"])  # batch add
 ```
 
 ## Coin objects creation utilities
 
 ```python
-manager.load_wallet("currency", "xpub") # returns currency(xpub=xpub)
-manager.load_wallets("currency", ["xpub1", "xpub2"]) # returns a dict of xpub-currency(xpub=xpub)
+manager.load_wallet("currency", "xpub")  # returns currency(xpub=xpub)
+manager.load_wallets("currency", ["xpub1", "xpub2"])  # returns a dict of xpub-currency(xpub=xpub)
 ```
 
 ## Listening for updates on all wallets in a manager
@@ -45,7 +45,7 @@ You can register event handlers like you did before, on individual coin instance
 ```python
 @manager.on("new_transaction")
 def handler(instance, event, tx):
-    pass # instance is coin instance currently processing the event
+    pass  # instance is coin instance currently processing the event
 ```
 
 To start connection to websocket, run:

@@ -98,6 +98,7 @@ To initialize your Bitcart instance, import it and use those settings:
 
 ```python
 from bitcart import BTC
+
 btc = BTC(xpub="your (x/y/z)pub or (x/y/z)prv or electrum seed")
 ```
 

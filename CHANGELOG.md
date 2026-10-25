@@ -2,6 +2,10 @@
 
 ## Latest changes
 
+## 1.19.2.0
+
+Fix client session cleanup failing with "attached to a different loop" when the event loop that created the session is still open but not running
+
 ## 1.19.1.2
 
 Include PEP740 digital attestations with release
@@ -450,7 +454,8 @@ It allows introspection of available coins.
 
 ```python
 from bitcart import COINS
-COINS["BTC"] # bitcart.BTC class
+
+COINS["BTC"]  # bitcart.BTC class
 ```
 
 #### Coins instances now can be compared
@@ -510,7 +515,7 @@ This inconsistent behaviour is now fixed, but now every amount is Decimal.
 For convenience, `amount_field` attribute was added on coin objects:
 
 ```python
-btc.amount_field # "amount_BTC"
+btc.amount_field  # "amount_BTC"
 ```
 
 #### Renamed some methods
@@ -716,7 +721,9 @@ callback function like:
 
 ```python
 def fee_calc(size):
-    return size/4
+    return size / 4
+
+
 btc.pay_to(address, amount, fee=fee_calc)
 ```
 
@@ -753,6 +760,8 @@ def handler(event, tx):
     print(event)
     print(tx)
     print(btc.get_tx(tx))
+
+
 btc.poll_updates()
 ```
 

@@ -14,7 +14,7 @@ Event handler signature is the following:
 
 ```python
 def handler(event, arg1, arg2):
-    pass # process event
+    pass  # process event
 ```
 
 Where `event` is the only required argument everywhere.
@@ -25,14 +25,14 @@ If using event system from APIManager, then additional required argument `instan
 
 ```python
 def handler(instance, event, arg1, arg2):
-    pass # process event
+    pass  # process event
 ```
 
 Also, async handlers are supported too, like so:
 
 ```python
 async def handler(event, arg1, arg2):
-    pass # process event, you can await here
+    pass  # process event, you can await here
 ```
 
 ## Registering event handlers
@@ -50,7 +50,7 @@ You can also register a handler for multiple events, then you should mark all ar
 ```python
 @coin.on(["event1", "event2"])
 def handler(event, arg1=None, arg2=None, arg3=None):
-    pass # event argument can be used to get what event is currently being processed
+    pass  # event argument can be used to get what event is currently being processed
 ```
 
 Or you can use `add_event_handler` method instead:
@@ -58,6 +58,7 @@ Or you can use `add_event_handler` method instead:
 ```python
 def handler(event, arg1, arg2):
     pass
+
 
 coin.add_event_handler("event", handler)
 ```
