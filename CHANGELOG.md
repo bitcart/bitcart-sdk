@@ -2,6 +2,18 @@
 
 ## Latest changes
 
+## 1.19.3.0
+
+Fix event handlers of websocket updates possibly being garbage collected before they finish
+
+Coins are now hashable
+
+Support python 3.15
+
+Require universalasync 0.6.1.0+ for thread-safe session handling
+
+Slimmer sdist package
+
 ## 1.19.2.0
 
 Fix client session cleanup failing with "attached to a different loop" when the event loop that created the session is still open but not running
