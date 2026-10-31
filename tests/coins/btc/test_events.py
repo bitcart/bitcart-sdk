@@ -1,6 +1,9 @@
+import asyncio
+import gc
 from queue import Queue
 
 import pytest
+from aiohttp import WSMsgType
 
 test_queue = Queue()
 
@@ -40,3 +43,48 @@ async def test_event_system(btc, caplog):
     assert test_queue.qsize() == 2
     assert test_queue.get() == 2
     assert test_queue.get() == 3
+
+
+class FakeMessage:
+    type = WSMsgType.TEXT
+
+    def __init__(self, data):
+        self.data = data
+
+    def json(self):
+        return self.data
+
+
+class FakeWebSocket:
+    def __init__(self, *messages):
+        self.messages = messages
+
+    async def send_json(self, data):
+        pass
+
+    async def __aiter__(self):
+        for message in self.messages:
+            yield message
+
+
+def new_block_websocket():
+    return FakeWebSocket(FakeMessage({"updates": [{"event": "new_block", "height": 1}]}))
+
+
+@pytest.mark.asyncio
+async def test_event_tasks_are_kept_until_done(btc):
+    release = asyncio.Event()
+    handled = []
+
+    async def slow_handler(event, height):
+        await release.wait()
+        handled.append(height)
+
+    btc.add_event_handler("new_block", slow_handler)
+    await btc._start_websocket_processing(new_block_websocket())
+    assert len(btc._event_tasks) == 1
+    gc.collect()
+    release.set()
+    await asyncio.gather(*btc._event_tasks)
+    assert handled == [1]
+    assert not btc._event_tasks

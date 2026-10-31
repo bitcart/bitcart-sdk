@@ -12,15 +12,24 @@ BTC_ADDRESS = (
     "bcrt1qttft7vh7w3er2akkpr4lu78z2ptdhgfxf739xf"  # can be got by run_shell(["newaddress"]) or regtest_wallet.add_request()
 )
 
+
+def use_default_fee(size, default_fee):
+    return default_fee
+
+
+def failing_fee(size, default_fee):
+    return default_fee / 0
+
+
 TEST_PARAMS = [
     (None, None, True),
     (None, None, False),
     (0.01, None, True),
     (0.01, None, False),
-    (lambda size, default_fee: default_fee, None, True),
-    (lambda size, default_fee: default_fee, None, False),
-    (lambda size, default_fee: default_fee / 0, None, True),  # silent fallback to default fee if exception is raised
-    (lambda size, default_fee: default_fee / 0, None, False),
+    (use_default_fee, None, True),
+    (use_default_fee, None, False),
+    (failing_fee, None, True),  # silent fallback to default fee if exception is raised
+    (failing_fee, None, False),
     (None, 5, True),
     (None, 5, False),
 ]

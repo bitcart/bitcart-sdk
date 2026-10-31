@@ -1,4 +1,4 @@
-from universalasync import wrap
+from universalasync import async_to_sync
 
 from .coins import BCH, BNB, BTC, COINS, ETH, GRS, LTC, MATIC, TRX, XMR, XRG  # noqa: F401
 from .errors import errors
@@ -8,8 +8,8 @@ from .version import VERSION
 
 # Make all types accessible via both sync and async contexts
 for coin in COINS.values():
-    wrap(coin)
-wrap(APIManager)
-wrap(RPCProxy)
+    async_to_sync(coin)
+async_to_sync(APIManager)
+async_to_sync(RPCProxy)
 
 __all__ = list(COINS.keys()) + ["APIManager", "COINS", "RPCProxy", "errors", "VERSION"]

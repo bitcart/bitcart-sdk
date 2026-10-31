@@ -21,6 +21,9 @@ class EventDelivery:
     server: "RPCProxy"
     event_handlers: dict[str, Callable]
 
+    def __init__(self) -> None:
+        self._event_tasks: set[asyncio.Task] = set()
+
     async def process_updates(self, updates: Iterable[dict], currency: str | None = None, wallet: str | None = None) -> None:
         raise NotImplementedError()  # pragma: no cover
 
@@ -37,9 +40,11 @@ class EventDelivery:
             if msg.type == WSMsgType.TEXT:
                 try:
                     data = msg.json()
-                    asyncio.ensure_future(
+                    task = asyncio.create_task(
                         self.process_updates(data.get("updates", []), data.get("currency", "BTC"), data.get("wallet"))
                     )
+                    self._event_tasks.add(task)
+                    task.add_done_callback(self._event_tasks.discard)
                 except JSONDecodeError:
                     pass
             elif msg.type == WSMsgType.CLOSED or msg.type == WSMsgType.ERROR:  # pragma: no cover

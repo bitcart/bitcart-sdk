@@ -321,7 +321,7 @@ requires-dist = [
     { name = "aiohttp", specifier = ">=3.14.0" },
     { name = "aiohttp-socks", marker = "extra == 'proxy'" },
     { name = "jsonrpcclient" },
-    { name = "universalasync", specifier = ">=0.5.2.0" },
+    { name = "universalasync", specifier = ">=0.6.1.0" },
 ]
 provides-extras = ["proxy"]
 
@@ -1463,11 +1463,11 @@ wheels = [
 
 [[package]]
 name = "python-socks"
-version = "3.2.0"
+version = "3.2.1"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/5c/c8/1309971a28d94df88d90e308b2eaef09e209402606446dd9d88d75cc2158/python_socks-3.2.0.tar.gz", hash = "sha256:b1a0e372f33182f657d935c3171fa03623b6a65734323746d0de9f296bc537ea", size = 38773, upload-time = "2026-10-27T14:57:11.953Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/bb/5d/57f4f34cba6cd33dabc557096225487bfd977f8831d789b2b81a885f9ed3/python_socks-3.2.1.tar.gz", hash = "sha256:d21618ae6c6734d357be83263b3791666d12af59480ace8f48f2b5fcc8edc987", size = 39934, upload-time = "2026-10-31T11:56:08.117Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b6/6e/c42bb2ed04ddb141dcba433662d21a92323ba25c2662f8b99f0a0de4a30a/python_socks-3.2.0-py3-none-any.whl", hash = "sha256:4cb349f43043eeeb12d10919cb992a7ce8671c2c5a836a47cb0c29d8def11d24", size = 49571, upload-time = "2026-10-27T14:57:10.422Z" },
+    { url = "https://files.pythonhosted.org/packages/18/a6/175dbba852d77cf184dd6095a23dd0fe654898be74fb9dc6bfa16e89088f/python_socks-3.2.1-py3-none-any.whl", hash = "sha256:db2c37d4f7aeebfbba91d2d7670718b2d516061b34296fa8498c6f671e87c504", size = 49553, upload-time = "2026-10-31T11:56:06.54Z" },
 ]
 
 [[package]]
@@ -1681,11 +1681,11 @@ wheels = [
 
 [[package]]
 name = "universalasync"
-version = "0.6.0.0"
+version = "0.6.1.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/38/61/49ea92140722fc97d271ca3dbb9e40c3f77d2fd33cd10667475a1dc7c424/universalasync-0.6.0.0.tar.gz", hash = "sha256:188cbd58d9d8d21c306061c5e7110b7af58f3798e347c2e457b7b3a4e7fd3415", size = 91620, upload-time = "2026-10-31T10:11:50.512Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e2/c1/1f3a0eab95d77442b013c958bded39d3a8a02b17e7892c957c48d8236f79/universalasync-0.6.1.0.tar.gz", hash = "sha256:0dbe075a10123c3d137a9ef46f1c07fadb77204b3d4dc356d8b59e7cf7e9380d", size = 11842, upload-time = "2026-10-31T12:51:13.446Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/09/1e/d236519569216dbb2424b76c38ae6a36e54981ff2fddb6c12ea385f5d7c4/universalasync-0.6.0.0-py3-none-any.whl", hash = "sha256:da89a697191b8bce8c3f58c3fa04f831ec41610bc44ce3e231006cbdf24306c1", size = 8343, upload-time = "2026-10-31T10:11:49.023Z" },
+    { url = "https://files.pythonhosted.org/packages/b3/78/fcd80a417ea9c1441ae4f92b3d39939c996cbc1e66b9374693872351b187/universalasync-0.6.1.0-py3-none-any.whl", hash = "sha256:6f59456965905e5fedfd0ccdc4b0429678995d8e7e2ad0e8168599001d536297", size = 8432, upload-time = "2026-10-31T12:51:12.055Z" },
 ]
 
 [[package]]

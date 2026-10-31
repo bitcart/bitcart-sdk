@@ -47,6 +47,10 @@ async def test_manager_storage(manager, xpub):
     assert manager.wallets.BTC == manager.wallets["BTC"] == manager.BTC == manager["BTC"]
 
 
+async def test_coins_are_hashable(xpub):
+    assert {BTC(xpub=xpub), BTC(xpub=xpub), LTC(xpub=xpub)} == {BTC(xpub=xpub), LTC(xpub=xpub)}
+
+
 async def test_manager_methods(xpub):
     manager = APIManager()
     assert manager.load_wallet("BTC", xpub) == BTC(xpub=xpub)

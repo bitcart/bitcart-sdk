@@ -22,7 +22,7 @@ classifiers = [
     "Programming Language :: Python :: 3.15",
 ]
 keywords = ["electrum", "daemon", "bitcart", "bitcartcc"]
-dependencies = ["jsonrpcclient", "aiohttp>=3.14.0", "universalasync>=0.5.2.0"]
+dependencies = ["jsonrpcclient", "aiohttp>=3.14.0", "universalasync>=0.6.1.0"]
 
 [project.optional-dependencies]
 proxy = ["aiohttp_socks"]
@@ -80,6 +80,7 @@ ignore_missing_imports = true
 exclude = ["examples", "tests", "docs"]
 
 [tool.pytest.ini_options]
+strict = true
 junit_duration_report = "call"
 junit_suite_name = "bitcart_sdk_test_suite"
 addopts = ["--cov=bitcart", "--cov-report", "term-missing"]

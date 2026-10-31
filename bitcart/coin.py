@@ -12,3 +12,6 @@ class Coin:
         if not isinstance(other, Coin):
             return NotImplemented
         return (self.coin_name, self.xpub) == (other.coin_name, other.xpub)
+
+    def __hash__(self) -> int:
+        return hash((self.coin_name, self.xpub))
