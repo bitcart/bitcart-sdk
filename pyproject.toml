@@ -45,6 +45,9 @@ cache-keys = [{ file = "pyproject.toml" }, { file = "bitcart/version.py" }]
 [tool.deptry]
 extend_exclude = ["examples"]
 
+[tool.hatch.build.targets.sdist]
+include = ["bitcart", "tests", "CHANGELOG.md", "CONTRIBUTING.md"]
+
 [tool.hatch.build.targets.wheel]
 packages = ["bitcart"]
 
