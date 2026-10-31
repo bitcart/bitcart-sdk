@@ -1,4 +1,6 @@
 import asyncio
+import json
+from decimal import Decimal
 
 import pytest
 
@@ -48,6 +50,16 @@ async def wait_for_balance(regtest_wallet):
             await asyncio.sleep(1)
         else:
             break
+
+
+@pytest.fixture
+async def confirmed_tx(btc, regtest_wallet, wait_for_balance):
+    address = run_shell(["newaddress"])
+    tx_hash = await regtest_wallet.pay_to(address, 0.1)
+    run_shell(["newblock"])
+    while not (history := await btc.server.getaddresshistory(address)) or history[0]["height"] <= 0:
+        await asyncio.sleep(1)
+    return address, tx_hash
 
 
 def find_open_channel(channels):  # there is also BACKUP type
@@ -116,6 +128,57 @@ async def test_payment_to_many(regtest_wallet, fee, feerate, broadcast, wait_for
         ),
         broadcast,
     )
+
+
+def bitcoind_tx(tx_hash):
+    tx = json.loads(run_shell(["gettx", tx_hash]), parse_float=Decimal)
+    return {
+        "version": tx["version"],
+        "locktime": tx["locktime"],
+        "inputs": [
+            {
+                "prevout_hash": tx_input["txid"],
+                "prevout_n": tx_input["vout"],
+                "coinbase": False,
+                "nsequence": tx_input["sequence"],
+                "scriptSig": tx_input["scriptSig"]["hex"],
+                "witness": tx_input["txinwitness"],
+            }
+            for tx_input in tx["vin"]
+        ],
+        "outputs": [
+            {
+                "scriptpubkey": output["scriptPubKey"]["hex"],
+                "address": output["scriptPubKey"]["address"],
+                "value_sats": int(output["value"] * 100_000_000),
+            }
+            for output in tx["vout"]
+        ],
+    }
+
+
+async def test_get_tx(btc, confirmed_tx):
+    address, tx_hash = confirmed_tx
+    info = await btc.server.get_transaction(tx_hash)
+    assert info == {**bitcoind_tx(tx_hash), "confirmations": 1}
+    assert {"address": address, "value_sats": 10_000_000} in [
+        {"address": output["address"], "value_sats": output["value_sats"]} for output in info["outputs"]
+    ]
+    assert await btc.server.get_transaction(tx_hash, use_spv=True) == info
+
+
+async def test_get_address(btc, confirmed_tx):
+    address, tx_hash = confirmed_tx
+    history = await btc.server.getaddresshistory(address)
+    assert history == [{"tx_hash": tx_hash, "height": int(run_shell(["txheight", tx_hash]))}]
+
+
+async def test_connect(regtest_wallet, regtest_node_id):
+    with pytest.raises(errors.InvalidNodeIDError):
+        await regtest_wallet.connect("")
+    with pytest.raises(errors.InvalidNodeIDError):
+        await regtest_wallet.connect(regtest_node_id.split("@")[1])
+    assert await regtest_wallet.connect(regtest_node_id)
 
 
 async def test_open_channel(regtest_wallet, regtest_node_id):

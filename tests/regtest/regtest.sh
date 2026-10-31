@@ -3,23 +3,21 @@ set -eu
 
 bitcoin_cli="bitcoin-cli -rpcuser=doggman -rpcpassword=donkey -rpcport=18554 -regtest"
 
-function new_blocks()
-{
-    $bitcoin_cli generatetoaddress $1 $($bitcoin_cli getnewaddress)
+function new_blocks() {
+    $bitcoin_cli generatetoaddress "$1" "$($bitcoin_cli getnewaddress)"
 }
 
-function pay_to()
-{
-    $bitcoin_cli generatetoaddress $1 $2
+function pay_to() {
+    $bitcoin_cli generatetoaddress "$1" "$2"
 }
 
 if [[ $# -eq 0 ]]; then
-    echo "syntax: startup|newblock|newblocks|generate|newaddress|newtx"
+    echo "syntax: startup|newblock|newblocks|generate|newaddress|newtx|gettx|txheight"
     exit 1
 fi
 
 if [[ $1 == "startup" ]]; then
-    pay_to $2 $3
+    pay_to "$2" "$3"
     new_blocks 151
 fi
 
@@ -28,11 +26,11 @@ if [[ $1 == "newblock" ]]; then
 fi
 
 if [[ $1 == "newblocks" ]]; then
-    new_blocks $2
+    new_blocks "$2"
 fi
 
 if [[ $1 == "generate" ]]; then
-    pay_to $2 $3
+    pay_to "$2" "$3"
 fi
 
 if [[ $1 == "newaddress" ]]; then
@@ -40,7 +38,15 @@ if [[ $1 == "newaddress" ]]; then
 fi
 
 if [[ $1 == "newtx" ]]; then
-    block=$($bitcoin_cli generatetoaddress 1 $2 | jq -r '.[0]')
-    tx=$($bitcoin_cli getblock $block | jq -r '.tx | .[0]')
-    echo $tx
+    block=$($bitcoin_cli generatetoaddress 1 "$2" | jq -r '.[0]')
+    tx=$($bitcoin_cli getblock "$block" | jq -r '.tx | .[0]')
+    echo "$tx"
+fi
+
+if [[ $1 == "gettx" ]]; then
+    $bitcoin_cli getrawtransaction "$2" true
+fi
+
+if [[ $1 == "txheight" ]]; then
+    $bitcoin_cli getblockheader "$($bitcoin_cli getrawtransaction "$2" true | jq -r '.blockhash')" | jq '.height'
 fi

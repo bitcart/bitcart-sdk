@@ -37,16 +37,6 @@ async def test_add_invoice(btc_wallet_lightning):
     assert got_invoice == invoice
 
 
-async def test_connect(btc_wallet_lightning):
-    with pytest.raises(errors.InvalidNodeIDError):
-        assert not await btc_wallet_lightning.connect("")
-    with pytest.raises(errors.InvalidNodeIDError):
-        assert not await btc_wallet_lightning.connect("172.81.181.3")  # taken from electrum sources
-    assert await btc_wallet_lightning.connect(
-        "0214382bdce7750dfcb8126df8e2b12de38536902dc36abcebdaeefdeca1df8284@172.81.181.3"
-    )
-
-
 async def test_wallet_methods_on_non_segwit(lightning_unsupported_wallet):
     request = await lightning_unsupported_wallet.add_request(0.5)
     assert request["is_lightning"] is False
