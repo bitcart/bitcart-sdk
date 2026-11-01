@@ -21,9 +21,10 @@ jobs:
       install-dependencies: |
         uv sync --frozen --compile-bytecode
 
-  zizmor:
-    name: zizmor
-    uses: bitcart/bitcart-actions/.github/workflows/zizmor-audit.yml@master
+  workflows:
+    name: workflows
+    uses: bitcart/bitcart-actions/.github/workflows/workflow-checks.yml@master
+
     permissions:
       contents: read
       security-events: write # needed for github advanced security
@@ -31,12 +32,7 @@ jobs:
   test:
     name: test
     uses: bitcart/bitcart-actions/.github/workflows/python-tests.yml@master
-    needs: [lint, zizmor]
-
-    permissions:
-      contents: read
-      id-token: write # OIDC token for codecov uploads
-
+    needs: [lint, workflows]
     with:
       python-versions: '["3.12", "3.13", "3.14", "3.15"]'
       install-daemon: true
@@ -48,15 +44,14 @@ jobs:
         UV_PROJECT_ENVIRONMENT=$GITHUB_WORKSPACE/.venv uv sync --frozen --compile-bytecode --inexact --no-dev --group btc
       background: cd $DAEMON_DIR && just testnet
 
-  functional-tests:
-    name: functional-tests
-    uses: bitcart/bitcart-actions/.github/workflows/python-tests.yml@master
-    needs: test
-
     permissions:
       contents: read
       id-token: write # OIDC token for codecov uploads
 
+  functional-tests:
+    name: functional-tests
+    uses: bitcart/bitcart-actions/.github/workflows/python-tests.yml@master
+    needs: test
     with:
       install-daemon: true
       daemon-repository: bitcart/bitcart
@@ -69,6 +64,10 @@ jobs:
       tests: just test-functional
       coverage-name: Functional Tests
       coverage-flag: functional-tests
+
+    permissions:
+      contents: read
+      id-token: write # OIDC token for codecov uploads
 
   combine-coverage:
     name: combine-coverage
