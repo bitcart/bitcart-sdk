@@ -62,9 +62,9 @@ async def confirmed_tx(btc, regtest_wallet, wait_for_balance):
     return address, tx_hash
 
 
-def find_open_channel(channels):  # there is also BACKUP type
+def find_open_channel(channels):
     for channel in channels:
-        if channel["type"] == "CHANNEL" and channel["state"] == "OPEN":
+        if channel["state"] == "OPEN":
             return channel
 
 
