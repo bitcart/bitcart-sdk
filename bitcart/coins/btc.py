@@ -206,18 +206,18 @@ class BTC(Coin, EventDelivery):
         data = await self.server.get_request(address)
         return await self._convert_amounts(data)
 
-    async def history(self) -> dict:
+    async def history(self) -> list:
         """Get transaction history of wallet
 
         Examples:
             >>> c.history()
-            {'summary': {'end_balance': '0.', 'end_date': None, 'from_height': None, 'incoming': '0.00185511',...
+            [{'txid': '9a3d5e8c4f...', 'amount_sat': 185511, 'fee_sat': None, 'height': 2539012, 'confirmations': 12,...
 
         Args:
             self (BTC): self
 
         Returns:
-            dict: dictionary with some data, where key transactions is list of transactions
+            list: list of wallet transactions
         """
         return await self.server.onchain_history()  # type: ignore
 

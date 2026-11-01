@@ -12,7 +12,7 @@ class ETH(BTC):
     EXPIRATION_KEY = "expiration"
     is_eth_based = True
 
-    async def history(self) -> dict:  # pragma: no cover
+    async def history(self) -> list:  # pragma: no cover
         return await self.server.history()  # type: ignore
 
     async def get_address(self, *args: Any, **kwargs: Any) -> NoReturn:

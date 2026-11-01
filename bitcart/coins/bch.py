@@ -10,7 +10,7 @@ class BCH(BTC):
     AMOUNT_FIELD = "amount (BCH)"
     EXPIRATION_KEY = "expiration"
 
-    async def history(self) -> dict:  # pragma: no cover
+    async def history(self) -> list:  # pragma: no cover
         return await self.server.history()  # type: ignore
 
     async def _add_request(self, *args: Any, **kwargs: Any) -> dict:  # pragma: no cover
