@@ -55,15 +55,12 @@ CI can run it for you if needed.
 
 You can get Fulcrum from https://github.com/cculianu/Fulcrum/releases
 
-Bitcoind installation instructions differ on different distros and OSes.
+Get bitcoind from https://bitcoincore.org/en/download/, verify it as described there, and put `bitcoind` and `bitcoin-cli` on your `PATH`.
 
-Here are installation instructions for ubuntu:
+The regtest scripts also need `screen`, and the Bitcart daemon needs libsecp256k1. On Ubuntu:
 
 ```bash
-sudo add-apt-repository -y ppa:luke-jr/bitcoincore
-sudo apt-get -qq update
-sudo apt-get install -yq bitcoind
-sudo apt-get -y install libsecp256k1-0
+sudo apt-get install -y screen libsecp256k1-dev
 ```
 
 Before running extended test suite, start bitcoind and fulcrum. Each time regtest network is recreated.
