@@ -2,6 +2,10 @@
 
 ## Latest changes
 
+## 1.19.4.0
+
+Now using immutable releases
+
 ## 1.19.3.0
 
 Fix event handlers of websocket updates possibly being garbage collected before they finish
