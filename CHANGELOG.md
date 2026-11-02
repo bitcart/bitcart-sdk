@@ -2,6 +2,10 @@
 
 ## Latest changes
 
+## 1.19.5.0
+
+Add `public` argument to `open_channel` method to open public channels (experimental in Electrum)
+
 ## 1.19.4.0
 
 Now using immutable releases
