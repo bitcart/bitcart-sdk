@@ -453,7 +453,7 @@ class BTC(Coin, EventDelivery):
     ### Lightning apis ###
 
     @lightning
-    async def open_channel(self, node_id: str, amount: AmountType, public: bool | None = None) -> str:
+    async def open_channel(self, node_id: str, amount: AmountType, public: bool = False) -> str:
         """Open lightning channel
 
         Open channel with node, returns string of format
@@ -463,8 +463,8 @@ class BTC(Coin, EventDelivery):
             self (BTC): self
             node_id (str): id of node to open channel with
             amount (AmountType): amount to open channel
-            public (bool | None, optional): Whether to announce the channel. Defaults to the daemon's
-                LIGHTNING_PUBLIC_CHANNELS setting. Public channels need that setting to be enabled.
+            public (bool, optional): Whether to announce the channel. Requires the daemon's
+                LIGHTNING_PUBLIC_CHANNELS setting. Defaults to False.
 
         Returns:
             str: string of format txid:output_index
