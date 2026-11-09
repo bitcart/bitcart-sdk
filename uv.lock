@@ -1681,11 +1681,11 @@ wheels = [
 
 [[package]]
 name = "universalasync"
-version = "0.6.1.0"
+version = "0.6.3.1"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/e2/c1/1f3a0eab95d77442b013c958bded39d3a8a02b17e7892c957c48d8236f79/universalasync-0.6.1.0.tar.gz", hash = "sha256:0dbe075a10123c3d137a9ef46f1c07fadb77204b3d4dc356d8b59e7cf7e9380d", size = 11842, upload-time = "2026-10-31T12:51:13.446Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e8/f0/c5c6f9fa73e90d1c1fb89736e3e29f40759e80b9bbbc854681954c6bc3b7/universalasync-0.6.3.1.tar.gz", hash = "sha256:69866f644ae51f1f4a62c0a740a197bac83b8fd711880267994c4bdb28e1d1df", size = 14104, upload-time = "2026-11-06T23:13:20.718Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b3/78/fcd80a417ea9c1441ae4f92b3d39939c996cbc1e66b9374693872351b187/universalasync-0.6.1.0-py3-none-any.whl", hash = "sha256:6f59456965905e5fedfd0ccdc4b0429678995d8e7e2ad0e8168599001d536297", size = 8432, upload-time = "2026-10-31T12:51:12.055Z" },
+    { url = "https://files.pythonhosted.org/packages/4b/51/03672e969857eec67a7dfd3d2cbce0b7edba1dcd745756834f7db5131126/universalasync-0.6.3.1-py3-none-any.whl", hash = "sha256:49425e71e3af35852e69fc46fed00c08137f3faacbffb9e4b31f1d68a3339873", size = 9167, upload-time = "2026-11-06T23:13:19.489Z" },
 ]
 
 [[package]]
