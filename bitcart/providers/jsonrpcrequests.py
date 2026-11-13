@@ -4,7 +4,7 @@ from typing import Any
 from urllib.parse import urljoin
 
 import aiohttp
-from jsonrpcclient import Ok, parse_json, request
+from jsonrpcclient import Error, Ok, parse_json, request
 from universalasync import LoopLocal, async_to_sync_wraps
 
 from ..errors import ConnectionFailedError, UnknownError, generate_exception
@@ -21,7 +21,7 @@ def create_request(method: str, *args: Any, **kwargs: Any) -> dict:
         params = list(args)
     elif kwargs:
         params = kwargs
-    return request(method, params)  # type: ignore
+    return request(method, params)
 
 
 class RPCProxy:
@@ -115,6 +115,8 @@ class RPCProxy:
                     parsed = parse_json(await response.text())
                     if isinstance(parsed, Ok):
                         return parsed.result
+                    if not isinstance(parsed, Error):
+                        raise UnknownError("Unexpected batch response from server")
                     message = parsed.message
                     error_code = str(parsed.code)
                     exceptions = (await self.spec)["exceptions"]

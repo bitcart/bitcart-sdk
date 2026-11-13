@@ -147,6 +147,13 @@ async def test_wrapper_raises_unknown_error_for_unmapped_code(mocker):
         await proxy.some_method()
 
 
+async def test_wrapper_raises_unknown_error_for_batch_response(mocker):
+    session = _mock_session_with_response(mocker, '[{"jsonrpc": "2.0", "result": true, "id": 1}]')
+    proxy = RPCProxy(MOCK_RPC_URL, session=session)
+    with pytest.raises(UnknownError, match="batch"):
+        await proxy.some_method()
+
+
 async def test_wrapper_wraps_connection_errors(mocker):
     session = mocker.MagicMock()
     session.post.side_effect = aiohttp.ClientConnectionError("no route")
