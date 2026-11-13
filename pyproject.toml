@@ -41,6 +41,12 @@ all = [{ include-group = "dev" }, { include-group = "docs" }]
 
 [tool.uv]
 cache-keys = [{ file = "pyproject.toml" }, { file = "bitcart/version.py" }]
+# dependency cooldowns for security
+exclude-newer = "1 week"
+
+# except for our packages
+[tool.uv.exclude-newer-package]
+universalasync = "0 days"
 
 [tool.deptry]
 extend_exclude = ["examples"]
